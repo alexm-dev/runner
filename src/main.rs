@@ -1,13 +1,15 @@
 mod file_manager;
+mod formatter;
+
+// use crate::file_manager::FileEntry;
+// use crate::formatter::Formatter;
 
 fn main() -> std::io::Result<()> {
     let entries = file_manager::read_dir(".")?;
-    for entry in entries {
-        if entry.is_dir {
-            println!("DIR:      {}", entry.name);
-        } else {
-            println!("          {}", entry.name);
-        }
+    let formatter = formatter::Formatter::new(true);
+    let sorted = formatter.format(entries);
+    for entry in sorted {
+        println!("{}", entry.name);
     }
     Ok(())
 }
