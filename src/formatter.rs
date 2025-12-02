@@ -9,7 +9,7 @@ impl Formatter {
         Self { dirs_first }
     }
 
-    pub fn format(&self, mut entries: Vec<FileEntry>) -> Vec<FileEntry> {
+    pub fn format(&self, entries: &mut [FileEntry]) {
         if self.dirs_first {
             entries.sort_unstable_by(|a, b| match (a.is_dir, b.is_dir) {
                 (true, false) => std::cmp::Ordering::Less,
@@ -19,7 +19,5 @@ impl Formatter {
         } else {
             entries.sort_unstable_by(|a, b| a.name.cmp(&b.name));
         }
-        entries
     }
 }
-
