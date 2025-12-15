@@ -1,5 +1,15 @@
+//! Configuration options for runner
+//!
+//! This modules defines all configuration options and deserializes them
+//! from the `runner.toml` using `serde`.
+//!
+//! Each config struct corresponds to a top-level key in the `runner.toml`.
+
 use serde::Deserialize;
-use std::fs;
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
 #[derive(Deserialize, Debug)]
 #[serde(default)]
@@ -46,7 +56,8 @@ pub struct Editor {
 }
 
 impl Config {
-    pub fn load(path: &str) -> Self {
+    /// Loads config from
+    pub fn load(path: &Path) -> Self {
         match fs::read_to_string(path)
             .ok()
             .and_then(|content| toml::from_str(&content).ok())
@@ -57,6 +68,38 @@ impl Config {
                 Config::default()
             }
         }
+    }
+
+    pub fn default_path() -> PathBuf {
+        if let Ok(path) = std::env::var("RUNNER_CONFIG") {
+            return PathBuf::from(path);
+        }
+
+        if let Some(home) = dirs::home_dir() {
+            return home.join(".config/runner/runner.toml");
+        }
+        PathBuf::from("runner.toml")
+    }
+
+    pub fn generate_default(path: &PathBuf) -> std::io::Result<()> {
+        if path.exists() {
+            return Err(io::Error::new(
+                io::ErrorKind::AlreadyExists,
+                format!("Config file already exists at {:?}", path),
+            ));
+        }
+
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        let default_toml = r#"
+        dirs_first = true
+        show_hidden = false
+        "#;
+
+        fs::write(path, default_toml)?;
+        println!("Default config generatet at {:?}", path);
+        Ok(())
     }
 }
 

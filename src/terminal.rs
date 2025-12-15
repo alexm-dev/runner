@@ -11,7 +11,7 @@ use ratatui::{
     style::{Modifier, Style},
     widgets::{Block, Borders, List, ListItem, ListState},
 };
-use std::{io, thread, time::Duration};
+use std::{io, time::Duration};
 
 pub fn run_terminal(app: &mut AppState) -> io::Result<()> {
     enable_raw_mode()?;
@@ -68,11 +68,12 @@ fn event_loop<B: ratatui::backend::Backend>(
                 .entries
                 .iter()
                 .map(|e| {
-                    let mut name = e.name.clone();
-                    if e.is_dir && app.config.display.show_dir_marker {
-                        name.push('/');
-                    }
-                    ListItem::new(name)
+                    let dir_name = if e.is_dir && app.config.display.show_dir_marker {
+                        format!("{}{}", e.name.to_string_lossy(), "/")
+                    } else {
+                        e.name.to_string_lossy().into_owned()
+                    };
+                    ListItem::new(dir_name)
                 })
                 .collect();
 

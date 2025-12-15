@@ -18,7 +18,10 @@ impl Formatter {
     pub fn format(&self, entries: &mut [FileEntry]) {
         let cmp_name = |a: &FileEntry, b: &FileEntry| {
             if self.case_insensitive {
-                a.name.to_lowercase().cmp(&b.name.to_lowercase())
+                a.name
+                    .to_string_lossy()
+                    .to_lowercase()
+                    .cmp(&b.name.to_string_lossy().to_lowercase())
             } else {
                 a.name.cmp(&b.name)
             }
