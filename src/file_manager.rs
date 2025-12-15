@@ -1,25 +1,43 @@
+use std::ffi::OsString;
 use std::fs;
-use std::path::PathBuf;
 
 pub struct FileEntry {
-    pub name: String,
-    pub path: PathBuf,
+    pub name: OsString,
     pub is_dir: bool,
     pub is_hidden: bool,
 }
 
-pub fn read_dir(path: &str) -> std::io::Result<Vec<FileEntry>> {
-    let mut entries = Vec::new();
-    for entry_result in fs::read_dir(path)? {
-        let entry = entry_result?;
-        let file_type = entry.file_type()?;
-        let name = entry.file_name().to_string_lossy().to_string();
-        let path = entry.path();
-        let is_dir = file_type.is_dir();
-        let is_hidden = name.starts_with(".");
+pub fn browse_dir(path: &std::path::Path) -> std::io::Result<Vec<FileEntry>> {
+    let mut entries = Vec::with_capacity(256);
+    for entry in fs::read_dir(path)? {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
+        let name = entry.file_name();
+        #[cfg(unix)]
+        let (is_dir, is_hidden) = {
+            use std::os::unix::ffi::OsStrExt;
+            let is_hidden = name.as_bytes().get(0) == Some(&b'.');
+            let is_dir = entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false);
+            (is_dir, is_hidden)
+        };
+
+        #[cfg(windows)]
+        let (is_dir, is_hidden) = {
+            use std::os::windows::fs::MetadataExt;
+
+            if let Ok(md) = entry.metadata() {
+                let is_hidden = md.file_attributes() & 0x2 != 0;
+                let is_dir = md.is_dir();
+                (is_dir, is_hidden)
+            } else {
+                (false, false)
+            }
+        };
         entries.push(FileEntry {
             name,
-            path,
             is_dir,
             is_hidden,
         });
