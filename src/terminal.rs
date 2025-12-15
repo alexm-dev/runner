@@ -1,7 +1,7 @@
 use crate::app::AppState;
 use crate::utils::parse_color;
 use crossterm::{
-    event::{self, Event, KeyCode},
+    event::{self, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
@@ -11,8 +11,7 @@ use ratatui::{
     style::{Modifier, Style},
     widgets::{Block, Borders, List, ListItem, ListState},
 };
-use std::io;
-use std::time::Duration;
+use std::{io, thread, time::Duration};
 
 pub fn run_terminal(app: &mut AppState) -> io::Result<()> {
     enable_raw_mode()?;
@@ -41,7 +40,8 @@ fn keycode_to_str(key: &KeyCode) -> &'static str {
         KeyCode::Char('\n') => "Enter",
         KeyCode::Left => "Left Arrow",
         KeyCode::Right => "Right Arrow",
-        KeyCode::Down => "Down Arror",
+        KeyCode::Down => "Down Arrow",
+        KeyCode::Up => "Up Arrow",
         KeyCode::Esc => "Esc",
         KeyCode::Backspace => "Backspace",
         _ => "",
@@ -67,7 +67,13 @@ fn event_loop<B: ratatui::backend::Backend>(
             let items: Vec<ListItem> = app
                 .entries
                 .iter()
-                .map(|e| ListItem::new(e.name.clone()))
+                .map(|e| {
+                    let mut name = e.name.clone();
+                    if e.is_dir && app.config.display.show_dir_marker {
+                        name.push('/');
+                    }
+                    ListItem::new(name)
+                })
                 .collect();
 
             let mut state = ListState::default();
@@ -89,6 +95,9 @@ fn event_loop<B: ratatui::backend::Backend>(
 
         if event::poll(Duration::from_millis(50))? {
             if let Event::Key(key_event) = event::read()? {
+                if key_event.kind != KeyEventKind::Press {
+                    continue;
+                }
                 let key_str = keycode_to_str(&key_event.code);
                 if !key_str.is_empty() {
                     let should_continue = app.handle_keypress(key_str);

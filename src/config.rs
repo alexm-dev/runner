@@ -16,6 +16,7 @@ pub struct Config {
 #[derive(Deserialize, Debug)]
 #[serde(default)]
 pub struct Display {
+    pub show_selection_marker: bool,
     pub show_dir_marker: bool,
     pub borders: bool,
 }
@@ -76,6 +77,7 @@ impl Default for Config {
 impl Default for Display {
     fn default() -> Self {
         Display {
+            show_selection_marker: true,
             show_dir_marker: true,
             borders: true,
         }
