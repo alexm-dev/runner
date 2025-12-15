@@ -1,6 +1,5 @@
-use std::io;
-use std::time::Duration;
-
+use crate::app::AppState;
+use crate::utils::parse_color;
 use crossterm::{
     event::{self, Event, KeyCode},
     execute,
@@ -9,11 +8,11 @@ use crossterm::{
 use ratatui::{
     Terminal,
     backend::CrosstermBackend,
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     widgets::{Block, Borders, List, ListItem, ListState},
 };
-
-use crate::app::AppState;
+use std::io;
+use std::time::Duration;
 
 pub fn run_terminal(app: &mut AppState) -> io::Result<()> {
     enable_raw_mode()?;
@@ -32,15 +31,39 @@ pub fn run_terminal(app: &mut AppState) -> io::Result<()> {
     result
 }
 
+fn keycode_to_str(key: &KeyCode) -> &'static str {
+    match key {
+        KeyCode::Char('j') => "j",
+        KeyCode::Char('k') => "k",
+        KeyCode::Char('h') => "h",
+        KeyCode::Char('l') => "l",
+        KeyCode::Char('q') => "q",
+        KeyCode::Char('\n') => "Enter",
+        KeyCode::Left => "Left Arrow",
+        KeyCode::Right => "Right Arrow",
+        KeyCode::Down => "Down Arror",
+        KeyCode::Esc => "Esc",
+        KeyCode::Backspace => "Backspace",
+        _ => "",
+    }
+}
+
 fn event_loop<B: ratatui::backend::Backend>(
     terminal: &mut Terminal<B>,
     app: &mut AppState,
 ) -> io::Result<()> {
     loop {
-        // draw frame
         terminal.draw(|f| {
             let size = f.area();
-            let block = Block::default().title("runner").borders(Borders::ALL);
+            let cfg = app.config;
+            let mut block = Block::default();
+
+            if cfg.display.borders {
+                block = block.borders(Borders::ALL);
+            }
+
+            let accent_color = parse_color(&cfg.theme.accent_color);
+
             let items: Vec<ListItem> = app
                 .entries
                 .iter()
@@ -56,7 +79,7 @@ fn event_loop<B: ratatui::backend::Backend>(
                 .block(block)
                 .highlight_style(
                     Style::default()
-                        .fg(Color::Yellow)
+                        .fg(accent_color)
                         .add_modifier(Modifier::BOLD),
                 )
                 .highlight_symbol("> ");
@@ -64,24 +87,14 @@ fn event_loop<B: ratatui::backend::Backend>(
             f.render_stateful_widget(list, size, &mut state);
         })?;
 
-        // non-blocking poll with small timeout; avoids busy loop
         if event::poll(Duration::from_millis(50))? {
-            if let Event::Key(key) = event::read()? {
-                match key.code {
-                    KeyCode::Char('q') | KeyCode::Esc => {
+            if let Event::Key(key_event) = event::read()? {
+                let key_str = keycode_to_str(&key_event.code);
+                if !key_str.is_empty() {
+                    let should_continue = app.handle_keypress(key_str);
+                    if !should_continue {
                         break;
                     }
-                    KeyCode::Up => {
-                        if app.selected > 0 {
-                            app.selected -= 1;
-                        }
-                    }
-                    KeyCode::Down => {
-                        if app.selected + 1 < app.entries.len() {
-                            app.selected += 1;
-                        }
-                    }
-                    _ => {}
                 }
             }
         }

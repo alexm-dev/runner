@@ -10,6 +10,7 @@ pub struct Config {
     pub display: Display,
     pub theme: Theme,
     pub editor: Editor,
+    pub keys: Keys,
 }
 
 #[derive(Deserialize, Debug)]
@@ -67,6 +68,7 @@ impl Default for Config {
             display: Display::default(),
             theme: Theme::default(),
             editor: Editor::default(),
+            keys: Keys::default(),
         }
     }
 }
@@ -83,8 +85,8 @@ impl Default for Display {
 impl Default for Theme {
     fn default() -> Self {
         Theme {
-            background: "dark".into(),
-            accent_color: "#131313".into(),
+            background: "default".into(),
+            accent_color: "default".into(),
         }
     }
 }
@@ -93,11 +95,11 @@ impl Default for Keys {
     fn default() -> Self {
         Keys {
             open_file: vec!["Enter".into()],
-            go_up: vec!["k".into()],
-            go_down: vec!["j".into()],
-            go_parent: vec!["h".into()],
-            go_into_dir: vec!["l".into()],
-            quit: vec!["q".into()],
+            go_up: vec!["k".into(), "Up Arrow".into()],
+            go_down: vec!["j".into(), "Down Arrow".into()],
+            go_parent: vec!["h".into(), "Left Arrow".into(), "Backspace".into()],
+            go_into_dir: vec!["l".into(), "Right Arrow".into(), "Enter".into()],
+            quit: vec!["q".into(), "Esc".into()],
         }
     }
 }

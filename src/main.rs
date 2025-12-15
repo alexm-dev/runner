@@ -3,6 +3,7 @@ mod config;
 mod file_manager;
 mod formatter;
 mod terminal;
+mod utils;
 
 use config::Config;
 

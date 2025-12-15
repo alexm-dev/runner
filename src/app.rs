@@ -8,8 +8,8 @@ pub struct AppState<'a> {
     pub config: &'a Config,
 }
 
-impl AppState {
-    pub fn new(config: &Config) -> std::io::Result<Self> {
+impl<'a> AppState<'a> {
+    pub fn new(config: &'a Config) -> std::io::Result<Self> {
         let mut entries = read_dir(".")?;
 
         let formatter = Formatter::new(
@@ -25,5 +25,24 @@ impl AppState {
             selected: 0,
             config,
         })
+    }
+
+    pub fn handle_keypress(&mut self, key: &str) -> bool {
+        if self.config.keys.go_up.iter().any(|k| k == key) {
+            if self.selected > 0 {
+                self.selected -= 1;
+            }
+            return true;
+        }
+        if self.config.keys.go_down.iter().any(|k| k == key) {
+            if self.selected + 1 < self.entries.len() {
+                self.selected += 1;
+            }
+            return true;
+        }
+        if self.config.keys.quit.iter().any(|k| k == key) {
+            return false;
+        }
+        true
     }
 }
