@@ -2,9 +2,10 @@ use crate::config::Config;
 use crate::file_manager::{FileEntry, read_dir};
 use crate::formatter::Formatter;
 
-pub struct AppState {
+pub struct AppState<'a> {
     pub entries: Vec<FileEntry>,
     pub selected: usize,
+    pub config: &'a Config,
 }
 
 impl AppState {
@@ -22,6 +23,7 @@ impl AppState {
         Ok(Self {
             entries,
             selected: 0,
+            config,
         })
     }
 }
