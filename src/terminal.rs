@@ -9,10 +9,13 @@ use crossterm::{
 use ratatui::{
     Terminal,
     backend::CrosstermBackend,
-    widgets::{Block, Borders, Paragraph},
+    style::{Color, Modifier, Style},
+    widgets::{Block, Borders, List, ListItem, ListState},
 };
 
-pub fn run_terminal() -> io::Result<()> {
+use crate::app::AppState;
+
+pub fn run_terminal(app: &mut AppState) -> io::Result<()> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(&mut stdout, EnterAlternateScreen)?;
@@ -20,7 +23,7 @@ pub fn run_terminal() -> io::Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let result = event_loop(&mut terminal);
+    let result = event_loop(&mut terminal, app);
 
     disable_raw_mode()?;
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
@@ -29,17 +32,36 @@ pub fn run_terminal() -> io::Result<()> {
     result
 }
 
-fn event_loop<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>) -> io::Result<()> {
+fn event_loop<B: ratatui::backend::Backend>(
+    terminal: &mut Terminal<B>,
+    app: &mut AppState,
+) -> io::Result<()> {
     loop {
         // draw frame
         terminal.draw(|f| {
             let size = f.area();
             let block = Block::default().title("runner").borders(Borders::ALL);
+            let items: Vec<ListItem> = app
+                .entries
+                .iter()
+                .map(|e| ListItem::new(e.name.clone()))
+                .collect();
 
-            // super simple content for now
-            let paragraph = Paragraph::new("Press 'q' to quit.").block(block);
+            let mut state = ListState::default();
+            if !app.entries.is_empty() {
+                state.select(Some(app.selected));
+            }
 
-            f.render_widget(paragraph, size);
+            let list = List::new(items)
+                .block(block)
+                .highlight_style(
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                )
+                .highlight_symbol("> ");
+
+            f.render_stateful_widget(list, size, &mut state);
         })?;
 
         // non-blocking poll with small timeout; avoids busy loop
@@ -49,11 +71,20 @@ fn event_loop<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>) -> io::R
                     KeyCode::Char('q') | KeyCode::Esc => {
                         break;
                     }
+                    KeyCode::Up => {
+                        if app.selected > 0 {
+                            app.selected -= 1;
+                        }
+                    }
+                    KeyCode::Down => {
+                        if app.selected + 1 < app.entries.len() {
+                            app.selected += 1;
+                        }
+                    }
                     _ => {}
                 }
             }
         }
     }
-
     Ok(())
 }

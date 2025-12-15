@@ -8,5 +8,5 @@ mod terminal;
 
 fn main() -> std::io::Result<()> {
     let mut app = app::AppState::new()?;
-    terminal::run_terminal()
+    terminal::run_terminal(&mut app)
 }
