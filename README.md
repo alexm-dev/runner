@@ -1,6 +1,6 @@
 # `runner`
 
-[![Build](https://github.com/alexm-dev/runner/actions/workflows/rust.yml/badge.svg)](https://github.com/alexm-dev/runner/actions)
+[![Build](https://github.com/alexm-dev/runner/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/alexm-dev/runner/actions)
 [![Language](https://img.shields.io/badge/language-Rust-orange)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
