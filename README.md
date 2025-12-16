@@ -1,8 +1,8 @@
 # `runner`
 
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Language](https://img.shields.io/badge/language-Rust-orange)](https://www.rust-lang.org/)
 [![Build](https://github.com/alexm-dev/runner/actions/workflows/rust.yml/badge.svg)](https://github.com/alexm-dev/runner/actions)
+[![Language](https://img.shields.io/badge/language-Rust-orange)](https://www.rust-lang.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 A fast and lightweight console file browser written in Rust
 
