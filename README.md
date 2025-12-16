@@ -2,11 +2,12 @@
 
 A fast and lightweight console file browser written in Rust
 
-runner is a minimal terminal file browser focused on speed and simplicity.
-It allows you to naviagate directories, view file listings, and perform typical file browser actions.
+runner is a minimal terminal file browser focused on speed and simplicity.  
 
-This project is a work in progess.
-It is being actively developed and will change over time.
+It allows you to naviagate directories, view file listings, and perform typical file browser actions.  
+
+This project is a work in progess.  
+It is being actively developed and will change over time.  
 
 ## Features
 - Naviagate directories in the Terminal
@@ -26,7 +27,9 @@ cargo build --release
 ## Configuration
 runner uses a runner.toml file for configuration.
 It is located by default in:
-- `$HOME/.config/runner/runner.toml on Unix and on Windows (inside the user folder)
+
+`$HOME/.config/runner/runner.toml` on Unix and on Windows (inside the user folder)  
+
 
 You can override the config path by setting a environment variable:
 
@@ -48,7 +51,7 @@ This will generate a config in the default config path.
 
 ## Roadmap
 
-runner is in active development. Future releases will focus on expanding functionality while keeping it fast and lightweight.
+runner is in active development. Future releases will focus on expanding functionality while keeping it fast and lightweight.  
 Planned features for future releases include:
 
 - Search functionality: search with other find or grep functions instead
