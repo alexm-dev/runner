@@ -143,7 +143,7 @@ impl Default for Keys {
             go_up: vec!["k".into(), "Up Arrow".into()],
             go_down: vec!["j".into(), "Down Arrow".into()],
             go_parent: vec!["h".into(), "Left Arrow".into(), "Backspace".into()],
-            go_into_dir: vec!["l".into(), "Right Arrow".into(), "Enter".into()],
+            go_into_dir: vec!["l".into(), "Right Arrow".into()],
             quit: vec!["q".into(), "Esc".into()],
         }
     }
@@ -151,6 +151,6 @@ impl Default for Keys {
 
 impl Default for Editor {
     fn default() -> Self {
-        Editor { cmd: "vim".into() }
+        Editor { cmd: "nvim".into() }
     }
 }

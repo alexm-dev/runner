@@ -1,7 +1,6 @@
 use crate::config::Editor;
 use ratatui::style::Color;
-use std::path::Path;
-use std::process::Command;
+use std::io;
 
 pub fn parse_color(s: &str) -> Color {
     match s.to_lowercase().as_str() {
@@ -31,7 +30,22 @@ pub fn parse_color(s: &str) -> Color {
     }
 }
 
-pub fn open_in_editor(editor: &Editor, path: &Path) -> std::io::Result<()> {
-    Command::new(&editor.cmd).arg(path).status()?;
-    Ok(())
+pub fn open_in_editor(editor: &Editor, file_path: &std::path::Path) -> std::io::Result<()> {
+    use crossterm::{
+        execute,
+        terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
+    };
+
+    let mut stdout = io::stdout();
+    disable_raw_mode()?;
+    execute!(stdout, LeaveAlternateScreen)?;
+
+    // Allow for future extension (if Editor adds arguments/flags later)
+    let status = std::process::Command::new(&editor.cmd)
+        .arg(file_path)
+        .status();
+
+    execute!(io::stdout(), EnterAlternateScreen)?;
+    enable_raw_mode()?;
+    status.map(|_| ())
 }

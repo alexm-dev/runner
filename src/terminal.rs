@@ -1,4 +1,4 @@
-use crate::app::AppState;
+use crate::app::{AppState, KeypressResult};
 use crate::utils::parse_color;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
@@ -37,7 +37,7 @@ fn keycode_to_str(key: &KeyCode) -> &'static str {
         KeyCode::Char('h') => "h",
         KeyCode::Char('l') => "l",
         KeyCode::Char('q') => "q",
-        KeyCode::Enter => "Enter",
+        KeyCode::Enter | KeyCode::Char('\n') | KeyCode::Char('\r') => "Enter",
         KeyCode::Left => "Left Arrow",
         KeyCode::Right => "Right Arrow",
         KeyCode::Down => "Down Arrow",
@@ -101,8 +101,11 @@ fn event_loop<B: ratatui::backend::Backend>(
                 }
                 let key_str = keycode_to_str(&key_event.code);
                 if !key_str.is_empty() {
-                    let should_continue = app.handle_keypress(key_str);
-                    if !should_continue {
+                    let result = app.handle_keypress(key_str);
+                    if let KeypressResult::OpenedEditor = result {
+                        terminal.clear()?;
+                    }
+                    if let KeypressResult::Quit = result {
                         break;
                     }
                 }
