@@ -38,7 +38,7 @@ pub fn browse_dir(path: &std::path::Path) -> std::io::Result<Vec<FileEntry>> {
             use std::os::unix::ffi::OsStrExt;
             let is_hidden = name.as_bytes().get(0) == Some(&b'.');
             let is_dir = entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false);
-            (is_dir, is_hiddenm, false)
+            (is_dir, is_hidden, false)
         };
 
         #[cfg(windows)]
