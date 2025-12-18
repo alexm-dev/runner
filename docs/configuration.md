@@ -40,6 +40,8 @@ borders = true
 background = "default"
 
 # Changes the color of the selection
+# Can be changed with either terminal colors or hex colors
+# accent_color = "#102334"
 accent_color = "default"
 
 # Editor configuration for runner
