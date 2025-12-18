@@ -30,10 +30,10 @@ impl<'a> AppState<'a> {
         let mut entries = browse_dir(&current_dir)?;
 
         let formatter = Formatter::new(
-            config.dirs_first,
-            config.show_hidden,
-            config.show_system,
-            config.case_insensitive,
+            config.dirs_first(),
+            config.show_hidden(),
+            config.show_system(),
+            config.case_insensitive(),
         );
 
         formatter.filter_entries(&mut entries);
@@ -129,7 +129,7 @@ impl<'a> AppState<'a> {
     fn handle_open_file(&mut self) -> KeypressResult {
         if let Some(entry) = self.entries.get(self.selected) {
             let path = self.current_dir.join(&entry.name());
-            if let Err(e) = open_in_editor(&self.config.editor, &path) {
+            if let Err(e) = open_in_editor(&self.config.editor(), &path) {
                 eprintln!("Error opening editor: {}", e);
             }
             return KeypressResult::OpenedEditor;
@@ -144,10 +144,10 @@ impl<'a> AppState<'a> {
     fn reload_entries(&mut self, focus_target: Option<std::ffi::OsString>) {
         if let Ok(mut entries) = browse_dir(&self.current_dir) {
             let formatter = Formatter::new(
-                self.config.dirs_first,
-                self.config.show_hidden,
-                self.config.show_system,
-                self.config.case_insensitive,
+                self.config.dirs_first(),
+                self.config.show_hidden(),
+                self.config.show_system(),
+                self.config.case_insensitive(),
             );
             formatter.filter_entries(&mut entries);
 

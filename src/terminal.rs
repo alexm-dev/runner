@@ -58,17 +58,17 @@ fn event_loop<B: ratatui::backend::Backend>(
             let cfg = app.config();
             let mut block = Block::default();
 
-            if cfg.display.borders {
+            if cfg.display().borders() {
                 block = block.borders(Borders::ALL);
             }
 
-            let accent_color = parse_color(&cfg.theme.accent_color);
+            let accent_color = parse_color(&cfg.theme().accent_color());
 
             let items: Vec<ListItem> = app
                 .visible_entries()
                 .iter()
                 .map(|e| {
-                    let dir_name = if e.is_dir() && app.config().display.show_dir_marker {
+                    let dir_name = if e.is_dir() && app.config().display().show_dir_marker() {
                         format!("{}{}", e.name().to_string_lossy(), "/")
                     } else {
                         e.name().to_string_lossy().into_owned()

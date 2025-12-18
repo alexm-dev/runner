@@ -17,22 +17,23 @@ pub struct Keymap {
 impl Keymap {
     pub fn from_config(config: &crate::config::Config) -> Self {
         let mut map = HashMap::new();
-        for key in &config.keys.go_parent {
+        let keys = config.keys();
+        for key in keys.go_parent() {
             map.insert(key.clone(), Action::GoParent);
         }
-        for key in &config.keys.go_into_dir {
+        for key in keys.go_into_dir() {
             map.insert(key.clone(), Action::GoIntoDir);
         }
-        for key in &config.keys.go_up {
+        for key in keys.go_up() {
             map.insert(key.clone(), Action::GoUp);
         }
-        for key in &config.keys.go_down {
+        for key in keys.go_down() {
             map.insert(key.clone(), Action::GoDown);
         }
-        for key in &config.keys.open_file {
+        for key in keys.open_file() {
             map.insert(key.clone(), Action::Open);
         }
-        for key in &config.keys.quit {
+        for key in keys.quit() {
             map.insert(key.clone(), Action::Quit);
         }
         Keymap { map }
