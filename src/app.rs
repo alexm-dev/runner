@@ -101,13 +101,13 @@ impl<'a> AppState<'a> {
     }
 
     fn handle_go_into_dir(&mut self) -> KeypressResult {
-        if let Some(entry) = self.entries.get(self.selected) {
-            if entry.is_dir() {
-                let dir_name = entry.name().clone();
-                self.save_current_pos();
-                self.current_dir = self.current_dir.join(&dir_name);
-                self.reload_entries(None);
-            }
+        if let Some(entry) = self.entries.get(self.selected)
+            && entry.is_dir()
+        {
+            let dir_name = entry.name().clone();
+            self.save_current_pos();
+            self.current_dir = self.current_dir.join(&dir_name);
+            self.reload_entries(None);
         }
         KeypressResult::Continue
     }

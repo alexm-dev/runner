@@ -94,20 +94,20 @@ fn event_loop<B: ratatui::backend::Backend>(
             f.render_stateful_widget(list, size, &mut state);
         })?;
 
-        if event::poll(Duration::from_millis(50))? {
-            if let Event::Key(key_event) = event::read()? {
-                if key_event.kind != KeyEventKind::Press {
-                    continue;
+        if event::poll(Duration::from_millis(50))?
+            && let Event::Key(key_event) = event::read()?
+        {
+            if key_event.kind != KeyEventKind::Press {
+                continue;
+            }
+            let key_str = keycode_to_str(&key_event.code);
+            if !key_str.is_empty() {
+                let result = app.handle_keypress(key_str);
+                if let KeypressResult::OpenedEditor = result {
+                    terminal.clear()?;
                 }
-                let key_str = keycode_to_str(&key_event.code);
-                if !key_str.is_empty() {
-                    let result = app.handle_keypress(key_str);
-                    if let KeypressResult::OpenedEditor = result {
-                        terminal.clear()?;
-                    }
-                    if let KeypressResult::Quit = result {
-                        break;
-                    }
+                if let KeypressResult::Quit = result {
+                    break;
                 }
             }
         }
