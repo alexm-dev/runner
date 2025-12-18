@@ -8,7 +8,7 @@ repository = "https://github.com/alexm-dev/runner"
 readme = "README.md"
 authors = ["alexm-dev"]
 categories = ["terminal", "file-manager", "tui", "cli"]
-keywords = ["file browser", "file-manager", "tui", "cli", "rust"]
+keywords = ["file-browser", "file-manager", "tui", "cli", "search"]
 
 [[bin]]
 name = "rn"
