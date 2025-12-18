@@ -22,10 +22,8 @@ It is being actively developed and will change over time.
 
 ### Usage
 
-Run runner:
-```bash
-rn
-```
+Run runner with:
+`rn`
 
 ## Installation
 
