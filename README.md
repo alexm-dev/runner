@@ -21,6 +21,15 @@ It is being actively developed and will change over time.
 - Configurable keybindings via TOML configuration file.
 
 ## Installation
+
+Installation via cargo:
+
+```bash
+cargo install runner-tui
+```
+
+# Build from source
+
 Clone the repo and build with Cargo:
 
 ```bash
@@ -30,6 +39,9 @@ cargo build --release
 ```
 
 ## Configuration
+
+A full configuration documentation will follow.  
+
 runner uses a runner.toml file for configuration.
 By default, it is located at:
 
