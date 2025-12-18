@@ -1,8 +1,12 @@
 [package]
 name = "runner"
+description = "A terminal based file runner"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
+repository = "https://github.com/alexm-dev/runner"
+readme = "README.md"
+authors = ["alexm-dev"]
 
 [dependencies]
 dirs = "6.0.0"
