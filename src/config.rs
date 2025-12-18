@@ -120,15 +120,15 @@ impl Config {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
         }
-        let default_toml = r#"# runner.toml — default configuration for runner
+        let default_toml = r#"# runner.toml - default configuration for runner
 #
 # Edit this file to customize behavior
 
 # General behavior
 dirs_first = true
 show_hidden = false
-show_system = false
-case_insensitive = false
+show_system = false     # shows hidden system files on windows
+case_insensitive = true
 
 [display]
 show_selection_marker = true
@@ -162,7 +162,7 @@ impl Default for Config {
             dirs_first: true,
             show_hidden: false,
             show_system: false,
-            case_insensitive: false,
+            case_insensitive: true,
             display: Display::default(),
             theme: Theme::default(),
             editor: Editor::default(),
