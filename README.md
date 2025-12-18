@@ -65,7 +65,7 @@ $env:RUNNER_CONFIG="C:\path\to\runner.toml
 You can generate a default config using the --gen-config flag:
 
 ```bash
-runner --init
+rn --init
 ```
 
 This will generate a config in the default config path.
