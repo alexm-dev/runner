@@ -1,9 +1,11 @@
 use crate::config::Config;
-use crate::file_manager::{FileEntry, browse_dir};
-use crate::formatter::Formatter;
+use crate::file_manager::FileEntry;
 use crate::keymap::{Action, Keymap};
 use crate::utils::open_in_editor;
+use crate::worker::{WorkerResponse, WorkerTask, start_worker};
 use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::mpsc::{self, Receiver, Sender};
 
 pub enum KeypressResult {
     Continue,
@@ -22,30 +24,141 @@ pub struct AppState<'a> {
     config: &'a Config,
     dir_positions: HashMap<std::path::PathBuf, usize>,
     keymap: Keymap,
+    worker_tx: Sender<WorkerTask>,
+    response_rx: Receiver<WorkerResponse>,
+
+    pub is_loading: bool,
+    pub preview_content: Vec<String>,
+    pub current_preview_path: Option<PathBuf>,
+    pub parent_content: Vec<String>,
 }
 
 impl<'a> AppState<'a> {
     pub fn new(config: &'a Config) -> std::io::Result<Self> {
+        let (worker_tx, task_rx) = mpsc::channel();
+        let (res_tx, response_rx) = mpsc::channel();
         let current_dir = std::env::current_dir()?;
-        let mut entries = browse_dir(&current_dir)?;
 
-        let formatter = Formatter::new(
-            config.dirs_first(),
-            config.show_hidden(),
-            config.show_system(),
-            config.case_insensitive(),
-        );
+        // Start the engine
+        start_worker(task_rx, res_tx);
 
-        formatter.filter_entries(&mut entries);
-
-        Ok(Self {
+        let mut app = Self {
             current_dir,
-            entries,
+            entries: Vec::new(),
             selected: 0,
             config,
             dir_positions: HashMap::new(),
             keymap: Keymap::from_config(config),
-        })
+            worker_tx,
+            response_rx,
+            is_loading: false,
+            preview_content: vec!["Loading...".into()],
+            current_preview_path: None,
+            parent_content: vec!["Loading...".into()],
+        };
+
+        app.request_dir_load(None);
+        Ok(app)
+    }
+
+    fn request_dir_load(&mut self, focus: Option<std::ffi::OsString>) {
+        self.is_loading = true;
+        let _ = self.worker_tx.send(WorkerTask::LoadDirectory {
+            path: self.current_dir.clone(),
+            focus,
+            dirs_first: self.config.dirs_first(),
+            show_hidden: self.config.show_hidden(),
+            show_system: self.config.show_system(),
+            case_insensitive: self.config.case_insensitive(),
+            always_show: self.config.always_show().to_vec(),
+        });
+    }
+
+    pub fn tick(&mut self) -> bool {
+        let mut changed = false;
+        while let Ok(response) = self.response_rx.try_recv() {
+            changed = true;
+            match response {
+                WorkerResponse::DirectoryLoaded {
+                    path,
+                    entries,
+                    focus,
+                } => {
+                    if path == self.current_dir {
+                        self.entries = entries;
+                        self.is_loading = false;
+
+                        self.selected = if let Some(target) = focus {
+                            self.entries
+                                .iter()
+                                .position(|e| e.name() == &target)
+                                .unwrap_or(0)
+                        } else {
+                            self.dir_positions
+                                .get(&self.current_dir)
+                                .cloned()
+                                .unwrap_or(0)
+                        };
+                        self.selected = self.selected.min(self.entries.len().saturating_sub(1));
+                        self.request_preview();
+                        self.request_parent_conent();
+                    } else if Some(path.as_path()) == self.current_dir.parent() {
+                        self.parent_content = entries
+                            .iter()
+                            .map(|e| {
+                                let name = e.name().to_string_lossy();
+                                if e.is_dir() {
+                                    format!("{}/", name)
+                                } else {
+                                    name.into_owned()
+                                }
+                            })
+                            .collect()
+                    }
+                }
+                WorkerResponse::PreviewLoaded { path, lines } => {
+                    if Some(path) == self.current_preview_path {
+                        self.preview_content = lines;
+                    }
+                }
+                WorkerResponse::Error(e) => {
+                    self.preview_content = vec![e];
+                }
+            }
+        }
+        changed
+    }
+
+    fn request_preview(&mut self) {
+        if let Some(entry) = self.entries.get(self.selected) {
+            let path = self.current_dir.join(entry.name());
+            if self.current_preview_path.as_ref() != Some(&path) {
+                self.current_preview_path = Some(path.clone());
+                let _ = self.worker_tx.send(WorkerTask::LoadPreview {
+                    path,
+                    max_lines: 60,
+                });
+            }
+        }
+    }
+    fn request_parent_conent(&mut self) {
+        if let Some(parent_path) = self.current_dir.parent() {
+            let _ = self.worker_tx.send(WorkerTask::LoadDirectory {
+                path: parent_path.to_path_buf(),
+                focus: None,
+                dirs_first: self.config.dirs_first(),
+                show_hidden: self.config.show_hidden(),
+                show_system: self.config.show_system(),
+                case_insensitive: self.config.case_insensitive(),
+                always_show: self.config.always_show().to_vec(),
+            });
+        } else {
+            self.parent_content = vec!["/".into()];
+        }
+    }
+
+    pub fn current_dir(&self) -> &std::path::Path {
+        &self.current_dir
     }
 
     pub fn visible_entries(&self) -> &[FileEntry] {
@@ -55,10 +168,6 @@ impl<'a> AppState<'a> {
     pub fn has_visible_entries(&self) -> bool {
         !self.entries.is_empty()
     }
-
-    // pub fn selected_entry(&self) -> Option<&FileEntry> {
-    //     self.entries.get(self.selected)
-    // }
 
     pub fn visible_selected(&self) -> Option<usize> {
         if self.entries.is_empty() {
@@ -95,7 +204,7 @@ impl<'a> AppState<'a> {
             let exited_dir_name = self.current_dir.file_name().map(|n| n.to_os_string());
             self.save_current_pos();
             self.current_dir = parent_path;
-            self.reload_entries(exited_dir_name);
+            self.request_dir_load(exited_dir_name);
         }
         KeypressResult::Continue
     }
@@ -107,7 +216,9 @@ impl<'a> AppState<'a> {
             let dir_name = entry.name().clone();
             self.save_current_pos();
             self.current_dir = self.current_dir.join(&dir_name);
-            self.reload_entries(None);
+            self.entries.clear();
+            self.selected = 0;
+            self.request_dir_load(None);
         }
         KeypressResult::Continue
     }
@@ -115,6 +226,7 @@ impl<'a> AppState<'a> {
     fn handle_go_up(&mut self) -> KeypressResult {
         if self.selected > 0 {
             self.selected -= 1;
+            self.request_preview();
         }
         KeypressResult::Continue
     }
@@ -122,6 +234,7 @@ impl<'a> AppState<'a> {
     fn handle_go_down(&mut self) -> KeypressResult {
         if self.selected + 1 < self.entries.len() {
             self.selected += 1;
+            self.request_preview();
         }
         KeypressResult::Continue
     }
@@ -139,30 +252,5 @@ impl<'a> AppState<'a> {
 
     fn handle_quit(&self) -> KeypressResult {
         KeypressResult::Quit
-    }
-
-    fn reload_entries(&mut self, focus_target: Option<std::ffi::OsString>) {
-        if let Ok(mut entries) = browse_dir(&self.current_dir) {
-            let formatter = Formatter::new(
-                self.config.dirs_first(),
-                self.config.show_hidden(),
-                self.config.show_system(),
-                self.config.case_insensitive(),
-            );
-            formatter.filter_entries(&mut entries);
-
-            let next_selected = if let Some(target_name) = focus_target {
-                entries
-                    .iter()
-                    .position(|e| e.name() == target_name.as_os_str())
-                    .unwrap_or(0)
-            } else if let Some(saved_idx) = self.dir_positions.get(&self.current_dir) {
-                (*saved_idx).min(entries.len().saturating_sub(1))
-            } else {
-                0
-            };
-            self.entries = entries;
-            self.selected = next_selected;
-        }
     }
 }

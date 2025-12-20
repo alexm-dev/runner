@@ -1,34 +1,23 @@
 mod app;
+mod cli;
 mod config;
 mod file_manager;
 mod formatter;
 mod keymap;
 mod terminal;
 mod utils;
+mod worker;
 
+use cli::{CliAction, handle_args};
 use config::Config;
 
-fn handle_default_confg() -> std::io::Result<bool> {
-    let args: Vec<String> = std::env::args().collect();
-    let config_path = Config::default_path();
-
-    if args.len() > 1 && args[1] == "--init" {
-        match Config::generate_default(&config_path) {
-            Ok(_) => (),
-            Err(e) => eprintln!("{}", e),
-        }
-        return Ok(true);
-    }
-    Ok(false)
-}
-
 fn main() -> std::io::Result<()> {
-    if handle_default_confg()? {
-        return Ok(());
+    match handle_args() {
+        CliAction::Exit => return Ok(()),
+        CliAction::RunApp => (),
     }
 
-    let config_path = Config::default_path();
-    let config = Config::load(&config_path);
+    let config = Config::load();
     let mut app = app::AppState::new(&config)?;
     terminal::run_terminal(&mut app)
 }
