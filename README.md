@@ -72,7 +72,7 @@ By default, it is located at:
 
 `$HOME/.config/runner/runner.toml` (on both Unix and Windows, inside the user folder)
 
-You can override the config path by setting a environment variable:
+You can override the config path by setting an environment variable:
 
 ```bash
 # Unix
@@ -114,7 +114,7 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 - [x] UI Customization: Pane-specific styling and Hex color support (Completed in 0.2.2).  
 
-- [x] Navigation Context: Persisent Parent (Origin) and Preview panes (Completed in 0.2.0)  
+- [x] Navigation Context: Persistent Parent (Origin) and Preview panes (Completed in 0.2.0)  
 
 ## License
 This project is Licensed under the MIT License  
