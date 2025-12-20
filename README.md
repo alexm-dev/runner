@@ -17,28 +17,9 @@ It allows you to navigate directories, view file listings, and perform typical f
 This project is a work in progress.  
 It is being actively developed and will change over time.  
 
-## What's New in v0.2.1 and v0.2.2
+## Changelog
 
-#### UI improvements
-- Improved pane customization by adding pane specific selection cache.
-- Custom Path Styling (v0.2.2): Addded a dedicated theme.path configuration to customize the path at the top of the UI.
-- Pane-Specific Selections (v0.2.2): Added selection foreground and background colors for each pane for more customization.
-
-#### Performance
-- Switched to crossbeam-channel for better thread sync.
-- Performance improvements by reducing event_loop string creation.
-- Optimized `always_show` and other flags by using Atomics.
-- Migrated text rendering to use Line and Span for better performance and future-proofing.
-
-#### Fixes
-- Fixed preview sorting issue. Now shows the directories in the correct oder.
-
-
-## Features
-- Navigate directories in the Terminal
-- Lightweight and minimal memory usage
-- Cross-platform: Works on Linux, Windows and macOS.
-- Configurable keybindings via TOML configuration file.
+For a detailed list of changes and release notes, see [CHANGELOG.md](./CHANGELOG.md).
 
 ## Installation
 
@@ -53,7 +34,7 @@ cargo install runner-tui
 Clone the repo and build with Cargo:
 
 ```bash
-https://github.com/alexm-dev/runner.git
+git clone https://github.com/alexm-dev/runner.git
 cd runner
 cargo build --release
 ```
@@ -79,7 +60,7 @@ You can override the config path by setting an environment variable:
 export RUNNER_CONFIG=/path/to/runner.toml
 
 # PowerShell (Windows)
-$env:RUNNER_CONFIG="C:\path\to\runner.toml
+$env:RUNNER_CONFIG="C:\path\to\runner.toml"
 ```
 
 You can generate a default config using the --init or --init-minimal flag:
