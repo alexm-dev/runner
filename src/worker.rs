@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
@@ -18,7 +19,7 @@ pub enum WorkerTask {
         show_hidden: bool,
         show_system: bool,
         case_insensitive: bool,
-        always_show: Arc<Vec<String>>,
+        always_show: Arc<HashSet<OsString>>,
     },
     LoadPreview {
         path: PathBuf,

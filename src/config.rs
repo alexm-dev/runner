@@ -5,20 +5,35 @@
 //!
 //! Each config struct corresponds to a top-level key in the `runner.toml`.
 
+use crate::utils::parse_color;
 use ratatui::style::{Color, Style};
 use serde::Deserialize;
+use std::collections::HashSet;
+use std::ffi::OsString;
+use std::sync::Arc;
 use std::{fs, io, path::PathBuf};
 
-use crate::utils::parse_color;
-
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 #[serde(default)]
-pub struct Config {
+pub struct RawConfig {
     dirs_first: bool,
     show_hidden: bool,
     show_system: bool,
     case_insensitive: bool,
     always_show: Vec<String>,
+    display: Display,
+    theme: Theme,
+    editor: Editor,
+    keys: Keys,
+}
+
+#[derive(Debug)]
+pub struct Config {
+    dirs_first: bool,
+    show_hidden: bool,
+    show_system: bool,
+    case_insensitive: bool,
+    always_show: Arc<HashSet<OsString>>,
     display: Display,
     theme: Theme,
     editor: Editor,
@@ -94,6 +109,27 @@ pub struct Editor {
     cmd: String,
 }
 
+impl From<RawConfig> for Config {
+    fn from(raw: RawConfig) -> Self {
+        Self {
+            dirs_first: raw.dirs_first,
+            show_hidden: raw.show_hidden,
+            show_system: raw.show_system,
+            case_insensitive: raw.case_insensitive,
+            always_show: Arc::new(
+                raw.always_show
+                    .into_iter()
+                    .map(OsString::from)
+                    .collect::<HashSet<_>>(),
+            ),
+            display: raw.display,
+            theme: raw.theme,
+            editor: raw.editor,
+            keys: raw.keys,
+        }
+    }
+}
+
 impl Config {
     pub fn load() -> Self {
         let path = Self::default_path();
@@ -108,8 +144,8 @@ impl Config {
         }
 
         match std::fs::read_to_string(&path) {
-            Ok(content) => match toml::from_str(&content) {
-                Ok(config) => config,
+            Ok(content) => match toml::from_str::<RawConfig>(&content) {
+                Ok(raw) => raw.into(),
                 Err(e) => {
                     eprintln!("Error parsing config: {}", e);
                     Self::default()
@@ -135,7 +171,7 @@ impl Config {
         self.case_insensitive
     }
 
-    pub fn always_show(&self) -> &[String] {
+    pub fn always_show(&self) -> &Arc<HashSet<OsString>> {
         &self.always_show
     }
 
@@ -182,7 +218,7 @@ dirs_first = true
 show_hidden = false
 show_system = false
 case_insensitive = true
-always_show = ["AppData", ".config"]
+always_show = []
 
 [display]
 selection_marker = true
@@ -278,7 +314,7 @@ impl Default for Config {
             show_hidden: false,
             show_system: false,
             case_insensitive: true,
-            always_show: vec!["AppData".to_string(), ".config".to_string()],
+            always_show: Arc::new(HashSet::new()),
             display: Display::default(),
             theme: Theme::default(),
             editor: Editor::default(),

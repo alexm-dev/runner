@@ -1,4 +1,6 @@
 use crate::file_manager::FileEntry;
+use std::collections::HashSet;
+use std::ffi::OsString;
 use std::sync::Arc;
 
 pub struct Formatter {
@@ -6,8 +8,8 @@ pub struct Formatter {
     show_hidden: bool,
     show_system: bool,
     case_insensitive: bool,
-    always_show: Arc<Vec<String>>,
-    always_show_lowercase: Arc<Vec<String>>,
+    always_show: Arc<HashSet<OsString>>,
+    always_show_lowercase: Arc<HashSet<String>>,
 }
 
 impl Formatter {
@@ -16,10 +18,14 @@ impl Formatter {
         show_hidden: bool,
         show_system: bool,
         case_insensitive: bool,
-        always_show: Arc<Vec<String>>,
+        always_show: Arc<HashSet<OsString>>,
     ) -> Self {
-        let always_show_lowercase =
-            Arc::new(always_show.iter().map(|s| s.to_lowercase()).collect());
+        let always_show_lowercase = Arc::new(
+            always_show
+                .iter()
+                .map(|s| s.to_string_lossy().to_lowercase())
+                .collect::<HashSet<String>>(),
+        );
         Self {
             dirs_first,
             show_hidden,
@@ -51,13 +57,9 @@ impl Formatter {
     pub fn filter_entries(&self, entries: &mut Vec<FileEntry>) {
         entries.retain(|e| {
             let is_exception = if self.case_insensitive {
-                let name_lowercase = e.lowercase_name();
-                self.always_show_lowercase
-                    .iter()
-                    .any(|ex| name_lowercase == *ex)
+                self.always_show_lowercase.contains(e.lowercase_name())
             } else {
-                let name = e.name().to_string_lossy();
-                self.always_show.iter().any(|ex| name == *ex)
+                self.always_show.contains(e.name())
             };
 
             if is_exception {

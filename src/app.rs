@@ -75,7 +75,7 @@ impl<'a> AppState<'a> {
 
     fn request_dir_load(&mut self, focus: Option<std::ffi::OsString>) {
         self.is_loading = true;
-        let always_show = Arc::new(self.config.always_show().to_vec());
+        let always_show = Arc::clone(self.config.always_show());
         let _ = self.worker_tx.send(WorkerTask::LoadDirectory {
             path: self.current_dir.clone(),
             focus,
@@ -184,7 +184,7 @@ impl<'a> AppState<'a> {
                 show_hidden: self.config.show_hidden(),
                 show_system: self.config.show_system(),
                 case_insensitive: self.config.case_insensitive(),
-                always_show: Arc::new(self.config.always_show().to_vec()),
+                always_show: Arc::clone(self.config.always_show()),
             });
         } else {
             let _ = self.worker_tx.send(WorkerTask::LoadPreview {
@@ -210,7 +210,7 @@ impl<'a> AppState<'a> {
 
         self.last_parent_path = Some(parent_path.clone());
 
-        let always_show = Arc::new(self.config.always_show().to_vec());
+        let always_show = Arc::clone(self.config.always_show());
         let _ = self.worker_tx.send(WorkerTask::LoadDirectory {
             path: parent_path,
             focus: None,
