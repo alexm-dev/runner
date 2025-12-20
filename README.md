@@ -17,10 +17,19 @@ It allows you to navigate directories, view file listings, and perform typical f
 This project is a work in progress.  
 It is being actively developed and will change over time.  
 
-## What's New in v0.2.0  
-- Multi-Pane Layout: New Preview and Origin (Parent) panes for better context.
-- Extended Configuration: Customize border style, colors of entries for each pane and more...
-- Reactive Engine: Re-engineerd event loop for much better performance
+## What's New in v0.2.1
+
+### UI improvements
+- Improved pane customization by adding pane specific selection cache.
+
+## Performance
+- Switched to crossbeam-channel for better thread sync.
+- Performance improvements by reducing event_loop string creation.
+- Optimized `always_show` and other flags by using Atomics.
+
+## Fixes
+- Fixed preview sorting issue. Now shows the directories in the correct oder.
+
 
 ## Features
 - Navigate directories in the Terminal
