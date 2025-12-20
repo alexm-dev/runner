@@ -67,11 +67,12 @@ preview_ratio = 30
 # Scroll padding of the main pane
 scroll_padding = 5
 
+# Theme colors can be changed with either Hex "#RRGGBB" colors or terminal colors
 [theme]
-# Background color (terminal color name or Hex "#RRGGBB")
+# Background color.
 background = "default"
 
-# The symbol used to indicate the current selection
+# The symbol used to indicate the current selection. "" or " " to disable.
 selection_icon = "> "
 
 # Color pairs for the entry selection color (The cursor and not all entries)
@@ -98,10 +99,19 @@ bg = "default"
 [theme.origin]
 fg = "default"
 bg = "default"
+selection_fg = "default"
+selection_bg = "default"
 
 # Colors for the preview pane
 [theme.preview]
 fg = "default"
+bg = "default"
+selection_fg = "default"
+selection_bg = "default"
+
+# Colors for the path view at the top of the UI
+[theme.path]
+fg = "cyan"
 bg = "default"
 
 [editor]

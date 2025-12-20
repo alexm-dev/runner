@@ -17,15 +17,18 @@ It allows you to navigate directories, view file listings, and perform typical f
 This project is a work in progress.  
 It is being actively developed and will change over time.  
 
-## What's New in v0.2.1
+## What's New in v0.2.1 and v0.2.2
 
 #### UI improvements
 - Improved pane customization by adding pane specific selection cache.
+- Custom Path Styling (v0.2.2): Addded a dedicated theme.path configuration to customize the path at the top of the UI.
+- Pane-Specific Selections (v0.2.2): Added selection foreground and background colors for each pane for more customization.
 
 #### Performance
 - Switched to crossbeam-channel for better thread sync.
 - Performance improvements by reducing event_loop string creation.
 - Optimized `always_show` and other flags by using Atomics.
+- Migrated text rendering to use Line and Span for better performance and future-proofing.
 
 #### Fixes
 - Fixed preview sorting issue. Now shows the directories in the correct oder.
@@ -95,15 +98,24 @@ This will generate a config in the default config path.
 runner is in active development.  
 Future releases will focus on expanding functionality while keeping it fast and lightweight.  
 
-Planned features for future releases include:
+### Planned features
 
-- [ ] Search: Integrated fuzzy find and grep support.
+- [ ] Search & Discovery: Integrated fuzzy finding and fast directory traversal.  
 
-- [ ] File Operations: Copy, move, delete, and rename from within the UI.
+- [ ] Content Search: Text search and filtering.  
 
-- [ ] Image Previews: Support for Sixel/Kitty graphics protocols.
+- [ ] File Operations: Copy, move, delete, and rename from within the UI.  
+
+- [ ] Image Previews: Support for Sixel/Kitty graphics protocols.  
+
+### Completed
 
 - [x] Performance: Reactive rendering (Completed in 0.2.0).
 
+- [x] UI Customization: Pane-specific styling and Hex color support (Completed in 0.2.2).  
+
+- [x] Navigation Context: Persisent Parent (Origin) and Preview panes (Completed in 0.2.0)  
+
 ## License
-MIT License
+This project is Licensed unde the MIT License  
+See the [LICENSE](LICENSE) file for details.

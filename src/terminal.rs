@@ -9,6 +9,7 @@ use ratatui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
+    text::{Line, Span},
     widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
 };
 use std::{io, time::Duration};
@@ -211,15 +212,21 @@ fn render_ui(frame: &mut Frame, app: &AppState) {
 
     // 0. PRE-CALCULATE COLORS AND SHARED DATA
     // let bg_color = parse_color(theme_cfg.background());
-    let accent_style = theme_cfg.accent();
-    let entry_style = theme_cfg.entry();
-    let selection_style = theme_cfg.selection();
-    let origin_style = theme_cfg.origin();
-    let preview_style = theme_cfg.preview();
-    let separator_style = theme_cfg.separator();
+    let accent_style = theme_cfg.accent().as_style();
+    let entry_style = theme_cfg.entry().as_style();
+    let selection_style = theme_cfg.selection().as_style();
 
+    let origin_style = theme_cfg.origin().as_style();
+    let origin_selection_style = theme_cfg.origin().selection_style(selection_style);
+
+    let preview_style = theme_cfg.preview().as_style();
+    let preview_selection_style = theme_cfg.preview().selection_style(selection_style);
+
+    let separator_style = theme_cfg.separator().as_style();
     let show_separators = display_cfg.separators() && !display_cfg.is_split();
+
     let path_str = app.current_dir().to_string_lossy();
+    let path_style = theme_cfg.path().as_style();
 
     // 1. HANDLE OUTER BORDER AND TOP PATH
     if display_cfg.is_unified() {
@@ -227,7 +234,8 @@ fn render_ui(frame: &mut Frame, app: &AppState) {
             .borders(Borders::ALL)
             .border_style(accent_style);
         if display_cfg.titles() {
-            outer_block = outer_block.title(format!(" {} ", path_str));
+            let title_line = Line::from(vec![Span::styled(format!(" {} ", path_str), path_style)]);
+            outer_block = outer_block.title(title_line);
         }
         frame.render_widget(outer_block, root_area);
         root_area = Block::default().borders(Borders::ALL).inner(root_area);
@@ -236,7 +244,9 @@ fn render_ui(frame: &mut Frame, app: &AppState) {
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(1), Constraint::Min(0)])
             .split(root_area);
-        let header = Paragraph::new(format!("   {} ", path_str)).style(accent_style);
+
+        let header_line = Line::from(vec![Span::styled(format!("   {} ", path_str), path_style)]);
+        let header = Paragraph::new(header_line);
         frame.render_widget(header, header_layout[0]);
         root_area = header_layout[1];
     }
@@ -266,7 +276,7 @@ fn render_ui(frame: &mut Frame, app: &AppState) {
             &app.parent_content,
             get_pane_block("Parent"),
             origin_style,
-            selection_style,
+            origin_selection_style,
             app.parent_selected,
         );
         pane_idx += 1;
@@ -329,7 +339,7 @@ fn render_ui(frame: &mut Frame, app: &AppState) {
             &app.preview_content,
             get_pane_block("Preview"),
             preview_style,
-            selection_style,
+            preview_selection_style,
             if is_dir {
                 Some(app.preview_selected)
             } else {

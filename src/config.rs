@@ -49,12 +49,17 @@ pub enum BorderStyle {
     Split,
 }
 
-#[derive(Deserialize, Debug, Default, Clone, Copy)]
+#[derive(Deserialize, Debug, Clone, Copy)]
 pub struct ColorPair {
     #[serde(deserialize_with = "deserialize_color_field")]
     fg: Color,
     #[serde(deserialize_with = "deserialize_color_field")]
     bg: Color,
+
+    #[serde(default, deserialize_with = "deserialize_optional_color_field")]
+    selection_fg: Option<Color>,
+    #[serde(default, deserialize_with = "deserialize_optional_color_field")]
+    selection_bg: Option<Color>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -69,6 +74,7 @@ pub struct Theme {
     selection_icon: String,
     origin: ColorPair,
     preview: ColorPair,
+    path: ColorPair,
 }
 
 #[derive(Deserialize, Debug)]
@@ -182,10 +188,10 @@ always_show = ["AppData", ".config"]
 selection_marker = true
 dir_marker = true
 borders = "unified"
-titles = false
-separators = false
+titles = true
+separators = true
 origin = false
-preview = false
+preview = true
 origin_ratio = 30
 main_ratio = 40
 preview_ratio = 30
@@ -214,9 +220,17 @@ bg = "default"
 [theme.origin]
 fg = "default"
 bg = "default"
+selection_fg = "default"
+selection_bg = "default"
 
 [theme.preview]
 fg = "default"
+bg = "default"
+selection_fg = "default"
+selection_bg = "default"
+
+[theme.path]
+fg = "cyan"
 bg = "default"
 
 [editor]
@@ -333,8 +347,8 @@ impl Default for Display {
             selection_marker: true,
             dir_marker: true,
             borders: BorderStyle::Unified,
-            titles: false,
-            separators: false,
+            titles: true,
+            separators: true,
             origin: false,
             preview: true,
             origin_ratio: 25,
@@ -345,9 +359,31 @@ impl Default for Display {
     }
 }
 
+impl Default for ColorPair {
+    fn default() -> Self {
+        Self {
+            fg: Color::Reset,
+            bg: Color::Reset,
+            selection_fg: None,
+            selection_bg: None,
+        }
+    }
+}
+
 impl ColorPair {
     pub fn as_style(&self) -> Style {
         Style::default().fg(self.fg).bg(self.bg)
+    }
+
+    pub fn selection_style(&self, global_default: Style) -> Style {
+        let mut style = global_default;
+        if let Some(fg) = self.selection_fg {
+            style = style.fg(fg);
+        }
+        if let Some(bg) = self.selection_bg {
+            style = style.bg(bg);
+        }
+        style
     }
 }
 
@@ -356,32 +392,36 @@ impl Theme {
     //     self.background
     // }
 
-    pub fn accent(&self) -> Style {
-        self.accent.as_style()
+    pub fn accent(&self) -> ColorPair {
+        self.accent
     }
 
-    pub fn selection(&self) -> Style {
-        self.selection.as_style()
+    pub fn selection(&self) -> ColorPair {
+        self.selection
     }
 
-    pub fn entry(&self) -> Style {
-        self.entry.as_style()
+    pub fn entry(&self) -> ColorPair {
+        self.entry
     }
 
-    pub fn separator(&self) -> Style {
-        self.separator.as_style()
+    pub fn separator(&self) -> ColorPair {
+        self.separator
     }
 
     pub fn selection_icon(&self) -> &str {
         &self.selection_icon
     }
 
-    pub fn origin(&self) -> Style {
-        self.origin.as_style()
+    pub fn origin(&self) -> ColorPair {
+        self.origin
     }
 
-    pub fn preview(&self) -> Style {
-        self.preview.as_style()
+    pub fn preview(&self) -> ColorPair {
+        self.preview
+    }
+
+    pub fn path(&self) -> ColorPair {
+        self.path
     }
 }
 
@@ -396,6 +436,10 @@ impl Default for Theme {
             selection_icon: "> ".into(),
             origin: ColorPair::default(),
             preview: ColorPair::default(),
+            path: ColorPair {
+                fg: Color::Cyan,
+                ..ColorPair::default()
+            },
         }
     }
 }
@@ -453,4 +497,16 @@ where
 {
     let s = String::deserialize(deserializer)?;
     Ok(parse_color(&s))
+}
+
+// Helper function to deserialize optinals Colors for Themes
+fn deserialize_optional_color_field<'de, D>(deserializer: D) -> Result<Option<Color>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s: Option<String> = Option::deserialize(deserializer)?;
+    match s {
+        Some(s) if s.to_lowercase() != "default" => Ok(Some(parse_color(&s))),
+        _ => Ok(None),
+    }
 }
