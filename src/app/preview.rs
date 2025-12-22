@@ -30,7 +30,6 @@ impl PreviewState {
         }
     }
 
-    // Getters
     pub fn data(&self) -> &PreviewData {
         &self.data
     }
@@ -54,7 +53,6 @@ impl PreviewState {
         self.selected_idx = idx.min(len.saturating_sub(1));
     }
 
-    // Logic
     pub fn mark_pending(&mut self) {
         self.pending = true;
         self.last_input_time = Instant::now();

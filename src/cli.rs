@@ -65,50 +65,50 @@ fn print_config_help() {
 runner - Full Configuration Guide (runner.toml)
 
 # General Settings
-  dirs_first       (bool)  Sort directories before files
-  show_hidden      (bool)  Show hidden files (dotfiles)
-  show_system      (bool)  Show system/protected files
-  case_insensitive (bool)  Ignore case when searching/sorting
-  always_show      (list)  List of hidden names to always show
+  dirs_first        (bool)  Sort directories before files
+  show_hidden       (bool)  Show hidden files (dotfiles)
+  show_system       (bool)  Show system/protected files
+  case_insensitive  (bool)  Ignore case when searching/sorting
+  always_show       (list)  List of hidden names to always show
 
 [display]
-  selection_marker (bool)  Show the cursor marker
-  dir_marker       (bool)  Show a marker for directories
-  borders          (str)   "none", "unified", or "split"
-  titles           (bool)  Show pane titles at the top
-  separators       (bool)  Draw vertical lines between panes
-  origin           (bool)  Show the parent directory pane
-  preview          (bool)  Show the file preview pane
-  origin_ratio     (u16)   Width % of the origin pane
-  main_ratio       (u16)   Width % of the center pane
-  preview_ratio    (u16)   Width % of the preview pane
-  scroll_padding   (usize) Scroll padding of the main pane
-  preview_underline(bool)  Enable a preview underline instead of selection highlight
+  selection_marker  (bool)  Show the cursor marker
+  dir_marker        (bool)  Show a marker for directories
+  borders           (str)   "none", "unified", or "split"
+  titles            (bool)  Show pane titles at the top
+  separators        (bool)  Draw vertical lines between panes
+  origin            (bool)  Show the parent directory pane
+  preview           (bool)  Show the file preview pane
+  origin_ratio      (u16)   Width % of the origin pane
+  main_ratio        (u16)   Width % of the center pane
+  preview_ratio     (u16)   Width % of the preview pane
+  scroll_padding    (usize) Scroll padding of the main pane
+  preview_underline (bool)  Enable a preview underline instead of selection highlight
 
 [theme]
-  background       (str)   Hex (#RRGGBB) or "default"
-  selection_icon   (str)   The cursor string (e.g., "> ")
+  background        (str)   Hex (#RRGGBB) or "default"
+  selection_icon    (str)   The cursor string (e.g., "> ")
 
-# Theme sections   (Each supports "fg" and "bg" keys)
-[theme.selection]   Selection bar colors    fg (str), bg (str)
-[theme.accent]      Border/title accents    fg (str), bg (str)
-[theme.entry]       Standard entry colors   fg (str), bg (str)
-[theme.directory]   Directory entry colors  fg (str), bg (str)
-[theme.separator]   Vertical line colors    fg (str), bg (str)
-[theme.origin]      Parent pane text        fg (str), bg (str)
-[theme.preview]     Preview pane text       fg (str), bg (str)
-[theme.path]        Path bar colors         fg (str), bg (str)
+# Theme sections    (Each supports "fg" and "bg" keys)
+[theme.selection]    Selection bar colors    fg (str), bg (str)
+[theme.accent]       Border/title accents    fg (str), bg (str)
+[theme.entry]        Standard entry colors   fg (str), bg (str)
+[theme.directory]    Directory entry colors  fg (str), bg (str)
+[theme.separator]    Vertical line colors    fg (str), bg (str)
+[theme.origin]       Parent pane text        fg (str), bg (str)
+[theme.preview]      Preview pane text       fg (str), bg (str)
+[theme.path]         Path bar colors         fg (str), bg (str)
 
 [editor]
-  cmd              (str)   Command to open files (e.g., "nvim")
+  cmd               (str)   Command to open files (e.g., "nvim")
 
 [keys]
-  open_file        (list)  e.g., ["Enter"]
-  go_up            (list)  e.g., ["k", "Up Arrow"]
-  go_down          (list)  e.g., ["j", "Down Arrow"]
-  go_origin        (list)  e.g., ["h", "Left Arrow", "Backspace"]
-  go_into_dir      (list)  e.g., ["l", "Right Arrow"]
-  quit             (list)  e.g., ["q", "Esc"]
+  open_file         (list)  e.g., ["Enter"]
+  go_up             (list)  e.g., ["k", "Up Arrow"]
+  go_down           (list)  e.g., ["j", "Down Arrow"]
+  go_origin         (list)  e.g., ["h", "Left Arrow", "Backspace"]
+  go_into_dir       (list)  e.g., ["l", "Right Arrow"]
+  quit              (list)  e.g., ["q", "Esc"]
 
 EXAMPLES:
   borders = "split"

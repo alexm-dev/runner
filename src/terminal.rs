@@ -26,13 +26,13 @@ fn event_loop<B: ratatui::backend::Backend>(
     app: &mut AppState,
 ) -> io::Result<()> {
     loop {
-        // 1. App Tick
+        // App Tick
         // If tick returns true, something changed internally that needs a redraw.
         if app.tick() {
             terminal.draw(|f| ui::render(f, app))?;
         }
 
-        // 2. Event Polling
+        // Event Polling
         if event::poll(Duration::from_millis(10))? {
             match event::read()? {
                 // handle keypress

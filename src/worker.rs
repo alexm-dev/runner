@@ -138,7 +138,7 @@ fn preview_directory(path: &Path, max_lines: usize, pane_width: usize) -> Vec<St
         Ok(entries) => {
             let mut lines = Vec::with_capacity(max_lines + 1);
 
-            // 1. Process existing entries
+            // Process existing entries
             for e in entries.iter().take(max_lines) {
                 let suffix = if e.is_dir() { "/" } else { "" };
                 let display_name = format!("{}{}", e.name().to_string_lossy(), suffix);
@@ -147,11 +147,11 @@ fn preview_directory(path: &Path, max_lines: usize, pane_width: usize) -> Vec<St
                 lines.push(sanitize_to_exact_width(&display_name, pane_width));
             }
 
-            // 2. Handle Empty State
+            // Handle Empty State
             if lines.is_empty() {
                 lines.push(sanitize_to_exact_width("[empty directory]", pane_width));
             }
-            // 3. Handle Overflow Indicator
+            // Handle Overflow Indicator
             else if entries.len() > max_lines {
                 lines.pop();
                 lines.push(sanitize_to_exact_width("...", pane_width));

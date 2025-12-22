@@ -40,7 +40,7 @@ impl Formatter {
     }
 
     pub fn format(&self, entries: &mut [FileEntry]) {
-        // 1. Sot the entries
+        // Sort the entries
         entries.sort_by(|a, b| {
             if self.dirs_first {
                 match (a.is_dir(), b.is_dir()) {
@@ -56,7 +56,7 @@ impl Formatter {
             }
         });
 
-        // 2. Apply pane_width to the display_name
+        // Apply pane_width to the display_name
         for entry in entries.iter_mut() {
             let suffix = if entry.is_dir() { "/" } else { "" };
             let base_name = format!("{}{}", entry.name_str(), suffix);
@@ -65,7 +65,7 @@ impl Formatter {
             let mut current_w = 0;
 
             for c in base_name.chars() {
-                // Simple truncation logic for the main list
+                // simple truncation for the main list
                 let w = unicode_width::UnicodeWidthChar::width(c).unwrap_or(0);
                 if current_w + w > self.pane_width {
                     if !out.is_empty() {

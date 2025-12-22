@@ -101,13 +101,13 @@ impl<'a> AppState<'a> {
     pub fn tick(&mut self) -> bool {
         let mut changed = false;
 
-        // 1. Handle preview debounc
+        // Handle preview debounc
         if self.preview.should_trigger() {
             self.request_preview();
             changed = true;
         }
 
-        // 2. Process worker response
+        // Process worker response
         while let Ok(response) = self.response_rx.try_recv() {
             changed = true;
             match response {
@@ -160,10 +160,7 @@ impl<'a> AppState<'a> {
         changed
     }
 
-    // --------------------------
-    //      Action handlers
-    // --------------------------
-
+    //  Action handlers
     pub fn handle_keypress(&mut self, key: &str) -> KeypressResult {
         match self.keymap.lookup(key) {
             Some(Action::GoUp) => {
@@ -227,10 +224,7 @@ impl<'a> AppState<'a> {
         KeypressResult::Continue
     }
 
-    // --------------------------
-    //      Worker request
-    // --------------------------
-
+    // Worker request
     pub fn request_dir_load(&mut self, focus: Option<std::ffi::OsString>) {
         self.is_loading = true;
         let request_id = self.nav.prepare_new_request();

@@ -63,7 +63,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     let path_str = app.nav.current_dir().to_string_lossy();
     let path_style = theme_cfg.path().as_style();
 
-    // 1. Root Border / Header Logic
+    // Root Border / Header Logic
     if display_cfg.is_unified() {
         let mut outer_block = Block::default()
             .borders(Borders::ALL)
@@ -91,7 +91,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         root_area = header_layout[1];
     }
 
-    // 2. Render Panes
+    // Render Panes
     let chunks = layout_chunks(root_area, app);
     let mut pane_idx = 0;
     let show_separators = display_cfg.separators() && !display_cfg.is_split();
