@@ -1,0 +1,112 @@
+use ratatui::layout::Rect;
+use runner_tui::app::AppState;
+use runner_tui::config::{Config, RawConfig};
+use runner_tui::file_manager;
+use runner_tui::formatter::Formatter;
+use runner_tui::ui::layout_chunks;
+use std::collections::HashSet;
+use std::path::Path;
+use std::sync::Arc;
+
+#[test]
+fn test_formatter_truncation_and_padding() {
+    let width = 10;
+    let formatter = Formatter::new(true, true, true, false, Arc::new(HashSet::new()), width);
+
+    let path = Path::new(".");
+    let mut entries = file_manager::browse_dir(path).expect("Failed to read dir");
+
+    formatter.format(&mut entries);
+
+    assert!(
+        !entries.is_empty(),
+        "Should have found files in project root"
+    );
+
+    for entry in entries {
+        let disp = entry.display_name();
+        let visual_width = unicode_width::UnicodeWidthStr::width(disp);
+
+        // every single line must be exactly the pane width
+        assert_eq!(
+            visual_width,
+            width,
+            "Visual width mismatch for '{}'. Got {}, expected {}",
+            entry.name_str(),
+            visual_width,
+            width
+        );
+
+        let suffix_len = if entry.is_dir() { 1 } else { 0 };
+        if entry.name_str().chars().count() + suffix_len > width {
+            assert!(
+                disp.contains('…'),
+                "Long file '{}' (len {}) should contain ellipsis '…' at width {}",
+                entry.name_str(),
+                entry.name_str().chars().count(),
+                width
+            );
+        }
+
+        // Special check for crab file if it exists in the directory
+        if entry.name_str().contains('🦀') {
+            // If the crab file is short, ensure it was padded correctly
+            if visual_width == width && !disp.contains('…') {
+                assert!(
+                    disp.ends_with(' '),
+                    "Short crab file should be space-padded"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn test_formatter_empty_dir() {
+    use std::env;
+
+    let width = 15;
+    let formatter = Formatter::new(true, true, true, false, Arc::new(HashSet::new()), width);
+
+    let empty_path = env::temp_dir();
+    let mut entries = file_manager::browse_dir(&empty_path).unwrap();
+    formatter.format(&mut entries);
+
+    for entry in entries {
+        let disp = entry.display_name();
+        assert!(
+            disp.chars().count() <= width,
+            "Entry '{}' exceeds width",
+            entry.name_str()
+        );
+    }
+}
+
+#[test]
+fn test_layout_chunks_with_config() {
+    let size = Rect::new(0, 0, 100, 10);
+
+    // define a config string where ratios = 150%
+    let toml_content = r#"
+            [display]
+            origin = true
+            preview = true
+            origin_ratio = 50
+            main_ratio = 50
+            preview_ratio = 50
+            separators = false
+        "#;
+
+    let raw: RawConfig = toml::from_str(toml_content).unwrap();
+    let config = Config::from(raw);
+
+    let app = AppState::new(&config).expect("Failed to create AppState");
+
+    let chunks = layout_chunks(size, &app);
+
+    assert_eq!(chunks.len(), 3);
+    let total_width: u16 = chunks.iter().map(|c| c.width).sum();
+
+    assert!(total_width <= 100);
+    assert!(chunks[0].width >= 33 && chunks[0].width <= 34);
+}

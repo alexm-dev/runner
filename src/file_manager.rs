@@ -33,6 +33,10 @@ impl FileEntry {
     pub fn is_system(&self) -> bool {
         self.is_system
     }
+
+    pub fn set_display_name(&mut self, new_name: String) {
+        self.display_name = new_name;
+    }
 }
 
 pub fn browse_dir(path: &std::path::Path) -> std::io::Result<Vec<FileEntry>> {

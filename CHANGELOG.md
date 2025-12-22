@@ -1,5 +1,26 @@
 # Changelog
 
+## [v0.2.6] - 2025-12-22
+### Fixed
+- **File/Directory preview**: Fixed issue where preview did not correctly render when pane sizes where inconsistent. Now using `unicode-width` to correctly calculate pane width.
+- **Pane ratios**: Pane ratios are now correctly calculated and will always internally calculate to 100%, meaning its not needed to always have 100% ratio in the runner.toml config.
+
+### Added
+- **Preview underline**: Toggle to enable a underline for the preview pane.
+- **Directory colors**: Colors for directories are now independent of entry colors.
+
+### Internal
+- **Massive refactor**:  
+    - Refactored `AppState` with modular app sub-modules: `app/nav.rs`, `app/parent.rs` and `app/preview.rs`
+    - Refactored `Config` to make it more maintainable `config/themes`, `config/display`, `config/input`.
+    - Separated UI functions from `terminal.rs` and added UI specific modules: `ui.rs`, `ui/panes.rs`, `ui/widgets.rs`
+    - `worker.rs`: Ensured preview lines properly account for Unicode width and ignore control characters and tabs, preserving visual alignment in the TUI.
+    - All worker responses and previews now produce strings of the exact pane_width, so TUI rendering remains stable regardless of file names or content length.
+
+- **Tests**: Added formatting and worker tests
+
+---
+
 ## [v0.2.5] - 2025-12-21
 ### Fixed
 - **File Preview:** Fixed an issue where files without extensions and with very short names (≤ 3 characters, for example `ht`, `xy`) were incorrectly shown in the preview pane.
