@@ -89,12 +89,14 @@ fn test_layout_chunks_with_config() {
     // define a config string where ratios = 150%
     let toml_content = r#"
             [display]
-            origin = true
+            parent = true
             preview = true
-            origin_ratio = 50
-            main_ratio = 50
-            preview_ratio = 50
             separators = false
+
+            [display.layout]
+            parent = 50
+            main = 50
+            preview = 50
         "#;
 
     let raw: RawConfig = toml::from_str(toml_content).unwrap();
