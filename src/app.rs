@@ -184,9 +184,7 @@ impl<'a> AppState<'a> {
     }
 
     fn handle_open_file(&mut self) -> KeypressResult {
-        if let Some(entry) = self.nav.selected_entry()
-            && !entry.is_dir()
-        {
+        if let Some(entry) = self.nav.selected_entry() {
             let path = self.nav.current_dir().join(entry.name());
             if let Err(e) = open_in_editor(self.config.editor(), &path) {
                 eprintln!("Error: {}", e);
