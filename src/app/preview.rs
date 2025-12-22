@@ -37,9 +37,7 @@ impl PreviewState {
     pub fn selected_idx(&self) -> usize {
         self.selected_idx
     }
-    // pub fn is_pending(&self) -> bool {
-    //     self.pending
-    // }
+
     pub fn request_id(&self) -> u64 {
         self.request_id
     }

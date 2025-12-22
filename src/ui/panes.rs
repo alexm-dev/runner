@@ -4,6 +4,7 @@ use ratatui::{
     Frame,
     layout::Rect,
     style::{Color, Modifier, Style},
+    text::{Line, Span},
     widgets::{Block, List, ListItem, ListState, Paragraph},
 };
 
@@ -15,12 +16,8 @@ pub struct PaneStyles {
 
 impl PaneStyles {
     pub fn get_style(&self, is_dir: bool, is_selected: bool) -> Style {
-        let mut style = if is_dir {
-            if self.dir.fg != Some(Color::Reset) {
-                self.dir
-            } else {
-                self.item
-            }
+        let mut style = if is_dir && self.dir.fg != Some(Color::Reset) {
+            self.dir
         } else {
             self.item
         };
@@ -49,6 +46,8 @@ pub struct PaneContext<'a> {
     pub accent_style: Style,
     pub styles: PaneStyles,
     pub highlight_symbol: &'a str,
+    pub entry_padding: u8,
+    pub padding_str: &'static str,
 }
 
 pub struct PreviewOptions {
@@ -74,7 +73,9 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
             };
             let style = context.styles.get_style(e.is_dir(), is_selected);
 
-            ListItem::new(text).style(style)
+            let line = Line::from(vec![Span::raw(context.padding_str), Span::raw(text)]);
+
+            ListItem::new(line).style(style)
         })
         .collect();
 
@@ -128,23 +129,35 @@ pub fn draw_preview(
                     let is_selected = Some(i) == selected_idx;
                     let mut style = context.styles.get_style(e.is_dir(), is_selected);
 
-                    if is_selected && opts.use_underline {
-                        style = style.add_modifier(Modifier::UNDERLINED);
+                    if !is_selected || !opts.use_underline {
+                        let line = Line::from(vec![
+                            Span::styled(context.padding_str, style),
+                            Span::styled(e.display_name(), style),
+                        ]);
+                        return ListItem::new(line);
+                    }
 
-                        if let Some(bg_color) = opts.underline_style.bg
-                            && bg_color != Color::Reset
-                        {
-                            style = style.bg(bg_color);
-                        }
-                        if let Some(color) = opts.underline_style.fg {
-                            style = style.underline_color(color);
-                            if opts.underline_match_text {
-                                style = style.fg(color);
+                    style = style.add_modifier(Modifier::UNDERLINED);
+
+                    if let Some(color) = opts.underline_style.fg {
+                        style = style.underline_color(color);
+
+                        if opts.underline_match_text {
+                            style = style.fg(color);
+
+                            if let Some(bg) = opts.underline_style.bg.filter(|&c| c != Color::Reset)
+                            {
+                                style = style.bg(bg);
                             }
                         }
                     }
 
-                    ListItem::new(e.display_name()).style(style)
+                    let line = Line::from(vec![
+                        Span::raw(context.padding_str),
+                        Span::raw(e.display_name()),
+                    ]);
+
+                    ListItem::new(line).style(style)
                 })
                 .collect();
 
@@ -181,7 +194,11 @@ pub fn draw_origin(
             let is_selected = Some(i) == selected_idx;
             // Use metadata from FileEntry to apply correct coloring
             let style = context.styles.get_style(e.is_dir(), is_selected);
-            ListItem::new(e.display_name()).style(style)
+            let line = Line::from(vec![
+                Span::raw(context.padding_str),
+                Span::raw(e.display_name()),
+            ]);
+            ListItem::new(line).style(style)
         })
         .collect();
 

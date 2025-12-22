@@ -77,28 +77,32 @@ runner - Full Configuration Guide (runner.toml)
   borders                 (str)   "none", "unified", or "split"
   titles                  (bool)  Show pane titles at the top
   separators              (bool)  Draw vertical lines between panes
-  origin                  (bool)  Show the parent directory pane
+  parent                  (bool)  Show the parent directory pane
   preview                 (bool)  Show the file preview pane
-  origin_ratio            (u16)   Width % of the origin pane
-  main_ratio              (u16)   Width % of the center pane
-  preview_ratio           (u16)   Width % of the preview pane
-  scroll_padding          (usize) Scroll padding of the main pane
   preview_underline       (bool)  Use underline for preview selection instead of a highlighted selection
   preview_underline_color (bool)  Use underline colors instead of selection colors
+  entry_padding           (usize) Entry padding for all the panes
+  scroll_padding          (usize) Scroll padding of the main pane
+
+[display.layout]
+  parent                  (u16)   Width % of the parent pane
+  main                    (u16)   Width % of the center pane
+  preview                 (u16)   Width % of the preview pane
+
 
 [theme]
   selection_icon    (str)   The cursor string (e.g., "> ")
 
-# Theme sections    (Each supports "fg" and "bg" keys, colors can be as HEX '#FFFFFF')
+# Theme sections    (Each supports "fg" and "bg" keys,)
 [theme.selection]    Selection bar colors    fg (str), bg (str)
-[theme.underline]    Underline colors        fg (str), bg (str)
 [theme.accent]       Border/title accents    fg (str), bg (str)
 [theme.entry]        Standard entry colors   fg (str), bg (str)
 [theme.directory]    Directory entry colors  fg (str), bg (str)
 [theme.separator]    Vertical line colors    fg (str), bg (str)
-[theme.origin]       Parent pane text        fg (str), bg (str)
+[theme.parent]       Parent pane text        fg (str), bg (str)
 [theme.preview]      Preview pane text       fg (str), bg (str)
 [theme.path]         Path bar colors         fg (str), bg (str)
+[theme.underline]    Underline colors        fg (str), bg (str)
 
 [editor]
   cmd               (str)   Command to open files (e.g., "nvim")

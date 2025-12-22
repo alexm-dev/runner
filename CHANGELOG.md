@@ -1,5 +1,33 @@
 # Changelog
 
+## [v0.2.10] - 2025-12-22
+
+### Fixed
+- Selection background and foreground colors for each pane now renders correctly.
+- Fixed a bug where the underline background in `[theme.underline]` would falsely overide the selection background even if false. Now correctly respects the `preview_underline_color` toggle.
+
+### Added
+- **Theme Overides**: Implemented a Global-to-Local overide system, where panes can inherit global selection styles from `[theme.selection]` or define their own.
+- **Entry Padding**: Added `entry_padding` configuration to allow customization of padding between entries and the pane edge.
+- **Navigation Wrapping**: Navigating past the last entry now wraps back to the top.
+- **Expaned Theme Support**: Can now use 3 digit HEX colors as well.
+
+### Changed
+- **Parent pane**: Renamed the former `Origin` pane to `Parent` pane
+- **Display layout**: Changed how the configuration holds the pane / ratio layouts. Now inside `[display.layout]`!
+- **Defaults**: Changed the defaults of `Parent` (former `Origin`) to be enabled by default. Also the init config now comments out all the defaults except some few
+- **Clean configuration init**: The `--init` command now generates a cleaner `runner.toml` by commentig out most internal defaults.
+
+### Internal
+- Optimized "Global-to-Local" theme engine to correctly resolve color overides and inheritance, improving runtime overhead.
+
+
+
+---
+
+
+
+
 ## [v0.2.9] - 2025-12-22
 
 ### Fixed

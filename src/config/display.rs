@@ -1,6 +1,25 @@
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
+pub struct LayoutConfig {
+    parent: u16,
+    main: u16,
+    preview: u16,
+}
+
+impl LayoutConfig {
+    pub fn parent_ratio(&self) -> u16 {
+        self.parent
+    }
+    pub fn main_ratio(&self) -> u16 {
+        self.main
+    }
+    pub fn preview_ratio(&self) -> u16 {
+        self.preview
+    }
+}
+
+#[derive(Deserialize, Debug)]
 #[serde(default)]
 pub struct Display {
     selection_marker: bool,
@@ -8,13 +27,12 @@ pub struct Display {
     borders: BorderStyle,
     titles: bool,
     separators: bool,
-    origin: bool,
+    parent: bool,
     preview: bool,
-    origin_ratio: u16,
-    main_ratio: u16,
-    preview_ratio: u16,
+    layout: LayoutConfig,
     preview_underline: bool,
     preview_underline_color: bool,
+    entry_padding: u8,
     scroll_padding: usize,
 }
 
@@ -51,24 +69,24 @@ impl Display {
         self.separators
     }
 
-    pub fn origin(&self) -> bool {
-        self.origin
+    pub fn parent(&self) -> bool {
+        self.parent
     }
 
     pub fn preview(&self) -> bool {
         self.preview
     }
 
-    pub fn origin_ratio(&self) -> u16 {
-        self.origin_ratio
+    pub fn parent_ratio(&self) -> u16 {
+        self.layout.parent_ratio()
     }
 
     pub fn main_ratio(&self) -> u16 {
-        self.main_ratio
+        self.layout.main_ratio()
     }
 
     pub fn preview_ratio(&self) -> u16 {
-        self.preview_ratio
+        self.layout.preview_ratio()
     }
 
     pub fn preview_underline(&self) -> bool {
@@ -79,8 +97,23 @@ impl Display {
         self.preview_underline_color
     }
 
+    pub fn entry_padding(&self) -> u8 {
+        self.entry_padding
+    }
+
     pub fn scroll_padding(&self) -> usize {
         self.scroll_padding
+    }
+
+    pub fn padding_str(&self) -> &'static str {
+        // ASCII whitespaces
+        match self.entry_padding {
+            0 => "",
+            1 => " ",
+            2 => "  ",
+            3 => "   ",
+            _ => "    ",
+        }
     }
 }
 
@@ -89,16 +122,19 @@ impl Default for Display {
         Display {
             selection_marker: true,
             dir_marker: true,
-            borders: BorderStyle::Unified,
-            titles: true,
+            borders: BorderStyle::None,
+            titles: false,
             separators: true,
-            origin: false,
+            parent: true,
             preview: true,
-            origin_ratio: 20,
-            main_ratio: 40,
-            preview_ratio: 40,
+            layout: LayoutConfig {
+                parent: 20,
+                main: 40,
+                preview: 40,
+            },
             preview_underline: true,
             preview_underline_color: false,
+            entry_padding: 0,
             scroll_padding: 5,
         }
     }

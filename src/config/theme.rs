@@ -25,7 +25,7 @@ pub struct Theme {
     directory: ColorPair,
     separator: ColorPair,
     selection_icon: String,
-    origin: ColorPair,
+    parent: ColorPair,
     preview: ColorPair,
     path: ColorPair,
 }
@@ -48,12 +48,15 @@ impl ColorPair {
 
     pub fn selection_style(&self, global_default: Style) -> Style {
         let mut style = global_default;
+
         if let Some(fg) = self.selection_fg {
             style = style.fg(fg);
         }
+
         if let Some(bg) = self.selection_bg {
             style = style.bg(bg);
         }
+
         style
     }
 
@@ -91,14 +94,13 @@ impl Theme {
         &self.selection_icon
     }
 
-    pub fn origin(&self) -> ColorPair {
-        self.origin
+    pub fn parent(&self) -> ColorPair {
+        self.parent
     }
 
     pub fn preview(&self) -> ColorPair {
         self.preview
     }
-
     pub fn path(&self) -> ColorPair {
         self.path
     }
@@ -114,7 +116,7 @@ impl Default for Theme {
             directory: ColorPair::default(),
             separator: ColorPair::default(),
             selection_icon: "> ".into(),
-            origin: ColorPair::default(),
+            parent: ColorPair::default(),
             preview: ColorPair::default(),
             path: ColorPair {
                 fg: Color::Cyan,

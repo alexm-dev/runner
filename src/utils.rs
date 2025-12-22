@@ -14,17 +14,35 @@ pub fn parse_color(s: &str) -> Color {
         "white" => Color::White,
         "black" => Color::Black,
         _ => {
-            if let Some(color) = s.strip_prefix('#')
-                && color.len() == 6
-                && let Ok(rgb) = u32::from_str_radix(color, 16)
-            {
-                return Color::Rgb(
-                    ((rgb >> 16) & 0xFF) as u8,
-                    ((rgb >> 8) & 0xFF) as u8,
-                    (rgb & 0xFF) as u8,
-                );
+            if let Some(color) = s.strip_prefix('#') {
+                match color.len() {
+                    6 => {
+                        if let Ok(rgb) = u32::from_str_radix(color, 16) {
+                            return Color::Rgb(
+                                ((rgb >> 16) & 0xFF) as u8,
+                                ((rgb >> 8) & 0xFF) as u8,
+                                (rgb & 0xFF) as u8,
+                            );
+                        }
+                    }
+                    3 => {
+                        let expanded = color
+                            .chars()
+                            .map(|c| format!("{}{}", c, c))
+                            .collect::<String>();
+                        if let Ok(rgb) = u32::from_str_radix(&expanded, 16) {
+                            return Color::Rgb(
+                                ((rgb >> 16) & 0xFF) as u8,
+                                ((rgb >> 8) & 0xFF) as u8,
+                                (rgb & 0xFF) as u8,
+                            );
+                        }
+                    }
+                    _ => {}
+                }
             }
-            Color::Reset // Fallback
+            // fallback
+            Color::Reset
         }
     }
 }

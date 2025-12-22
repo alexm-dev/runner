@@ -150,27 +150,32 @@ impl Config {
         }
         let full_toml = r#"# runner.toml - default configuration for runner
 
+# Note: All values below are the defaults.
+
 # General behavior
 dirs_first = true
 show_hidden = false
-show_system = false
+# show_system = false
 case_insensitive = true
-always_show = []
+# always_show = []
 
 [display]
-selection_marker = true
-dir_marker = true
-borders = "unified"
-titles = true
+# selection_marker = true
+# dir_marker = true
+# borders = "none"
+# titles = false
 separators = true
-origin = false
+parent = true
 preview = true
-origin_ratio = 20
-main_ratio = 40
-preview_ratio = 40
 preview_underline = true
-preview_underline_color = false
-scroll_padding = 5
+# preview_underline_color = false
+# entry_padding = 0
+# scroll_padding = 5
+
+[display.layout]
+parent = 20
+main = 40
+preview = 40
 
 [theme]
 selection_icon = "> "
@@ -179,52 +184,52 @@ selection_icon = "> "
 fg = "default"
 bg = "default"
 
-[theme.underline]
-fg = "default"
-bg = "default"
+# [theme.accent]
+# fg = "default"
+# bg = "default"
 
-[theme.accent]
-fg = "default"
-bg = "default"
-
-[theme.entry]
-fg = "default"
-bg = "default"
+# [theme.entry]
+# fg = "default"
+# bg = "default"
 
 [theme.directory]
 fg = "cyan"
-bg = "default"
+# bg = "default"
 
-[theme.separator]
-fg = "default"
-bg = "default"
+# [theme.separator]
+# fg = "default"
+# bg = "default"
 
-[theme.origin]
-fg = "default"
-bg = "default"
-selection_fg = "default"
-selection_bg = "default"
+# [theme.parent]
+# fg = "default"
+# bg = "default"
+# selection_fg = "default"
+# selection_bg = "default"
 
-[theme.preview]
-fg = "default"
-bg = "default"
-selection_fg = "default"
-selection_bg = "default"
+# [theme.preview]
+# fg = "default"
+# bg = "default"
+# selection_fg = "default"
+# selection_bg = "default"
+
+# [theme.underline]
+# fg = "default"
+# bg = "default"
 
 [theme.path]
-fg = "cyan"
-bg = "default"
+fg = "magenta"
+# bg = "default"
 
 [editor]
 cmd = "nvim"
 
-[keys]
-open_file = ["Enter"]
-go_up = ["k", "Up Arrow"]
-go_down = ["j", "Down Arrow"]
-go_origin = ["h", "Left Arrow", "Backspace"]
-go_into_dir = ["l", "Right Arrow"]
-quit = ["q", "Esc"]
+# [keys]
+# open_file = ["Enter"]
+# go_up = ["k", "Up Arrow"]
+# go_down = ["j", "Down Arrow"]
+# go_parent = ["h", "Left Arrow", "Backspace"]
+# go_into_dir = ["l", "Right Arrow"]
+# quit = ["q", "Esc"]
 "#;
 
         let minimal_toml = r#"# runner.toml - minimal configuration
@@ -232,8 +237,11 @@ quit = ["q", "Esc"]
 
 dirs_first = true
 
-[display]
-preview = true
+[theme.directory]
+fg = "cyan"
+
+[theme.path]
+fg = "magenta"
 
 [theme]
 selection_icon = "> "

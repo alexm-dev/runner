@@ -18,7 +18,7 @@ impl Keymap {
     pub fn from_config(config: &crate::config::Config) -> Self {
         let mut map = HashMap::new();
         let keys = config.keys();
-        for key in keys.go_origin() {
+        for key in keys.go_parent() {
             map.insert(key.clone(), Action::GoParent);
         }
         for key in keys.go_into_dir() {

@@ -34,7 +34,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             (width as usize, height as usize)
         };
 
-        if display_cfg.origin() && current_idx < chunks.len() {
+        if display_cfg.parent() && current_idx < chunks.len() {
             metrics.parent_width = get_inner(chunks[current_idx]).0;
             current_idx += if has_sep { 2 } else { 1 };
         }
@@ -65,6 +65,8 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     let selection_style = theme_cfg.selection().as_style();
     let path_str = app.nav.current_dir().to_string_lossy();
     let path_style = theme_cfg.path().as_style();
+
+    let padding_str = display_cfg.padding_str();
 
     // Root Border / Header Logic
     if display_cfg.is_unified() {
@@ -99,8 +101,8 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     let mut pane_idx = 0;
     let show_separators = display_cfg.separators() && !display_cfg.is_split();
 
-    // ORIGIN PANE
-    if display_cfg.origin() && pane_idx < chunks.len() {
+    // PARENT PANE
+    if display_cfg.parent() && pane_idx < chunks.len() {
         panes::draw_origin(
             frame,
             PaneContext {
@@ -108,11 +110,13 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 block: widgets::get_pane_block("Parent", app),
                 accent_style,
                 styles: PaneStyles {
-                    item: theme_cfg.origin().as_style(),
+                    item: theme_cfg.parent().as_style(),
                     dir: theme_cfg.directory().as_style(),
-                    selection: selection_style,
+                    selection: theme_cfg.parent().selection_style(selection_style),
                 },
                 highlight_symbol: "",
+                entry_padding: display_cfg.entry_padding(),
+                padding_str,
             },
             app.parent.entries(),
             app.parent.selected_idx(),
@@ -156,6 +160,8 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 accent_style,
                 styles: pane_style,
                 highlight_symbol: symbol,
+                entry_padding: display_cfg.entry_padding(),
+                padding_str,
             },
         );
         pane_idx += 1;
@@ -195,9 +201,11 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 styles: PaneStyles {
                     item: theme_cfg.preview().as_style(),
                     dir: theme_cfg.directory().as_style(),
-                    selection: theme_cfg.preview().as_style(),
+                    selection: theme_cfg.preview().selection_style(selection_style),
                 },
                 highlight_symbol: "",
+                entry_padding: display_cfg.entry_padding(),
+                padding_str,
             },
             app.preview.data(),
             if is_dir {
@@ -208,11 +216,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             PreviewOptions {
                 use_underline: display_cfg.preview_underline(),
                 underline_match_text: display_cfg.preview_underline_color(),
-                underline_style: if display_cfg.preview_underline_color() {
-                    theme_cfg.underline().as_style()
-                } else {
-                    selection_style
-                },
+                underline_style: theme_cfg.underline().as_style(),
             },
         );
     }
@@ -223,7 +227,7 @@ pub fn layout_chunks(size: Rect, app: &AppState) -> Vec<Rect> {
     let mut constraints = Vec::new();
     let show_sep = cfg.separators() && !cfg.is_split();
 
-    let origin = if cfg.origin() { cfg.origin_ratio() } else { 0 };
+    let parent = if cfg.parent() { cfg.parent_ratio() } else { 1 };
     let preview = if cfg.preview() {
         cfg.preview_ratio()
     } else {
@@ -231,7 +235,7 @@ pub fn layout_chunks(size: Rect, app: &AppState) -> Vec<Rect> {
     };
     let main = cfg.main_ratio();
 
-    let total = origin + preview + main;
+    let total = parent + preview + main;
 
     let factor = if total > 100 {
         100.0 / total as f32
@@ -239,8 +243,8 @@ pub fn layout_chunks(size: Rect, app: &AppState) -> Vec<Rect> {
         1.0
     };
 
-    if cfg.origin() {
-        constraints.push(Constraint::Percentage((origin as f32 * factor) as u16));
+    if cfg.parent() {
+        constraints.push(Constraint::Percentage((parent as f32 * factor) as u16));
         if show_sep {
             constraints.push(Constraint::Length(1));
         }

@@ -6,7 +6,7 @@ pub struct Keys {
     open_file: Vec<String>,
     go_up: Vec<String>,
     go_down: Vec<String>,
-    go_origin: Vec<String>,
+    go_parent: Vec<String>,
     go_into_dir: Vec<String>,
     quit: Vec<String>,
 }
@@ -27,8 +27,8 @@ impl Keys {
     pub fn go_down(&self) -> &Vec<String> {
         &self.go_down
     }
-    pub fn go_origin(&self) -> &Vec<String> {
-        &self.go_origin
+    pub fn go_parent(&self) -> &Vec<String> {
+        &self.go_parent
     }
     pub fn go_into_dir(&self) -> &Vec<String> {
         &self.go_into_dir
@@ -44,7 +44,7 @@ impl Default for Keys {
             open_file: vec!["Enter".into()],
             go_up: vec!["k".into(), "Up Arrow".into()],
             go_down: vec!["j".into(), "Down Arrow".into()],
-            go_origin: vec!["h".into(), "Left Arrow".into(), "Backspace".into()],
+            go_parent: vec!["h".into(), "Left Arrow".into(), "Backspace".into()],
             go_into_dir: vec!["l".into(), "Right Arrow".into()],
             quit: vec!["q".into(), "Esc".into()],
         }

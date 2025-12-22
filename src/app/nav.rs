@@ -39,26 +39,33 @@ impl NavState {
         self.entries.get(self.selected)
     }
 
-    // encapsulated mutators
     pub fn prepare_new_request(&mut self) -> u64 {
         self.request_id += 1;
         self.request_id
     }
 
     pub fn move_up(&mut self) -> bool {
-        if self.selected > 0 {
-            self.selected -= 1;
-            return true;
+        let len = self.entries.len();
+        if len == 0 {
+            return false;
         }
-        false
+
+        if self.selected == 0 {
+            self.selected = len - 1;
+        } else {
+            self.selected -= 1;
+        }
+        true
     }
 
     pub fn move_down(&mut self) -> bool {
-        if !self.entries.is_empty() && self.selected < self.entries.len() - 1 {
-            self.selected += 1;
-            return true;
+        let len = self.entries.len();
+        if len == 0 {
+            return false;
         }
-        false
+
+        self.selected = (self.selected + 1) % len;
+        true
     }
 
     pub fn save_position(&mut self) {
