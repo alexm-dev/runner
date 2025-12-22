@@ -83,6 +83,7 @@ runner - Full Configuration Guide (runner.toml)
   main_ratio       (u16)   Width % of the center pane
   preview_ratio    (u16)   Width % of the preview pane
   scroll_padding   (usize) Scroll padding of the main pane
+  preview_underline(bool)  Enable a preview underline instead of selection highlight
 
 [theme]
   background       (str)   Hex (#RRGGBB) or "default"
@@ -92,6 +93,7 @@ runner - Full Configuration Guide (runner.toml)
 [theme.selection]   Selection bar colors    fg (str), bg (str)
 [theme.accent]      Border/title accents    fg (str), bg (str)
 [theme.entry]       Standard entry colors   fg (str), bg (str)
+[theme.directory]   Directory entry colors  fg (str), bg (str)
 [theme.separator]   Vertical line colors    fg (str), bg (str)
 [theme.origin]      Parent pane text        fg (str), bg (str)
 [theme.preview]     Preview pane text       fg (str), bg (str)

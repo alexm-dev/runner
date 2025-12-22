@@ -5,8 +5,15 @@
 //!
 //! Each config struct corresponds to a top-level key in the `runner.toml`.
 
-use crate::utils::parse_color;
-use ratatui::style::{Color, Style};
+// This tells Rust to look for src/config/display.rs, etc.
+pub mod display;
+pub mod input;
+pub mod theme;
+
+pub use display::Display;
+pub use input::{Editor, Keys};
+pub use theme::Theme;
+
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::ffi::OsString;
@@ -38,75 +45,6 @@ pub struct Config {
     theme: Theme,
     editor: Editor,
     keys: Keys,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(default)]
-pub struct Display {
-    selection_marker: bool,
-    dir_marker: bool,
-    borders: BorderStyle,
-    titles: bool,
-    separators: bool,
-    origin: bool,
-    preview: bool,
-    origin_ratio: u16,
-    main_ratio: u16,
-    preview_ratio: u16,
-    scroll_padding: usize,
-}
-
-#[derive(Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum BorderStyle {
-    None,
-    Unified,
-    Split,
-}
-
-#[derive(Deserialize, Debug, Clone, Copy)]
-pub struct ColorPair {
-    #[serde(deserialize_with = "deserialize_color_field")]
-    fg: Color,
-    #[serde(deserialize_with = "deserialize_color_field")]
-    bg: Color,
-
-    #[serde(default, deserialize_with = "deserialize_optional_color_field")]
-    selection_fg: Option<Color>,
-    #[serde(default, deserialize_with = "deserialize_optional_color_field")]
-    selection_bg: Option<Color>,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(default)]
-pub struct Theme {
-    #[serde(deserialize_with = "deserialize_color_field")]
-    background: Color,
-    selection: ColorPair,
-    accent: ColorPair,
-    entry: ColorPair,
-    separator: ColorPair,
-    selection_icon: String,
-    origin: ColorPair,
-    preview: ColorPair,
-    path: ColorPair,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(default)]
-pub struct Keys {
-    open_file: Vec<String>,
-    go_up: Vec<String>,
-    go_down: Vec<String>,
-    go_origin: Vec<String>,
-    go_into_dir: Vec<String>,
-    quit: Vec<String>,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(default)]
-pub struct Editor {
-    cmd: String,
 }
 
 impl From<RawConfig> for Config {
@@ -228,9 +166,10 @@ titles = true
 separators = true
 origin = false
 preview = true
-origin_ratio = 30
+origin_ratio = 20
 main_ratio = 40
-preview_ratio = 30
+preview_ratio = 40
+preview_underline = false
 scroll_padding = 5
 
 [theme]
@@ -247,6 +186,10 @@ bg = "default"
 
 [theme.entry]
 fg = "default"
+bg = "default"
+
+[theme.directory]
+fg = "cyan"
 bg = "default"
 
 [theme.separator]
@@ -320,229 +263,5 @@ impl Default for Config {
             editor: Editor::default(),
             keys: Keys::default(),
         }
-    }
-}
-
-impl Display {
-    pub fn selection_marker(&self) -> bool {
-        self.selection_marker
-    }
-
-    pub fn dir_marker(&self) -> bool {
-        self.dir_marker
-    }
-
-    // pub fn borders(&self) -> &BorderStyle {
-    //     &self.borders
-    // }
-
-    pub fn is_unified(&self) -> bool {
-        matches!(self.borders, BorderStyle::Unified)
-    }
-
-    pub fn is_split(&self) -> bool {
-        matches!(self.borders, BorderStyle::Split)
-    }
-
-    pub fn titles(&self) -> bool {
-        self.titles
-    }
-
-    pub fn separators(&self) -> bool {
-        self.separators
-    }
-
-    pub fn origin(&self) -> bool {
-        self.origin
-    }
-
-    pub fn preview(&self) -> bool {
-        self.preview
-    }
-
-    pub fn origin_ratio(&self) -> u16 {
-        self.origin_ratio
-    }
-
-    pub fn main_ratio(&self) -> u16 {
-        self.main_ratio
-    }
-
-    pub fn preview_ratio(&self) -> u16 {
-        self.preview_ratio
-    }
-
-    pub fn scroll_padding(&self) -> usize {
-        self.scroll_padding
-    }
-}
-
-impl Default for Display {
-    fn default() -> Self {
-        Display {
-            selection_marker: true,
-            dir_marker: true,
-            borders: BorderStyle::Unified,
-            titles: true,
-            separators: true,
-            origin: false,
-            preview: true,
-            origin_ratio: 25,
-            main_ratio: 50,
-            preview_ratio: 50,
-            scroll_padding: 5,
-        }
-    }
-}
-
-impl Default for ColorPair {
-    fn default() -> Self {
-        Self {
-            fg: Color::Reset,
-            bg: Color::Reset,
-            selection_fg: None,
-            selection_bg: None,
-        }
-    }
-}
-
-impl ColorPair {
-    pub fn as_style(&self) -> Style {
-        Style::default().fg(self.fg).bg(self.bg)
-    }
-
-    pub fn selection_style(&self, global_default: Style) -> Style {
-        let mut style = global_default;
-        if let Some(fg) = self.selection_fg {
-            style = style.fg(fg);
-        }
-        if let Some(bg) = self.selection_bg {
-            style = style.bg(bg);
-        }
-        style
-    }
-}
-
-impl Theme {
-    // pub fn background(&self) -> Color {
-    //     self.background
-    // }
-
-    pub fn accent(&self) -> ColorPair {
-        self.accent
-    }
-
-    pub fn selection(&self) -> ColorPair {
-        self.selection
-    }
-
-    pub fn entry(&self) -> ColorPair {
-        self.entry
-    }
-
-    pub fn separator(&self) -> ColorPair {
-        self.separator
-    }
-
-    pub fn selection_icon(&self) -> &str {
-        &self.selection_icon
-    }
-
-    pub fn origin(&self) -> ColorPair {
-        self.origin
-    }
-
-    pub fn preview(&self) -> ColorPair {
-        self.preview
-    }
-
-    pub fn path(&self) -> ColorPair {
-        self.path
-    }
-}
-
-impl Default for Theme {
-    fn default() -> Self {
-        Theme {
-            background: Color::Reset,
-            accent: ColorPair::default(),
-            selection: ColorPair::default(),
-            entry: ColorPair::default(),
-            separator: ColorPair::default(),
-            selection_icon: "> ".into(),
-            origin: ColorPair::default(),
-            preview: ColorPair::default(),
-            path: ColorPair {
-                fg: Color::Cyan,
-                ..ColorPair::default()
-            },
-        }
-    }
-}
-
-impl Keys {
-    pub fn open_file(&self) -> &Vec<String> {
-        &self.open_file
-    }
-    pub fn go_up(&self) -> &Vec<String> {
-        &self.go_up
-    }
-    pub fn go_down(&self) -> &Vec<String> {
-        &self.go_down
-    }
-    pub fn go_origin(&self) -> &Vec<String> {
-        &self.go_origin
-    }
-    pub fn go_into_dir(&self) -> &Vec<String> {
-        &self.go_into_dir
-    }
-    pub fn quit(&self) -> &Vec<String> {
-        &self.quit
-    }
-}
-
-impl Default for Keys {
-    fn default() -> Self {
-        Keys {
-            open_file: vec!["Enter".into()],
-            go_up: vec!["k".into(), "Up Arrow".into()],
-            go_down: vec!["j".into(), "Down Arrow".into()],
-            go_origin: vec!["h".into(), "Left Arrow".into(), "Backspace".into()],
-            go_into_dir: vec!["l".into(), "Right Arrow".into()],
-            quit: vec!["q".into(), "Esc".into()],
-        }
-    }
-}
-
-impl Editor {
-    pub fn cmd(&self) -> &str {
-        &self.cmd
-    }
-}
-
-impl Default for Editor {
-    fn default() -> Self {
-        Editor { cmd: "nvim".into() }
-    }
-}
-
-// Helper function to deserialize Theme colors
-fn deserialize_color_field<'de, D>(deserializer: D) -> Result<Color, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    Ok(parse_color(&s))
-}
-
-// Helper function to deserialize optinals Colors for Themes
-fn deserialize_optional_color_field<'de, D>(deserializer: D) -> Result<Option<Color>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: Option<String> = Option::deserialize(deserializer)?;
-    match s {
-        Some(s) if s.to_lowercase() != "default" => Ok(Some(parse_color(&s))),
-        _ => Ok(None),
     }
 }

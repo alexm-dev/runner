@@ -23,8 +23,6 @@ If you don't have a config file yet, you can generate one automatically:
 ## General Settings
 ```toml
 
-# --- General Settings ---
-
 # Sort directories before files
 dirs_first = true
 
@@ -67,10 +65,18 @@ origin_ratio = 30
 main_ratio = 40
 preview_ratio = 30
 
+# Option to enable the underline in the preview pane
+preview_underline = false
+
 # Scroll padding of the main pane
 scroll_padding = 5
 
 # Theme colors can be changed with either Hex "#RRGGBB" colors or terminal colors
+# Any key can be ommited and does not have to be inside the runner.toml.
+# Example
+# [theme.selection]
+# fg = "#FFFFFF"
+
 [theme]
 # Background color.
 background = "default"
@@ -90,6 +96,11 @@ bg = "default"
 
 # Colors for the entries (of the main pane)
 [theme.entry]
+fg = "default"
+bg = "default"
+
+# Colors for the directory entries in all panes
+[theme.directory]
 fg = "default"
 bg = "default"
 

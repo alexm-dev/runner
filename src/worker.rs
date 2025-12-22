@@ -1,12 +1,13 @@
 use std::collections::HashSet;
 use std::ffi::OsString;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::thread;
 
 use crossbeam_channel::{Receiver, Sender};
+use unicode_width::UnicodeWidthChar;
 
 use crate::file_manager::{FileEntry, browse_dir};
 use crate::formatter::Formatter;
@@ -20,11 +21,13 @@ pub enum WorkerTask {
         show_system: bool,
         case_insensitive: bool,
         always_show: Arc<HashSet<OsString>>,
+        pane_width: usize,
         request_id: u64,
     },
     LoadPreview {
         path: PathBuf,
         max_lines: usize,
+        pane_width: usize,
         request_id: u64,
     },
 }
@@ -55,6 +58,7 @@ pub fn start_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse
                     show_system,
                     case_insensitive,
                     always_show,
+                    pane_width,
                     request_id,
                 } => match browse_dir(&path) {
                     Ok(mut entries) => {
@@ -64,6 +68,7 @@ pub fn start_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse
                             show_system,
                             case_insensitive,
                             always_show,
+                            pane_width,
                         );
                         formatter.filter_entries(&mut entries);
                         let _ = res_tx.send(WorkerResponse::DirectoryLoaded {
@@ -80,9 +85,10 @@ pub fn start_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse
                 WorkerTask::LoadPreview {
                     path,
                     max_lines,
+                    pane_width,
                     request_id,
                 } => {
-                    let lines = safe_read_preview(&path, max_lines);
+                    let lines = safe_read_preview(&path, max_lines, pane_width);
                     let _ = res_tx.send(WorkerResponse::PreviewLoaded { lines, request_id });
                 }
             }
@@ -90,86 +96,154 @@ pub fn start_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse
     });
 }
 
-fn safe_read_preview(path: &Path, max_lines: usize) -> Vec<String> {
-    let max_lines = std::cmp::max(max_lines, 3);
+// Calculating the pane widht and clean the output to the widht of the pane
+fn sanitize_to_exact_width(line: &str, pane_width: usize) -> String {
+    let mut out = String::with_capacity(pane_width);
+    let mut current_w = 0;
 
-    if path.is_dir() {
-        return match browse_dir(path) {
-            Ok(entries) => {
-                let mut lines: Vec<String> = entries
-                    .iter()
-                    .take(max_lines)
-                    .map(|e| {
-                        if e.is_dir() {
-                            format!("{}/", e.name().to_string_lossy())
-                        } else {
-                            e.name().to_string_lossy().to_string()
-                        }
-                    })
-                    .collect();
-
-                if lines.is_empty() {
-                    lines.push("[empty directory]".into());
-                } else if entries.len() > max_lines {
-                    lines.push("...".into());
-                }
-                lines
+    for char in line.chars() {
+        if char == '\t' {
+            let space_count = 4 - (current_w % 4);
+            if current_w + space_count > pane_width {
+                break;
             }
-            Err(e) => vec![format!("[error reading dir: {}]", e)],
-        };
-    }
-
-    let Ok(meta) = std::fs::metadata(path) else {
-        return vec!["[Error: Access Denied]".into()];
-    };
-
-    if meta.len() > 10 * 1024 * 1024 {
-        return vec!["[File too large for preview]".into()];
-    }
-
-    if !meta.is_file() {
-        return vec!["[Not a regular file]".into()];
-    }
-
-    if let Some(fname) = path.file_name().and_then(|os| os.to_str()) {
-        let lower = fname.to_lowercase();
-        let well_known = ["readme", "license", "copying", "makefile"];
-        if !fname.contains('.') && fname.len() <= 3 && !well_known.contains(&lower.as_str()) {
-            return vec!["[Short, extensionless file - preview hidden]".into()];
+            out.push_str(&" ".repeat(space_count));
+            current_w += space_count;
+            continue;
         }
+
+        if char.is_control() {
+            continue;
+        }
+
+        let w = char.width().unwrap_or(0);
+        if current_w + w > pane_width {
+            break;
+        }
+
+        out.push(char);
+        current_w += w;
     }
 
-    match File::open(path) {
-        Ok(mut file) => {
-            let meta = file.metadata().ok();
-            if let Some(m) = meta
-                && m.len() > 10 * 1024 * 1024
-            {
-                return vec!["[File is too large]".into()];
+    // If the string is shorter than the pane, fill it with spaces.
+    if current_w < pane_width {
+        out.push_str(&" ".repeat(pane_width - current_w));
+    }
+
+    out
+}
+
+fn preview_directory(path: &Path, max_lines: usize, pane_width: usize) -> Vec<String> {
+    match browse_dir(path) {
+        Ok(entries) => {
+            let mut lines = Vec::with_capacity(max_lines + 1);
+
+            // 1. Process existing entries
+            for e in entries.iter().take(max_lines) {
+                let suffix = if e.is_dir() { "/" } else { "" };
+                let display_name = format!("{}{}", e.name().to_string_lossy(), suffix);
+
+                // Sanitize and pad to exact width
+                lines.push(sanitize_to_exact_width(&display_name, pane_width));
             }
-            let mut header = [0u8; 1024];
-            let n = file.read(&mut header).unwrap_or(0);
 
-            if header[..n].contains(&0) {
-                return vec!["[Binary file - preview hidden]".into()];
-            }
-
-            use std::io::Seek;
-            let _ = file.rewind();
-
-            let reader = BufReader::new(file);
-            let mut lines: Vec<String> = reader
-                .lines()
-                .take(max_lines)
-                .filter_map(Result::ok)
-                .collect();
-
+            // 2. Handle Empty State
             if lines.is_empty() {
-                lines.push("[Empty file]".into());
+                lines.push(sanitize_to_exact_width("[empty directory]", pane_width));
+            }
+            // 3. Handle Overflow Indicator
+            else if entries.len() > max_lines {
+                lines.pop();
+                lines.push(sanitize_to_exact_width("...", pane_width));
+            }
+
+            // If the folder has fewer items than the height of the pane,
+            // it fills the remaining lines with empty padded strings.
+            // This physically erases old content from the bottom of the pane.
+            while lines.len() < max_lines {
+                lines.push(" ".repeat(pane_width));
             }
 
             lines
         }
-        Err(e) => vec![format!("[Error reading file: {}]", e)],
+        Err(e) => {
+            let mut err_lines = vec![sanitize_to_exact_width(
+                &format!("[Error: {}]", e),
+                pane_width,
+            )];
+            // Fill error screen with blanks too
+            while err_lines.len() < max_lines {
+                err_lines.push(" ".repeat(pane_width));
+            }
+            err_lines
+        }
+    }
+}
+
+fn safe_read_preview(path: &Path, max_lines: usize, pane_width: usize) -> Vec<String> {
+    let max_lines = std::cmp::max(max_lines, 3);
+
+    // Metadata check
+    let Ok(meta) = std::fs::metadata(path) else {
+        return vec![sanitize_to_exact_width(
+            "[Error: Access Denied]",
+            pane_width,
+        )];
+    };
+
+    if path.is_dir() {
+        return preview_directory(path, max_lines, pane_width);
+    }
+
+    // Size Check
+    const MAX_PREVIEW_SIZE: u64 = 10 * 1024 * 1024;
+    if meta.len() > MAX_PREVIEW_SIZE {
+        return vec![sanitize_to_exact_width(
+            "[File too large for preview]",
+            pane_width,
+        )];
+    }
+
+    if !meta.is_file() {
+        return vec![sanitize_to_exact_width("[Not a regular file]", pane_width)];
+    }
+
+    // File Read and binary Check
+    match File::open(path) {
+        Ok(mut file) => {
+            // First, peek for null bytes to detect binary files
+            let mut buffer = [0u8; 1024];
+            let n = file.read(&mut buffer).unwrap_or(0);
+            if buffer[..n].contains(&0) {
+                return vec![sanitize_to_exact_width(
+                    "[Binary file - preview hidden]",
+                    pane_width,
+                )];
+            }
+
+            let _ = file.rewind();
+
+            let reader = BufReader::new(file);
+            let mut preview_lines = Vec::with_capacity(max_lines);
+
+            for line_result in reader.lines().take(max_lines) {
+                match line_result {
+                    Ok(line) => {
+                        preview_lines.push(sanitize_to_exact_width(&line, pane_width));
+                    }
+                    Err(_) => break,
+                }
+            }
+
+            if preview_lines.is_empty() {
+                preview_lines.push(sanitize_to_exact_width("[Empty file]", pane_width));
+            }
+
+            preview_lines
+        }
+        Err(e) => vec![sanitize_to_exact_width(
+            &format!("[Error reading file: {}]", e),
+            pane_width,
+        )],
     }
 }
