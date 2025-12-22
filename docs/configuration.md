@@ -137,6 +137,7 @@ bg = "default"
 
 [editor]
 # Change the default editor to open files with
+# "code" ("code.cmd" on windows)
 cmd = "nvim"
 
 [keys]
