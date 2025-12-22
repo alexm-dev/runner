@@ -126,7 +126,7 @@ pub fn draw_preview(
                 .enumerate()
                 .map(|(i, e)| {
                     let is_selected = Some(i) == selected_idx;
-                    let mut style = context.styles.get_style(e.is_dir(), false);
+                    let mut style = context.styles.get_style(e.is_dir(), is_selected);
 
                     if is_selected && opts.use_underline {
                         style = style.add_modifier(Modifier::UNDERLINED);

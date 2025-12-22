@@ -195,7 +195,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 styles: PaneStyles {
                     item: theme_cfg.preview().as_style(),
                     dir: theme_cfg.directory().as_style(),
-                    selection: selection_style,
+                    selection: theme_cfg.preview().as_style(),
                 },
                 highlight_symbol: "",
             },
