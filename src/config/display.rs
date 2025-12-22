@@ -97,7 +97,7 @@ impl Default for Display {
             origin_ratio: 20,
             main_ratio: 40,
             preview_ratio: 40,
-            preview_underline: false,
+            preview_underline: true,
             preview_underline_color: true,
             scroll_padding: 5,
         }
