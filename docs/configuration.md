@@ -63,9 +63,9 @@ origin = false
 preview = true
 
 # Pane width ratios (relative to each other)
-origin_ratio = 30
+origin_ratio = 20
 main_ratio = 40
-preview_ratio = 30
+preview_ratio = 40
 
 # Option to enable the underline in the preview pane
 preview_underline = true
