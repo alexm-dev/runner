@@ -1,7 +1,32 @@
+<<<<<<< HEAD
 # `rn - runner`
+=======
+> ⚠️ Note: This crate is deprecated. Please use [`runa`](https://crates.io/crates/runa-tui) for all new installations.
+>>>>>>> ce03427 (chore: deprecate runner-tui in favor of runa-tui)
 
-[![Build](https://github.com/alexm-dev/runner/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/alexm-dev/runner/actions)
-[![Crates.io](https://img.shields.io/crates/v/runner-tui.svg)](https://crates.io/crates/runner-tui)
+# ⚠️ DEPRECATED: runner is renamed to runa
+
+This crate has been **renamed** to [`runa`](https://crates.io/crates/runa-tui).  
+The repository remains at [https://github.com/alexm-dev/runa](https://github.com/alexm-dev/runa)
+
+runa supports legacy configuration at `$HOME/.config/runner/runner.toml`.
+The default config path for runa-tui will be `$HOME/.config/runa/runa.toml` in future releases.
+
+**Reason for rename:**  
+The original name `runner` could cause confusion with GitHub Action runners, code runners, and other general "runner" terminology.  
+The new name is `runa` while the CLI binary still being `rn`.
+
+### Installation (new):
+
+```bash
+cargo install runa-tui
+```
+
+
+# `runner` (DEPRECATED)
+
+[![Build](https://github.com/alexm-dev/runa/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/alexm-dev/runa/actions)
+[![Crates.io](https://img.shields.io/crates/v/runa-tui.svg)](https://crates.io/crates/runa-tui)
 [![Language](https://img.shields.io/badge/language-Rust-orange)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 

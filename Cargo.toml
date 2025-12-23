@@ -39,3 +39,6 @@ debug = false
 [profile.release-windows]
 inherits = "release"
 panic    = "unwind"
+
+[badges]
+maintenance = { status = "deprecated" }
