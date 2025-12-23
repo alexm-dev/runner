@@ -1,4 +1,4 @@
-# `runner`
+# `rn - runner`
 
 [![Build](https://github.com/alexm-dev/runner/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/alexm-dev/runner/actions)
 [![Crates.io](https://img.shields.io/crates/v/runner-tui.svg)](https://crates.io/crates/runner-tui)
@@ -10,7 +10,7 @@
 
 A fast and lightweight console file browser written in Rust
 
-runner is a minimalist terminal file manager focused on speed and simplicity.  
+**rn - runner** is a minimalist terminal file manager focused on speed and simplicity.  
 
 It allows you to navigate directories, view file listings, and perform typical file browser actions.  
 
