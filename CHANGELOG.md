@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.14] - 2025-12-23
+
+### Changed
+- Finalized the change from **runner** to **runa**
+- All project references now use **runa**, **runa-tui** and the binary **rn**
+
+---
+
+## [0.2.13] - 2025-12-23
+
+## Changed
+- Renamed the project from **runner** to **runa**
+- Crate is now published as **runa-tui** (previously `runner-tui`)
+- Deprecated the `runner-tui` crate on crates.io; please use `runa-tui` for new installations
+
+---
+
 ## [0.2.12] - 2025-12-23
 ### Added
 - **Empty Directories indicator**: Now shows `[Empty]` when a directory is empty, in the main and preview pane.
