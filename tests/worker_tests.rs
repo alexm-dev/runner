@@ -1,7 +1,7 @@
 use crossbeam_channel::unbounded;
-use runner_tui::file_manager;
-use runner_tui::formatter::Formatter;
-use runner_tui::worker::{WorkerResponse, WorkerTask, start_worker};
+use runa_tui::file_manager;
+use runa_tui::formatter::Formatter;
+use runa_tui::worker::{WorkerResponse, WorkerTask, start_worker};
 use std::collections::HashSet;
 use std::path::Path;
 use std::sync::Arc;

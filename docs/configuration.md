@@ -1,16 +1,16 @@
-# Runner Configuration Guide
+# Runa Configuration Guide
 
-runner is under active development and options may change over time.
+runa is under active development and options may change over time.
 
 ## Config File
 
-`runner` is configured via a TOML file located at:
+`runa` is configured via a TOML file located at:
 
-`~/.config/runner/runner.toml` (Linux/macOS)
+`~/.config/runa/runa.toml` (Linux/macOS)
 
-`C:\Users\<UserName>\.config\runner\runner.toml` (Windows)
+`C:\Users\<UserName>\.config\runa\runa.toml` (Windows)
 
-**Override**: You can specify a custom path by setting the `RUNNER_CONFIG` environment variable.
+**Override**: You can specify a custom path by setting the `RUNA_CONFIG` environment variable.
 
 ## Quick Start
 
@@ -23,9 +23,9 @@ If you don't have a config file yet, you can generate one automatically:
 ## General Settings
 ```toml
 
-# Default settings used by runner
+# Default settings used by runa
 
-# ANY unused / default options can be removed from the runner.toml
+# ANY unused / default options can be removed from the runa.toml
 # Removed / unused options will default to the internal defaults as seen below.
 
 # Sort directories before files

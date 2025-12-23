@@ -11,7 +11,7 @@
 ## [v0.2.11] - 2025-12-22
 
 ### Changed
-- **Default config**: Changed the `--init` config to generate a default `runner signature` theme instead of internal defaults. Note: This is the first of many themes.
+- **Default config**: Changed the `--init` config to generate a default `runa signature` theme instead of internal defaults. Note: This is the first of many themes.
 
 ### Fixed
 - **UI Stability**: Hardened the padding logic with a match guard to prevent invalid or negative spacing values.
@@ -33,7 +33,7 @@
 - **Parent pane**: Renamed the former `Origin` pane to `Parent` pane
 - **Display layout**: Changed how the configuration holds the pane / ratio layouts. Now inside `[display.layout]`!
 - **Defaults**: Changed the defaults of `Parent` (former `Origin`) to be enabled by default. Also the init config now comments out all the defaults except some few
-- **Clean configuration init**: The `--init` command now generates a cleaner `runner.toml` by commentig out most internal defaults.
+- **Clean configuration init**: The `--init` command now generates a cleaner `runa.toml` by commentig out most internal defaults.
 
 ### Internal
 - Optimized "Global-to-Local" theme engine to correctly resolve color overides and inheritance, improving runtime overhead.
@@ -48,7 +48,7 @@
 ## [v0.2.9] - 2025-12-22
 
 ### Fixed
-- Fixed being unable to open a directory with a selected editor from the runner.toml config
+- Fixed being unable to open a directory with a selected editor from the runa.toml config
 
 
 ---
@@ -70,7 +70,7 @@
 - **Preview color source toggle**: New `preview_underline_color` setting to choose between `[theme.underline]` or the standard `[theme.selection]` colors for the underline.
 
 ## Changed
-- **Preview underline default**: Enabled preview underline to be enabled by default in the runner.toml.
+- **Preview underline default**: Enabled preview underline to be enabled by default in the runa.toml.
 
 ## Internal
 - **UI refactor**: Cleaned up the render function in ui.rs to improve readability and context.
@@ -82,7 +82,7 @@
 ## [v0.2.6] - 2025-12-22
 ### Fixed
 - **File/Directory preview**: Fixed issue where preview did not correctly render when pane sizes where inconsistent. Now using `unicode-width` to correctly calculate pane width.
-- **Pane ratios**: Pane ratios are now correctly calculated and will always internally calculate to 100%, meaning its not needed to always have 100% ratio in the runner.toml config.
+- **Pane ratios**: Pane ratios are now correctly calculated and will always internally calculate to 100%, meaning its not needed to always have 100% ratio in the runa.toml config.
 
 ### Added
 - **Preview underline**: Toggle to enable a underline for the preview pane.

@@ -1,11 +1,11 @@
 [package]
-name = "runner-tui"
-description = "A terminal based file browser"
-version = "0.2.13"
+name = "runa-tui"
+description = "A fast, keyboard-focused terminal file browser (TUI). Highly configurable and lightweight. Previously known as runner-tui."
+version = "0.2.14"
 edition = "2024"
 license = "MIT"
-repository = "https://github.com/alexm-dev/runner"
-documentation = "https://docs.rs/runner-tui"
+repository = "https://github.com/alexm-dev/runa"
+documentation = "https://docs.rs/runa-tui"
 readme = "README.md"
 authors = ["alexm-dev"]
 rust-version = "1.92"
@@ -39,6 +39,3 @@ debug = false
 [profile.release-windows]
 inherits = "release"
 panic    = "unwind"
-
-[badges]
-maintenance = { status = "deprecated" }

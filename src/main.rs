@@ -1,7 +1,7 @@
-use runner_tui::app;
-use runner_tui::cli::{CliAction, handle_args};
-use runner_tui::config::Config;
-use runner_tui::terminal;
+use runa_tui::app;
+use runa_tui::cli::{CliAction, handle_args};
+use runa_tui::config::Config;
+use runa_tui::terminal;
 
 fn main() -> std::io::Result<()> {
     match handle_args() {

@@ -1,25 +1,4 @@
-> ⚠️ Note: This crate is deprecated. Please use [`runa`](https://crates.io/crates/runa-tui) for all new installations.
-
-# ⚠️ DEPRECATED: runner is renamed to runa
-
-This crate has been **renamed** to [`runa`](https://crates.io/crates/runa-tui).  
-The repository remains at [https://github.com/alexm-dev/runa](https://github.com/alexm-dev/runa)
-
-runa supports legacy configuration at `$HOME/.config/runner/runner.toml`.
-The default config path for runa-tui will be `$HOME/.config/runa/runa.toml` in future releases.
-
-**Reason for rename:**  
-The original name `runner` could cause confusion with GitHub Action runners, code runners, and other general "runner" terminology.  
-The new name is `runa` while the CLI binary still being `rn`.
-
-### Installation (new):
-
-```bash
-cargo install runa-tui
-```
-
-
-# `runner` (DEPRECATED)
+# `runa - rn`
 
 [![Build](https://github.com/alexm-dev/runa/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/alexm-dev/runa/actions)
 [![Crates.io](https://img.shields.io/crates/v/runa-tui.svg)](https://crates.io/crates/runa-tui)
@@ -31,11 +10,11 @@ cargo install runa-tui
 
 A fast and lightweight console file browser written in Rust
 
-**rn - runner** is a minimalist terminal file manager focused on speed and simplicity.  
+**rn - runa** is a minimalist terminal file manager focused on speed and simplicity.  
 
 It allows you to navigate directories, view file listings, and perform typical file browser actions.  
 
-This project is a work in progress.  
+**runa** is a work in progress.  
 It is being actively developed and will change over time.  
 
 ## Changelog
@@ -47,7 +26,7 @@ For a detailed list of changes and release notes, see [CHANGELOG.md](./CHANGELOG
 Installation via cargo:
 
 ```bash
-cargo install runner-tui
+cargo install runa-tui
 ```
 
 ### Build from source
@@ -55,33 +34,33 @@ cargo install runner-tui
 Clone the repo and build with Cargo:
 
 ```bash
-git clone https://github.com/alexm-dev/runner.git
-cd runner
+git clone https://github.com/alexm-dev/runa.git
+cd runa
 cargo build --release
 ```
 
 ### Usage
 
-Run runner with:
+Run runa with:
 `rn`
 
 ## Configuration
 
 A full configuration documentation will follow.  
 
-runner uses a runner.toml file for configuration.
+runa uses a runa.toml file for configuration.
 By default, it is located at:
 
-`$HOME/.config/runner/runner.toml` (on both Unix and Windows, inside the user folder)
+`$HOME/.config/runa/runa.toml` (on both Unix and Windows, inside the user folder)
 
 You can override the config path by setting an environment variable:
 
 ```bash
 # Unix
-export RUNNER_CONFIG=/path/to/runner.toml
+export RUNA_CONFIG=/path/to/runa.toml
 
 # PowerShell (Windows)
-$env:RUNNER_CONFIG="C:\path\to\runner.toml"
+$env:RUNA_CONFIG="C:\path\to\runa.toml"
 ```
 
 You can generate a default config using the --init or --init-minimal flag:
@@ -97,7 +76,7 @@ This will generate a config in the default config path.
 
 ## Roadmap
 
-runner is in active development.  
+runa is in active development.  
 Future releases will focus on expanding functionality while keeping it fast and lightweight.  
 
 ### Planned features

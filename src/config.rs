@@ -1,9 +1,9 @@
-//! Configuration options for runner
+//! Configuration options for runa
 //!
 //! This module defines all configuration options and deserializes them
-//! from the `runner.toml` using `serde`.
+//! from the `runa.toml` using `serde`.
 //!
-//! Each config struct corresponds to a top-level key in the `runner.toml`.
+//! Each config struct corresponds to a top-level key in the `runa.toml`.
 
 pub mod display;
 pub mod input;
@@ -74,7 +74,7 @@ impl Config {
         if !path.exists() {
             eprintln!("No config file found at {:?}", path);
             eprintln!(
-                "Tip: Run 'runner --init' or '--init-minimal' to generate a default configuration."
+                "Tip: Run 'runa --init' or '--init-minimal' to generate a default configuration."
             );
             eprintln!("Starting with internal defaults...\n");
             return Self::default();
@@ -129,13 +129,13 @@ impl Config {
     }
 
     pub fn default_path() -> PathBuf {
-        if let Ok(path) = std::env::var("RUNNER_CONFIG") {
+        if let Ok(path) = std::env::var("RUNA_CONFIG") {
             return PathBuf::from(path);
         }
         if let Some(home) = dirs::home_dir() {
-            return home.join(".config/runner/runner.toml");
+            return home.join(".config/runa/runa.toml");
         }
-        PathBuf::from("runner.toml")
+        PathBuf::from("runa.toml")
     }
 
     pub fn generate_default(path: &PathBuf, minimal: bool) -> std::io::Result<()> {
@@ -148,10 +148,10 @@ impl Config {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
         }
-        let full_toml = r##"# runner.toml - default configuration for runner
+        let full_toml = r##"# runa.toml - default configuration for runa
 
 # Note:
-# Commented values are the internal defaults of runner
+# Commented values are the internal defaults of runa
 # Use hex codes (eg. "#333333") or terminal colors ("cyan")
 
 # General behavior
@@ -234,7 +234,7 @@ cmd = "nvim"
 # quit = ["q", "Esc"]
 "##;
 
-        let minimal_toml = r##"# runner.toml - minimal configuration
+        let minimal_toml = r##"# runa.toml - minimal configuration
 # Only the essentials. The rest uses internal defaults.
 
 dirs_first = true

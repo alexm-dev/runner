@@ -1,9 +1,9 @@
 use ratatui::layout::Rect;
-use runner_tui::app::AppState;
-use runner_tui::config::{Config, RawConfig};
-use runner_tui::file_manager;
-use runner_tui::formatter::Formatter;
-use runner_tui::ui::layout_chunks;
+use runa_tui::app::AppState;
+use runa_tui::config::{Config, RawConfig};
+use runa_tui::file_manager;
+use runa_tui::formatter::Formatter;
+use runa_tui::ui::layout_chunks;
 use std::collections::HashSet;
 use std::path::Path;
 use std::sync::Arc;

@@ -43,26 +43,26 @@ pub fn handle_args() -> CliAction {
 
 fn print_help() {
     println!(
-        r#"runner - A fast and lightweight console file browser written in Rust
+        r#"runa - A fast and lightweight console file browser written in Rust
 
 USAGE:
     rn [OPTIONS]
 
 OPTIONS:
     --help, -h            Print help information
-    --init                Generate full default config at ~/.config/runner/runner.toml
+    --init                Generate full default config at ~/.config/runa/runa.toml
     --init-minimal        Generate minimal config (overrides only)
     --config-help         Display all the configuration options
 
 ENVIRONMENT:
-    RUNNER_CONFIG         Override the default config path
+    RUNA_CONFIG         Override the default config path
 "#
     );
 }
 
 fn print_config_help() {
     let help_text = r##"
-runner - Full Configuration Guide (runner.toml)
+runa - Full Configuration Guide (runa.toml)
 
 # General Settings
   dirs_first              (bool)  Sort directories before files
