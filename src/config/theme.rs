@@ -60,6 +60,7 @@ pub struct Theme {
     preview: ColorPair,
     path: ColorPair,
     marker: MarkerTheme,
+    notification: ColorPair,
 }
 
 impl Default for ColorPair {
@@ -109,41 +110,36 @@ impl ColorPair {
     pub fn fg(&self) -> Color {
         self.fg
     }
+    pub fn bg(&self) -> Color {
+        self.bg
+    }
 }
 
 impl Theme {
     pub fn accent(&self) -> ColorPair {
         self.accent
     }
-
     pub fn selection(&self) -> ColorPair {
         self.selection
     }
-
     pub fn underline(&self) -> ColorPair {
         self.underline
     }
-
     pub fn entry(&self) -> ColorPair {
         self.entry
     }
-
     pub fn directory(&self) -> ColorPair {
         self.directory
     }
-
     pub fn separator(&self) -> ColorPair {
         self.separator
     }
-
     pub fn selection_icon(&self) -> &str {
         &self.selection_icon
     }
-
     pub fn parent(&self) -> ColorPair {
         self.parent
     }
-
     pub fn preview(&self) -> ColorPair {
         self.preview
     }
@@ -152,6 +148,9 @@ impl Theme {
     }
     pub fn marker(&self) -> &MarkerTheme {
         &self.marker
+    }
+    pub fn notification(&self) -> ColorPair {
+        self.notification
     }
 }
 
@@ -175,6 +174,7 @@ impl Default for Theme {
                 ..ColorPair::default()
             },
             marker: MarkerTheme::default(),
+            notification: ColorPair::default(),
         }
     }
 }

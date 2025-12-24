@@ -1,9 +1,10 @@
 pub mod panes;
 pub mod widgets;
-
 use self::panes::PaneContext;
 use crate::config::Display;
-use crate::ui::widgets::get_pane_block;
+use crate::ui::widgets::{
+    PopupPosition, PopupSize, PopupStyle, draw_popup, get_pane_block, popup_area,
+};
 use crate::{
     app::{
         AppState,
@@ -13,11 +14,12 @@ use crate::{
 };
 use ratatui::{
     Frame,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::Style,
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
 };
+use unicode_width::UnicodeWidthStr;
 
 pub fn render(frame: &mut Frame, app: &mut AppState) {
     let root_area = frame.area();
@@ -280,25 +282,43 @@ fn render_preview_pane(
 
 fn render_input_popup(frame: &mut Frame, app: &AppState, accent_style: Style) {
     if let ActionMode::Input { mode, prompt } = &app.actions().mode() {
-        if *mode != InputMode::ConfirmDelete {
-            let width = 10;
-            let height = 5;
-
-            let area = centered_rect(width, height, frame.area());
-
-            frame.render_widget(ratatui::widgets::Clear, area);
-
-            let block = Block::default()
-                .title(format!(" {} ", prompt))
-                .borders(Borders::ALL)
-                .border_style(accent_style);
+        if *mode == InputMode::ConfirmDelete {
+            let popup_style = PopupStyle {
+                border: Borders::ALL,
+                border_style: Style::default().fg(ratatui::style::Color::Red),
+                bg: app.config().theme().notification().as_style(),
+                title: Some(" Confirm Delete ".into()),
+            };
+            draw_popup(
+                frame,
+                frame.area(),
+                PopupPosition::Center,
+                PopupSize::Medium,
+                &popup_style,
+                prompt,
+                Some(Alignment::Center),
+            );
+        } else {
+            let popup_style = PopupStyle {
+                border: Borders::ALL,
+                border_style: accent_style,
+                bg: app.config().theme().notification().as_style(),
+                title: Some(format!(" {} ", prompt)),
+            };
+            draw_popup(
+                frame,
+                frame.area(),
+                PopupPosition::Center,
+                PopupSize::Medium,
+                &popup_style,
+                app.actions().input_buffer(),
+                Some(Alignment::Left),
+            );
 
             let input_text = app.actions().input_buffer();
-            let p = Paragraph::new(input_text).block(block);
-
-            frame.render_widget(p, area);
-
-            frame.set_cursor_position((area.x + input_text.len() as u16 + 1, area.y + 1));
+            let x_offset = UnicodeWidthStr::width(input_text) as u16;
+            let popup_area = popup_area(frame.area(), PopupSize::Medium, PopupPosition::Center);
+            frame.set_cursor_position((popup_area.x + 1 + x_offset, popup_area.y + 1));
         }
     }
 }
@@ -343,26 +363,6 @@ fn update_metrics(app: &mut AppState, root_area: Rect) -> Vec<Rect> {
 
     *app.metrics_mut() = metrics;
     chunks
-}
-
-fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-    let popup_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage((100 - percent_y) / 2),
-            Constraint::Percentage(percent_y),
-            Constraint::Percentage((100 - percent_y) / 2),
-        ])
-        .split(r);
-
-    Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage((100 - percent_x) / 2),
-            Constraint::Percentage(percent_x),
-            Constraint::Percentage((100 - percent_x) / 2),
-        ])
-        .split(popup_layout[1])[1]
 }
 
 pub fn layout_chunks(size: Rect, app: &AppState) -> Vec<Rect> {
