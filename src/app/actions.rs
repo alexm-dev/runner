@@ -22,10 +22,10 @@ pub enum InputMode {
 }
 
 pub struct ActionContext {
-    pub mode: ActionMode,
-    pub input_buffer: String,
-    pub clipboard: Option<HashSet<PathBuf>>,
-    pub is_cut: bool,
+    mode: ActionMode,
+    input_buffer: String,
+    clipboard: Option<HashSet<PathBuf>>,
+    is_cut: bool,
 }
 
 impl ActionContext {
@@ -36,6 +36,24 @@ impl ActionContext {
             clipboard: None,
             is_cut: false,
         }
+    }
+
+    // Accessors
+
+    pub fn mode(&self) -> &ActionMode {
+        &self.mode
+    }
+    pub fn input_buffer(&self) -> &str {
+        &self.input_buffer
+    }
+    pub fn input_buffer_mut(&mut self) -> &mut String {
+        &mut self.input_buffer
+    }
+    pub fn clipboard(&self) -> &Option<HashSet<PathBuf>> {
+        &self.clipboard
+    }
+    pub fn is_cut(&self) -> bool {
+        self.is_cut
     }
 
     pub fn is_input_mode(&self) -> bool {

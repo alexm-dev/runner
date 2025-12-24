@@ -2,6 +2,8 @@ pub mod panes;
 pub mod widgets;
 
 use self::panes::PaneContext;
+use crate::config::Display;
+use crate::ui::widgets::get_pane_block;
 use crate::{
     app::{
         AppState,
@@ -12,53 +14,14 @@ use crate::{
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
+    style::Style,
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
 };
 
 pub fn render(frame: &mut Frame, app: &mut AppState) {
-    let mut root_area = frame.area();
-    {
-        let chunks = layout_chunks(root_area, app);
-        let mut metrics = crate::app::LayoutMetrics::default();
-        let display_cfg = app.config().display();
-
-        let mut current_idx = 0;
-        let has_sep = display_cfg.separators() && !display_cfg.is_split();
-
-        // Helper to determine inner space available for text
-        let get_inner = |rect: ratatui::layout::Rect| {
-            let width = if display_cfg.is_split() || display_cfg.is_unified() {
-                rect.width.saturating_sub(2)
-            } else {
-                rect.width
-            };
-            let height = rect.height.saturating_sub(2);
-            (width as usize, height as usize)
-        };
-
-        if display_cfg.parent() && current_idx < chunks.len() {
-            metrics.parent_width = get_inner(chunks[current_idx]).0;
-            current_idx += if has_sep { 2 } else { 1 };
-        }
-
-        if current_idx < chunks.len() {
-            metrics.main_width = get_inner(chunks[current_idx]).0;
-            current_idx += if has_sep && display_cfg.preview() {
-                2
-            } else {
-                1
-            };
-        }
-
-        if display_cfg.preview() && current_idx < chunks.len() {
-            let (width, height) = get_inner(chunks[current_idx]);
-            metrics.preview_width = width;
-            metrics.preview_height = height;
-        }
-
-        app.metrics = metrics;
-    }
+    let root_area = frame.area();
+    let chunks = update_metrics(app, root_area);
 
     let cfg = app.config();
     let display_cfg = cfg.display();
@@ -66,63 +29,42 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
 
     let accent_style = theme_cfg.accent().as_style();
     let selection_style = theme_cfg.selection().as_style();
-    let path_str = app.nav.current_dir().to_string_lossy();
+    let path_str = app.nav().current_dir().to_string_lossy();
     let path_style = theme_cfg.path().as_style();
-
     let padding_str = display_cfg.padding_str();
 
-    // Root Border / Header Logic
-    if display_cfg.is_unified() {
-        let mut outer_block = Block::default()
-            .borders(Borders::ALL)
-            .border_style(accent_style);
-        if display_cfg.titles() {
-            outer_block = outer_block.title(Line::from(vec![Span::styled(
-                format!(" {} ", path_str),
-                path_style,
-            )]));
-        }
-        frame.render_widget(outer_block, root_area);
-        root_area = Block::default().borders(Borders::ALL).inner(root_area);
-    } else {
+    // HEADER
+    render_header(
+        frame,
+        display_cfg,
+        root_area,
+        &path_str,
+        path_style,
+        accent_style,
+    );
+
+    let root_area = if !display_cfg.is_unified() {
         let header_layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(1), Constraint::Min(0)])
             .split(root_area);
-        frame.render_widget(
-            Paragraph::new(Line::from(vec![Span::styled(
-                format!("   {} ", path_str),
-                path_style,
-            )])),
-            header_layout[0],
-        );
-        root_area = header_layout[1];
-    }
+        header_layout[1]
+    } else {
+        Block::default().borders(Borders::ALL).inner(root_area)
+    };
 
-    // Render Panes
-    let chunks = layout_chunks(root_area, app);
     let mut pane_idx = 0;
     let show_separators = display_cfg.separators() && !display_cfg.is_split();
 
     // PARENT PANE
     if display_cfg.parent() && pane_idx < chunks.len() {
-        panes::draw_parent(
+        render_parent_pane(
             frame,
-            PaneContext {
-                area: chunks[pane_idx],
-                block: widgets::get_pane_block("Parent", app),
-                accent_style,
-                styles: PaneStyles {
-                    item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
-                    dir: theme_cfg.directory().as_style(),
-                    selection: theme_cfg.parent().selection_style(selection_style),
-                },
-                highlight_symbol: "",
-                entry_padding: display_cfg.entry_padding(),
-                padding_str,
-            },
-            app.parent.entries(),
-            app.parent.selected_idx(),
+            app,
+            chunks[pane_idx],
+            accent_style,
+            selection_style,
+            padding_str,
         );
         pane_idx += 1;
         if show_separators && pane_idx < chunks.len() {
@@ -142,30 +84,13 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
 
     // MAIN PANE
     if pane_idx < chunks.len() {
-        let symbol = if display_cfg.selection_marker() {
-            theme_cfg.selection_icon()
-        } else {
-            ""
-        };
-
-        let pane_style = PaneStyles {
-            item: theme_cfg.entry().as_style(),
-            dir: theme_cfg.directory().as_style(),
-            selection: selection_style,
-        };
-
-        panes::draw_main(
+        render_main_pane(
             frame,
             app,
-            PaneContext {
-                area: chunks[pane_idx],
-                block: widgets::get_pane_block("Files", app),
-                accent_style,
-                styles: pane_style,
-                highlight_symbol: symbol,
-                entry_padding: display_cfg.entry_padding(),
-                padding_str,
-            },
+            chunks[pane_idx],
+            accent_style,
+            selection_style,
+            padding_str,
         );
         pane_idx += 1;
         if show_separators && display_cfg.preview() && pane_idx < chunks.len() {
@@ -185,46 +110,176 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
 
     // PREVIEW PANE
     if display_cfg.preview() && pane_idx < chunks.len() {
-        let area = chunks[pane_idx];
-        let bg_filler = Block::default().style(theme_cfg.preview().as_style());
-        frame.render_widget(bg_filler, area);
-
-        let is_dir = app
-            .nav
-            .selected_entry()
-            .map(|e| e.is_dir())
-            .unwrap_or(false);
-
-        panes::draw_preview(
+        render_preview_pane(
             frame,
-            PaneContext {
-                area: chunks[pane_idx],
-                block: widgets::get_pane_block("Preview", app),
-                accent_style,
-                styles: PaneStyles {
-                    item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
-                    dir: theme_cfg.directory().as_style(),
-                    selection: theme_cfg.preview().selection_style(selection_style),
-                },
-                highlight_symbol: "",
-                entry_padding: display_cfg.entry_padding(),
-                padding_str,
-            },
-            app.preview.data(),
-            if is_dir {
-                Some(app.preview.selected_idx())
-            } else {
-                None
-            },
-            PreviewOptions {
-                use_underline: display_cfg.preview_underline(),
-                underline_match_text: display_cfg.preview_underline_color(),
-                underline_style: theme_cfg.underline().as_style(),
-            },
+            app,
+            chunks[pane_idx],
+            accent_style,
+            selection_style,
+            padding_str,
         );
     }
 
-    if let ActionMode::Input { mode, prompt } = &app.actions.mode {
+    render_input_popup(frame, app, accent_style);
+}
+
+fn render_header(
+    frame: &mut Frame,
+    display_cfg: &Display,
+    root_area: Rect,
+    path_str: &str,
+    path_style: ratatui::style::Style,
+    accent_style: ratatui::style::Style,
+) {
+    if display_cfg.is_unified() {
+        let mut outer_block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(accent_style);
+        if display_cfg.titles() {
+            outer_block = outer_block.title(Line::from(vec![Span::styled(
+                format!(" {} ", path_str),
+                path_style,
+            )]));
+        }
+        frame.render_widget(outer_block, root_area);
+    } else {
+        let header_layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Length(1), Constraint::Min(0)])
+            .split(root_area);
+        frame.render_widget(
+            Paragraph::new(Line::from(vec![Span::styled(
+                format!("   {} ", path_str),
+                path_style,
+            )])),
+            header_layout[0],
+        );
+    }
+}
+
+fn render_parent_pane(
+    frame: &mut Frame,
+    app: &AppState,
+    area: Rect,
+    accent_style: Style,
+    selection_style: Style,
+    padding_str: &'static str,
+) {
+    let cfg = app.config();
+    let theme_cfg = cfg.theme();
+    let display_cfg = cfg.display();
+
+    crate::ui::panes::draw_parent(
+        frame,
+        PaneContext {
+            area,
+            block: get_pane_block("Parent", app),
+            accent_style,
+            styles: PaneStyles {
+                item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
+                dir: theme_cfg.directory().as_style(),
+                selection: theme_cfg.parent().selection_style(selection_style),
+            },
+            highlight_symbol: "",
+            entry_padding: display_cfg.entry_padding(),
+            padding_str,
+        },
+        app.parent().entries(),
+        app.parent().selected_idx(),
+    );
+}
+
+fn render_main_pane(
+    frame: &mut Frame,
+    app: &AppState,
+    area: Rect,
+    accent_style: Style,
+    selection_style: Style,
+    padding_str: &'static str,
+) {
+    let cfg = app.config();
+    let theme_cfg = cfg.theme();
+    let display_cfg = cfg.display();
+
+    let symbol = if display_cfg.selection_marker() {
+        theme_cfg.selection_icon()
+    } else {
+        ""
+    };
+
+    let pane_style = PaneStyles {
+        item: theme_cfg.entry().as_style(),
+        dir: theme_cfg.directory().as_style(),
+        selection: selection_style,
+    };
+
+    crate::ui::panes::draw_main(
+        frame,
+        app,
+        PaneContext {
+            area,
+            block: crate::ui::widgets::get_pane_block("Files", app),
+            accent_style,
+            styles: pane_style,
+            highlight_symbol: symbol,
+            entry_padding: display_cfg.entry_padding(),
+            padding_str,
+        },
+    );
+}
+
+fn render_preview_pane(
+    frame: &mut Frame,
+    app: &AppState,
+    area: Rect,
+    accent_style: ratatui::style::Style,
+    selection_style: ratatui::style::Style,
+    padding_str: &'static str,
+) {
+    let cfg = app.config();
+    let theme_cfg = cfg.theme();
+    let display_cfg = cfg.display();
+
+    let bg_filler = Block::default().style(theme_cfg.preview().as_style());
+    frame.render_widget(bg_filler, area);
+
+    let is_dir = app
+        .nav()
+        .selected_entry()
+        .map(|e| e.is_dir())
+        .unwrap_or(false);
+
+    crate::ui::panes::draw_preview(
+        frame,
+        PaneContext {
+            area,
+            block: get_pane_block("Preview", app),
+            accent_style,
+            styles: PaneStyles {
+                item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
+                dir: theme_cfg.directory().as_style(),
+                selection: theme_cfg.preview().selection_style(selection_style),
+            },
+            highlight_symbol: "",
+            entry_padding: display_cfg.entry_padding(),
+            padding_str,
+        },
+        app.preview().data(),
+        if is_dir {
+            Some(app.preview().selected_idx())
+        } else {
+            None
+        },
+        PreviewOptions {
+            use_underline: display_cfg.preview_underline(),
+            underline_match_text: display_cfg.preview_underline_color(),
+            underline_style: theme_cfg.underline().as_style(),
+        },
+    );
+}
+
+fn render_input_popup(frame: &mut Frame, app: &AppState, accent_style: Style) {
+    if let ActionMode::Input { mode, prompt } = &app.actions().mode() {
         if *mode != InputMode::ConfirmDelete {
             let width = 10;
             let height = 5;
@@ -238,15 +293,56 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 .borders(Borders::ALL)
                 .border_style(accent_style);
 
-            let input_text = app.actions.input_buffer.as_str();
+            let input_text = app.actions().input_buffer();
             let p = Paragraph::new(input_text).block(block);
 
             frame.render_widget(p, area);
 
-            // Make the cursor visible
             frame.set_cursor_position((area.x + input_text.len() as u16 + 1, area.y + 1));
         }
     }
+}
+
+fn update_metrics(app: &mut AppState, root_area: Rect) -> Vec<Rect> {
+    let chunks = layout_chunks(root_area, app);
+    let display_cfg = app.config().display();
+
+    let mut metrics = crate::app::LayoutMetrics::default();
+    let mut current_idx = 0;
+    let has_sep = display_cfg.separators() && !display_cfg.is_split();
+
+    let get_inner = |rect: ratatui::layout::Rect| {
+        let width = if display_cfg.is_split() || display_cfg.is_unified() {
+            rect.width.saturating_sub(2)
+        } else {
+            rect.width
+        };
+        let height = rect.height.saturating_sub(2);
+        (width as usize, height as usize)
+    };
+
+    if display_cfg.parent() && current_idx < chunks.len() {
+        metrics.parent_width = get_inner(chunks[current_idx]).0;
+        current_idx += if has_sep { 2 } else { 1 };
+    }
+
+    if current_idx < chunks.len() {
+        metrics.main_width = get_inner(chunks[current_idx]).0;
+        current_idx += if has_sep && display_cfg.preview() {
+            2
+        } else {
+            1
+        };
+    }
+
+    if display_cfg.preview() && current_idx < chunks.len() {
+        let (width, height) = get_inner(chunks[current_idx]);
+        metrics.preview_width = width;
+        metrics.preview_height = height;
+    }
+
+    *app.metrics_mut() = metrics;
+    chunks
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {

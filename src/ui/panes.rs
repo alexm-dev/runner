@@ -65,14 +65,14 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
     let entry_padding = context.entry_padding as usize;
 
     let mut items: Vec<ListItem> = app
-        .nav
+        .nav()
         .filtered_entries()
         .iter()
         .enumerate()
         .map(|(i, e)| {
             let is_selected = Some(i) == selected_idx;
-            let path = app.nav.current_dir().join(e.name());
-            let is_marked = app.nav.markers().contains(&path);
+            let path = app.nav().current_dir().join(e.name());
+            let is_marked = app.nav().markers().contains(&path);
 
             let name_str = if e.is_dir() && show_marker {
                 e.display_name()

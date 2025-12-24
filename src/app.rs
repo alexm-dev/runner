@@ -47,16 +47,16 @@ pub struct AppState<'a> {
     config: &'a Config,
     keymap: Keymap,
 
-    pub metrics: LayoutMetrics,
+    metrics: LayoutMetrics,
 
-    pub nav: NavState,
-    pub actions: ActionContext,
-    pub preview: PreviewState,
-    pub parent: ParentState,
+    nav: NavState,
+    actions: ActionContext,
+    preview: PreviewState,
+    parent: ParentState,
 
     worker_tx: Sender<WorkerTask>,
     response_rx: Receiver<WorkerResponse>,
-    pub is_loading: bool,
+    is_loading: bool,
 }
 
 impl<'a> AppState<'a> {
@@ -85,9 +85,31 @@ impl<'a> AppState<'a> {
         Ok(app)
     }
 
+    // Accessors
+
     pub fn config(&self) -> &Config {
         self.config
     }
+    pub fn metrics(&self) -> &LayoutMetrics {
+        &self.metrics
+    }
+    pub fn metrics_mut(&mut self) -> &mut LayoutMetrics {
+        &mut self.metrics
+    }
+    pub fn nav(&self) -> &NavState {
+        &self.nav
+    }
+    pub fn actions(&self) -> &ActionContext {
+        &self.actions
+    }
+    pub fn preview(&self) -> &PreviewState {
+        &self.preview
+    }
+    pub fn parent(&self) -> &ParentState {
+        &self.parent
+    }
+
+    // entries
 
     pub fn visible_entries(&self) -> &[FileEntry] {
         self.nav.entries()

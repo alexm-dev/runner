@@ -7,7 +7,7 @@ impl<'a> AppState<'a> {
     // Handlers for app.rs
 
     pub fn handle_input_mode(&mut self, key: KeyEvent) -> KeypressResult {
-        let mode = if let ActionMode::Input { mode, .. } = &self.actions.mode {
+        let mode = if let ActionMode::Input { mode, .. } = &self.actions().mode() {
             *mode
         } else {
             return KeypressResult::Continue;
@@ -32,7 +32,7 @@ impl<'a> AppState<'a> {
             }
 
             Backspace => {
-                self.actions.input_buffer.pop();
+                self.actions.input_buffer_mut().pop();
                 if matches!(mode, InputMode::Filter) {
                     self.apply_filter();
                 }
@@ -45,12 +45,12 @@ impl<'a> AppState<'a> {
                     KeypressResult::Consumed
                 }
                 InputMode::Filter => {
-                    self.actions.input_buffer.push(c);
+                    self.actions.input_buffer_mut().push(c);
                     self.apply_filter();
                     KeypressResult::Consumed
                 }
                 InputMode::Rename | InputMode::NewFile | InputMode::NewFolder => {
-                    self.actions.input_buffer.push(c);
+                    self.actions.input_buffer_mut().push(c);
                     if matches!(mode, InputMode::Filter) {
                         self.apply_filter();
                     }
@@ -85,14 +85,14 @@ impl<'a> AppState<'a> {
     }
 
     fn create_file(&mut self) {
-        if !self.actions.input_buffer.is_empty() {
+        if !self.actions.input_buffer().is_empty() {
             self.actions
                 .action_create(&mut self.nav, false, &self.worker_tx);
         }
     }
 
     fn create_folder(&mut self) {
-        if !self.actions.input_buffer.is_empty() {
+        if !self.actions.input_buffer().is_empty() {
             self.actions
                 .action_create(&mut self.nav, true, &self.worker_tx);
         }
