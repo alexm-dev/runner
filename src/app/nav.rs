@@ -26,6 +26,8 @@ impl NavState {
         }
     }
 
+    // Accessors
+
     pub fn current_dir(&self) -> &Path {
         &self.current_dir
     }
@@ -38,7 +40,6 @@ impl NavState {
     pub fn filter(&self) -> &str {
         &self.filter
     }
-
     pub fn selected_idx(&self) -> usize {
         self.selected
     }
@@ -129,6 +130,10 @@ impl NavState {
 
     pub fn clear_markers(&mut self) {
         self.markers.clear();
+    }
+
+    pub fn clear_filters(&mut self) {
+        self.filter.clear();
     }
 
     pub fn get_action_targets(&self) -> HashSet<PathBuf> {

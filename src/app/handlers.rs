@@ -63,6 +63,8 @@ impl<'a> AppState<'a> {
         }
     }
 
+    // Input proccess handlers
+
     pub fn process_enter_input(&mut self, kind: &InputMode) {
         match kind {
             InputMode::NewFile => self.create_file(),
@@ -80,6 +82,8 @@ impl<'a> AppState<'a> {
         }
         self.exit_input_mode();
     }
+
+    // Actions
 
     pub fn exit_input_mode(&mut self) {
         self.actions.exit_mode();
@@ -111,6 +115,8 @@ impl<'a> AppState<'a> {
         self.actions.action_delete(&mut self.nav, &self.worker_tx);
     }
 
+    // Nav actions handlers
+
     pub fn handle_nav_action(&mut self, action: NavAction) -> KeypressResult {
         match action {
             NavAction::GoUp => self.move_nav_if_possible(|nav| nav.move_up()),
@@ -131,13 +137,14 @@ impl<'a> AppState<'a> {
         }
     }
 
-    pub fn handle_go_parent(&mut self) -> KeypressResult {
+    fn handle_go_parent(&mut self) -> KeypressResult {
         if let Some(parent) = self.nav.current_dir().parent() {
             let exited_name = self.nav.current_dir().file_name().map(|n| n.to_os_string());
             let parent_path = parent.to_path_buf();
-
             self.nav.save_position();
             self.nav.set_path(parent_path);
+            // Clear the applied filter when we go into a parent directory
+            self.nav.clear_filters();
 
             self.request_dir_load(exited_name);
             self.request_parent_content();
@@ -145,7 +152,7 @@ impl<'a> AppState<'a> {
         KeypressResult::Continue
     }
 
-    pub fn handle_go_into_dir(&mut self) -> KeypressResult {
+    fn handle_go_into_dir(&mut self) -> KeypressResult {
         if let Some(entry) = self.nav.selected_entry() {
             if entry.is_dir() {
                 let new_path = self.nav.current_dir().join(entry.name());
@@ -158,6 +165,8 @@ impl<'a> AppState<'a> {
         }
         KeypressResult::Continue
     }
+
+    // File action handlers
 
     pub fn handle_file_action(&mut self, action: FileAction) -> KeypressResult {
         match action {
@@ -187,6 +196,8 @@ impl<'a> AppState<'a> {
             KeypressResult::Continue
         }
     }
+
+    // Action prompts
 
     fn prompt_delete(&mut self) {
         let targets = self.nav.get_action_targets();
