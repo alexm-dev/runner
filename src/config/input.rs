@@ -105,7 +105,7 @@ impl Default for Keys {
             paste: vec!["p".into()],
             rename: vec!["r".into()],
             create: vec!["n".into()],
-            create_directory: vec!["m".into()],
+            create_directory: vec!["Shift+n".into()],
             filter: vec!["f".into()],
             toggle_marker: vec![" ".into()],
         }

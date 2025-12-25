@@ -50,52 +50,45 @@ impl Keymap {
         let keys = config.keys();
 
         let parse_key = |s: &str| -> Option<Key> {
-            match s {
-                "Up" => Some(Key {
-                    code: KeyCode::Up,
-                    modifiers: KeyModifiers::NONE,
-                }),
-                "Down" => Some(Key {
-                    code: KeyCode::Down,
-                    modifiers: KeyModifiers::NONE,
-                }),
-                "Left" => Some(Key {
-                    code: KeyCode::Left,
-                    modifiers: KeyModifiers::NONE,
-                }),
-                "Right" => Some(Key {
-                    code: KeyCode::Right,
-                    modifiers: KeyModifiers::NONE,
-                }),
-                "Enter" => Some(Key {
-                    code: KeyCode::Enter,
-                    modifiers: KeyModifiers::NONE,
-                }),
-                "Esc" => Some(Key {
-                    code: KeyCode::Esc,
-                    modifiers: KeyModifiers::NONE,
-                }),
-                "Backspace" => Some(Key {
-                    code: KeyCode::Backspace,
-                    modifiers: KeyModifiers::NONE,
-                }),
-                "Tab" => Some(Key {
-                    code: KeyCode::Tab,
-                    modifiers: KeyModifiers::NONE,
-                }),
-                s if s.starts_with('F') => {
-                    let n = s[1..].parse().ok()?;
-                    Some(Key {
-                        code: KeyCode::F(n),
-                        modifiers: KeyModifiers::NONE,
-                    })
+            let mut modifiers = KeyModifiers::NONE;
+            let mut code: Option<KeyCode> = None;
+
+            for part in s.split('+') {
+                match part {
+                    "Ctrl" | "Control" => modifiers |= KeyModifiers::CONTROL,
+                    "Shift" => modifiers |= KeyModifiers::SHIFT,
+                    "Alt" => modifiers |= KeyModifiers::ALT,
+
+                    "Up" => code = Some(KeyCode::Up),
+                    "Down" => code = Some(KeyCode::Down),
+                    "Left" => code = Some(KeyCode::Left),
+                    "Right" => code = Some(KeyCode::Right),
+                    "Enter" => code = Some(KeyCode::Enter),
+                    "Esc" => code = Some(KeyCode::Esc),
+                    "Backspace" => code = Some(KeyCode::Backspace),
+                    "Tab" => code = Some(KeyCode::Tab),
+
+                    p if p.starts_with('F') => {
+                        let n = p[1..].parse().ok()?;
+                        code = Some(KeyCode::F(n));
+                    }
+
+                    p if p.len() == 1 => {
+                        let mut char = p.chars().next()?;
+                        if modifiers.contains(KeyModifiers::SHIFT) {
+                            char = char.to_ascii_uppercase();
+                        }
+                        code = Some(KeyCode::Char(char));
+                    }
+
+                    _ => return None,
                 }
-                s if s.len() == 1 => Some(Key {
-                    code: KeyCode::Char(s.chars().next()?),
-                    modifiers: KeyModifiers::NONE,
-                }),
-                _ => None,
             }
+
+            Some(Key {
+                code: code?,
+                modifiers,
+            })
         };
 
         let mut bind = |key_list: &[String], action: Action| {
