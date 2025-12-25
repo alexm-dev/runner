@@ -224,6 +224,22 @@ fg = "cyan"
 fg = "magenta"
 # bg = "default"
 
+[theme.marker]
+icon = "*"
+fg = "default"
+bg = "default"
+
+[theme.widget]
+size= "medium"
+
+[theme.widget.color]
+fg = "white"
+bg = "black"
+
+[theme.widget.border]
+fg = "magenta"
+bg = "default"
+
 [editor]
 cmd = "nvim"
 
@@ -236,11 +252,11 @@ cmd = "nvim"
 # quit = ["q", "Esc"]
 # delete = ["d"]
 # copy = ["y"]
-# cut = ["x"]
 # paste = ["p"]
 # rename = ["r"]
 # create = ["n"]
-# filter = ["/"]
+# create_directory = ["Shift+n"]
+# filter = ["f"]
 # toggle_marker = [" "]
 "##;
 

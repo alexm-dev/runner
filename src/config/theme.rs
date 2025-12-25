@@ -102,10 +102,15 @@ impl Default for MarkerTheme {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+#[serde(default)]
 pub struct WidgetTheme {
+    #[serde(default)]
     color: ColorPair,
+    #[serde(default)]
     border: ColorPair,
+    #[serde(default)]
     position: Option<PopupPosition>,
+    #[serde(default)]
     size: Option<PopupSize>,
 }
 

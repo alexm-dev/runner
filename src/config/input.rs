@@ -12,7 +12,6 @@ pub struct Keys {
     quit: Vec<String>,
     delete: Vec<String>,
     copy: Vec<String>,
-    cut: Vec<String>,
     paste: Vec<String>,
     rename: Vec<String>,
     create: Vec<String>,
@@ -60,10 +59,6 @@ impl Keys {
         &self.copy
     }
 
-    pub fn cut(&self) -> &Vec<String> {
-        &self.cut
-    }
-
     pub fn paste(&self) -> &Vec<String> {
         &self.paste
     }
@@ -101,7 +96,6 @@ impl Default for Keys {
 
             delete: vec!["d".into()],
             copy: vec!["y".into()],
-            cut: vec!["x".into()],
             paste: vec!["p".into()],
             rename: vec!["r".into()],
             create: vec!["n".into()],

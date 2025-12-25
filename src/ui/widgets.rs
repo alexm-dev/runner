@@ -268,7 +268,7 @@ pub fn draw_input_popup(frame: &mut Frame, app: &AppState, accent_style: Style) 
 
             let input_text = app.actions().input_buffer();
             let x_offset = UnicodeWidthStr::width(input_text) as u16;
-            let popup_area = popup_area(frame.area(), PopupSize::Medium, PopupPosition::Center);
+            let popup_area = popup_area(frame.area(), size, posititon);
             frame.set_cursor_position((popup_area.x + 1 + x_offset, popup_area.y + 1));
         }
     }
