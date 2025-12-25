@@ -85,9 +85,15 @@ impl ActionContext {
     }
 
     pub fn action_copy(&mut self, nav: &NavState, is_cut: bool) {
-        if let Some(entry) = nav.selected_entry() {
-            let mut set = HashSet::new();
+        let mut set = HashSet::new();
+        if !nav.markers().is_empty() {
+            for path in nav.markers() {
+                set.insert(path.clone());
+            }
+        } else if let Some(entry) = nav.selected_entry() {
             set.insert(nav.current_dir().join(entry.name()));
+        }
+        if !set.is_empty() {
             self.clipboard = Some(set);
             self.is_cut = is_cut;
         }
