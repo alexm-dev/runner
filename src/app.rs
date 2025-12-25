@@ -249,7 +249,7 @@ impl<'a> AppState<'a> {
     }
 
     pub fn request_preview(&mut self) {
-        if let Some(entry) = self.nav.selected_entry() {
+        if let Some(entry) = self.nav.selected_shown_entry() {
             let path = self.nav.current_dir().join(entry.name());
             let req_id = self.preview.prepare_new_request(path.clone());
 

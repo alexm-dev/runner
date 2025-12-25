@@ -153,7 +153,7 @@ impl<'a> AppState<'a> {
     }
 
     fn handle_go_into_dir(&mut self) -> KeypressResult {
-        if let Some(entry) = self.nav.selected_entry()
+        if let Some(entry) = self.nav.selected_shown_entry()
             && entry.is_dir()
         {
             let new_path = self.nav.current_dir().join(entry.name());
@@ -186,7 +186,7 @@ impl<'a> AppState<'a> {
     }
 
     fn handle_open_file(&mut self) -> KeypressResult {
-        if let Some(entry) = self.nav.selected_entry() {
+        if let Some(entry) = self.nav.selected_shown_entry() {
             let path = self.nav.current_dir().join(entry.name());
             if let Err(e) = crate::utils::open_in_editor(self.config.editor(), &path) {
                 eprintln!("Error: {}", e);
@@ -213,7 +213,7 @@ impl<'a> AppState<'a> {
     }
 
     fn prompt_rename(&mut self) {
-        if let Some(entry) = self.nav.selected_entry() {
+        if let Some(entry) = self.nav.selected_shown_entry() {
             let name = entry.name().to_string_lossy().to_string();
             self.enter_input_mode(InputMode::Rename, "Rename: ".to_string(), Some(name));
         }

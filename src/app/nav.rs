@@ -64,7 +64,7 @@ impl NavState {
     }
 
     pub fn move_up(&mut self) -> bool {
-        let len = self.entries.len();
+        let len = self.shown_entries().len();
         if len == 0 {
             return false;
         }
@@ -78,7 +78,7 @@ impl NavState {
     }
 
     pub fn move_down(&mut self) -> bool {
-        let len = self.entries.len();
+        let len = self.shown_entries().len();
         if len == 0 {
             return false;
         }
@@ -127,7 +127,7 @@ impl NavState {
     }
 
     pub fn toggle_marker(&mut self) {
-        if let Some(entry) = self.selected_entry() {
+        if let Some(entry) = self.selected_shown_entry() {
             let path = self.current_dir().join(entry.name());
             if !self.markers.remove(&path) {
                 self.markers.insert(path);
@@ -169,6 +169,15 @@ impl NavState {
                 })
                 .collect()
         }
+    }
+
+    // Filter functions
+    pub fn shown_entries(&self) -> Vec<&FileEntry> {
+        self.filtered_entries()
+    }
+
+    pub fn selected_shown_entry(&self) -> Option<&FileEntry> {
+        self.shown_entries().get(self.selected).copied()
     }
 
     pub fn set_filter(&mut self, filter: String) {
