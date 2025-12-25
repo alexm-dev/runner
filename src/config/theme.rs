@@ -15,54 +15,6 @@ pub struct ColorPair {
     selection_bg: Option<Color>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-pub struct MarkerTheme {
-    #[serde(default)]
-    icon: String,
-    #[serde(flatten)]
-    color: ColorPair,
-}
-
-impl MarkerTheme {
-    pub fn icon(&self) -> &str {
-        &self.icon
-    }
-    pub fn color(&self) -> &ColorPair {
-        &self.color
-    }
-}
-
-impl Default for MarkerTheme {
-    fn default() -> Self {
-        MarkerTheme {
-            icon: "*".to_string(),
-            color: ColorPair {
-                fg: Color::Yellow,
-                bg: Color::Reset,
-                selection_fg: None,
-                selection_bg: None,
-            },
-        }
-    }
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(default)]
-pub struct Theme {
-    selection: ColorPair,
-    underline: ColorPair,
-    accent: ColorPair,
-    entry: ColorPair,
-    directory: ColorPair,
-    separator: ColorPair,
-    selection_icon: String,
-    parent: ColorPair,
-    preview: ColorPair,
-    path: ColorPair,
-    marker: MarkerTheme,
-    notification: ColorPair,
-}
-
 impl Default for ColorPair {
     fn default() -> Self {
         Self {
@@ -113,6 +65,54 @@ impl ColorPair {
     pub fn bg(&self) -> Color {
         self.bg
     }
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct MarkerTheme {
+    #[serde(default)]
+    icon: String,
+    #[serde(flatten)]
+    color: ColorPair,
+}
+
+impl MarkerTheme {
+    pub fn icon(&self) -> &str {
+        &self.icon
+    }
+    pub fn color(&self) -> &ColorPair {
+        &self.color
+    }
+}
+
+impl Default for MarkerTheme {
+    fn default() -> Self {
+        MarkerTheme {
+            icon: "*".to_string(),
+            color: ColorPair {
+                fg: Color::Yellow,
+                bg: Color::Reset,
+                selection_fg: None,
+                selection_bg: None,
+            },
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(default)]
+pub struct Theme {
+    selection: ColorPair,
+    underline: ColorPair,
+    accent: ColorPair,
+    entry: ColorPair,
+    directory: ColorPair,
+    separator: ColorPair,
+    selection_icon: String,
+    parent: ColorPair,
+    preview: ColorPair,
+    path: ColorPair,
+    marker: MarkerTheme,
+    notification: ColorPair,
 }
 
 impl Theme {
