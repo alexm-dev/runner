@@ -104,9 +104,13 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 - [x] Navigation Context: Persistent Parent (Origin) and Preview panes (Completed in 0.2.0)  
 
+---
+
 
 <img src="https://github.com/user-attachments/assets/778b80cc-3e6f-45ab-a770-e4d88059995a" alt="runa_default_3" style="max-width: 100%; height: auto;">
 
+
+---
 
 ## License
 This project is Licensed under the MIT License  
