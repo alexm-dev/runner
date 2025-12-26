@@ -1,6 +1,5 @@
 use crate::app::AppState;
 use crate::ui::{ActionMode, InputMode};
-use crate::ui::{Constraint, Direction, Layout};
 use ratatui::{
     Frame,
     layout::{Alignment, Rect},
@@ -122,8 +121,8 @@ impl<'de> Deserialize<'de> for PopupSize {
 impl PopupSize {
     pub fn percentages(&self) -> (u16, u16) {
         match self {
-            PopupSize::Small => (22, 10),
-            PopupSize::Medium => (36, 12),
+            PopupSize::Small => (22, 15),
+            PopupSize::Medium => (30, 15),
             PopupSize::Large => (38, 30),
             PopupSize::Custom(w, h) => (*w, *h),
         }
@@ -269,39 +268,6 @@ pub fn draw_separator(frame: &mut Frame, area: Rect, style: Style) {
         Block::default().borders(Borders::LEFT).border_style(style),
         area,
     );
-}
-
-pub fn draw_confirm_popup(frame: &mut Frame, area: Rect, prompt: &str) {
-    let vertical_chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage(40),
-            Constraint::Percentage(20),
-            Constraint::Percentage(40),
-        ])
-        .split(area);
-
-    let popup_area = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(30),
-            Constraint::Percentage(40),
-            Constraint::Percentage(30),
-        ])
-        .split(vertical_chunks[1])[1];
-
-    frame.render_widget(ratatui::widgets::Clear, popup_area);
-
-    let block = Block::default()
-        .title(" Confirm Delete ")
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(ratatui::style::Color::Red));
-
-    let text = Paragraph::new(format!("\n{}", prompt))
-        .block(block)
-        .alignment(ratatui::layout::Alignment::Center);
-
-    frame.render_widget(text, popup_area);
 }
 
 pub fn draw_input_popup(frame: &mut Frame, app: &AppState, accent_style: Style) {
