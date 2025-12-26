@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.3.0] - 2025-12-26
+
+The first release under the name of `runa` :D
+This is a big one.
+`runa` is now officialy a file browser. v0.3.0 is still the beginning, there will be more good things to come...
+
+### Added
+- **File actions**: Create files, create directories, copy (yank) and paste files/directories, delete files/directories, rename files/directories
+- **Filtering**: Filter through the current directory to only select what you need.
+- **Customizable widgets**: Customize all the popup widgets, Customize the Multiselect marker, Customize the positions of the widgets, Customize the coloring of the widgets.
+- **Multiselect**: Select and act on multiple files at once.
+- **Customizable keybindings for file actions**: Improved keymapping to enable modifiers for all actions.
+- **Status line**: See the applied filter, see the amount of files being yanked/copied
+- **New [theme.widgets] config section.** for widget styling. Customize the entire positions and size if you desire.
+
+### Fixed
+- **Path info**: Path info is now using correct padding.
+
+### Internal
+- **Tons of refactors**: Added new modoules: app/actions, app/handlers to help seperate AppState logic.
+- **Keymapping**: Removed keycode_to_str for usage of Keymap struct, that maps all the keys correctly and more efficient.
+- **Widget deserialization**: Implemented a custom deserialization method for widgets to ease config verbosity.
+
+And much more...
+
+I wish you all a Merry Christmas!
+
+
+---
+
+
 ## [0.2.14] - 2025-12-23
 
 ### Changed
