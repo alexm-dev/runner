@@ -8,6 +8,9 @@
 **Documentation**
 - [Configuration](docs/configuration.md)
 
+<img width="1274" height="660" alt="runa_default" src="https://github.com/user-attachments/assets/202ec419-80fe-427f-975b-0ef1d31d501a" />
+
+
 A fast and lightweight console file browser written in Rust
 
 **rn - runa** is a minimalist terminal file manager focused on speed and simplicity.  
@@ -68,8 +71,11 @@ You can generate a default config using the --init or --init-minimal flag:
 ```bash
 rn --init
 
-# For a very minimal config
-rn --init-minimal
+# For the whole configuration options runa.toml
+rn --init-full
+
+# For help with all the configuration options.
+rn --config-help
 ```
 
 This will generate a config in the default config path.
@@ -83,19 +89,23 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 - [ ] Search & Discovery: Integrated fuzzy finding and fast directory traversal.  
 
-- [ ] Content Search: Text search and filtering.  
-
-- [ ] File Operations: Copy, move, delete, and rename from within the UI.  
-
 - [ ] Image Previews: Support for Sixel/Kitty graphics protocols.  
 
 ### Completed
 
+- [x] File Operations: Copy, move, delete, and rename from within the UI.  ( Completed in 0.3.0 )  
+
+- [x] Content Search: Text search and filtering.  (Completed in 0.3.0)  
+
 - [x] Performance: Reactive rendering (Completed in 0.2.0).
 
-- [x] UI Customization: Pane-specific styling and Hex color support (Completed in 0.2.2).  
+- [x] UI Customization: Pane-specific styling and Hex color support (Completed in 0.2.2).
 
 - [x] Navigation Context: Persistent Parent (Origin) and Preview panes (Completed in 0.2.0)  
+
+
+<img width="1899" height="985" alt="runa_default_3" src="https://github.com/user-attachments/assets/778b80cc-3e6f-45ab-a770-e4d88059995a" />
+
 
 ## License
 This project is Licensed under the MIT License  

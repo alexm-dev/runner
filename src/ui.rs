@@ -3,8 +3,12 @@ pub mod widgets;
 
 use self::panes::PaneContext;
 use crate::{
-    app::AppState,
+    app::{
+        AppState,
+        actions::{ActionMode, InputMode},
+    },
     ui::panes::{PaneStyles, PreviewOptions},
+    ui::widgets::{draw_input_popup, draw_status_line},
 };
 use ratatui::{
     Frame,
@@ -54,7 +58,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             metrics.preview_height = height;
         }
 
-        app.metrics = metrics;
+        *app.metrics_mut() = metrics;
     }
 
     let cfg = app.config();
@@ -63,7 +67,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
 
     let accent_style = theme_cfg.accent().as_style();
     let selection_style = theme_cfg.selection().as_style();
-    let path_str = app.nav.current_dir().to_string_lossy();
+    let path_str = app.nav().current_dir().to_string_lossy();
     let path_style = theme_cfg.path().as_style();
 
     let padding_str = display_cfg.padding_str();
@@ -88,7 +92,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             .split(root_area);
         frame.render_widget(
             Paragraph::new(Line::from(vec![Span::styled(
-                format!("   {} ", path_str),
+                format!("{} ", path_str),
                 path_style,
             )])),
             header_layout[0],
@@ -118,8 +122,8 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 entry_padding: display_cfg.entry_padding(),
                 padding_str,
             },
-            app.parent.entries(),
-            app.parent.selected_idx(),
+            app.parent().entries(),
+            app.parent().selected_idx(),
         );
         pane_idx += 1;
         if show_separators && pane_idx < chunks.len() {
@@ -187,7 +191,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         frame.render_widget(bg_filler, area);
 
         let is_dir = app
-            .nav
+            .nav()
             .selected_entry()
             .map(|e| e.is_dir())
             .unwrap_or(false);
@@ -207,9 +211,9 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 entry_padding: display_cfg.entry_padding(),
                 padding_str,
             },
-            app.preview.data(),
+            app.preview().data(),
             if is_dir {
-                Some(app.preview.selected_idx())
+                Some(app.preview().selected_idx())
             } else {
                 None
             },
@@ -220,6 +224,8 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             },
         );
     }
+    draw_status_line(frame, app);
+    draw_input_popup(frame, app, accent_style);
 }
 
 pub fn layout_chunks(size: Rect, app: &AppState) -> Vec<Rect> {
@@ -227,40 +233,50 @@ pub fn layout_chunks(size: Rect, app: &AppState) -> Vec<Rect> {
     let mut constraints = Vec::new();
     let show_sep = cfg.separators() && !cfg.is_split();
 
-    let parent = if cfg.parent() { cfg.parent_ratio() } else { 1 };
-    let preview = if cfg.preview() {
-        cfg.preview_ratio()
+    let parent = if cfg.parent() {
+        cfg.parent_ratio() as u32
     } else {
         0
     };
-    let main = cfg.main_ratio();
-
-    let total = parent + preview + main;
-
-    let factor = if total > 100 {
-        100.0 / total as f32
+    let main = cfg.main_ratio() as u32;
+    let preview = if cfg.preview() {
+        cfg.preview_ratio() as u32
     } else {
-        1.0
+        0
     };
 
-    if cfg.parent() {
-        constraints.push(Constraint::Percentage((parent as f32 * factor) as u16));
-        if show_sep {
-            constraints.push(Constraint::Length(1));
-        }
-    }
+    let enabled = [
+        (parent, cfg.parent()),
+        (main, true),
+        (preview, cfg.preview()),
+    ];
 
-    if total > 100 {
-        constraints.push(Constraint::Percentage((main as f32 * factor) as u16));
-    } else {
-        constraints.push(Constraint::Fill(1));
-    }
+    let total: u32 = enabled
+        .iter()
+        .filter(|e| e.1)
+        .map(|e| e.0)
+        .sum::<u32>()
+        .max(1);
 
-    if cfg.preview() {
-        if show_sep {
-            constraints.push(Constraint::Length(1));
+    let mut sum_pct: u16 = 0;
+    let pane_count = enabled.iter().filter(|e| e.1).count();
+    let mut pane_added = 0;
+
+    for &(val, enabled) in &enabled {
+        if enabled {
+            pane_added += 1;
+            let pct = if pane_added == pane_count {
+                100 - sum_pct
+            } else {
+                let pct = ((val as f32 / total as f32) * 100.0).round() as u16;
+                sum_pct += pct;
+                pct
+            };
+            constraints.push(Constraint::Percentage(pct));
+            if show_sep && pane_added < pane_count {
+                constraints.push(Constraint::Length(1));
+            }
         }
-        constraints.push(Constraint::Percentage((preview as f32 * factor) as u16));
     }
 
     Layout::default()

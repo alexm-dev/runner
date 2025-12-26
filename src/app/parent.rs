@@ -1,7 +1,7 @@
+use crate::file_manager::FileEntry;
 use std::path::{Path, PathBuf};
 
-use crate::file_manager::FileEntry;
-
+#[derive(Default)]
 pub struct ParentState {
     entries: Vec<FileEntry>,
     selected_idx: Option<usize>,
@@ -10,15 +10,6 @@ pub struct ParentState {
 }
 
 impl ParentState {
-    pub fn new() -> Self {
-        Self {
-            entries: Vec::new(),
-            selected_idx: None,
-            last_path: None,
-            request_id: 0,
-        }
-    }
-
     pub fn request_id(&self) -> u64 {
         self.request_id
     }
@@ -62,11 +53,5 @@ impl ParentState {
         self.selected_idx = None;
         self.last_path = None;
         self.request_id += 1;
-    }
-}
-
-impl Default for ParentState {
-    fn default() -> Self {
-        Self::new()
     }
 }

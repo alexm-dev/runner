@@ -59,23 +59,51 @@ pub struct PreviewOptions {
 pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
     let show_marker = app.config().display().dir_marker();
     let selected_idx = app.visible_selected();
+    let marker_theme = app.config().theme().marker();
+    let marker_icon = marker_theme.icon();
+    let marker_pad = " ".repeat(unicode_width::UnicodeWidthStr::width(marker_icon));
+    let entry_padding = context.entry_padding as usize;
 
     let mut items: Vec<ListItem> = app
-        .visible_entries()
+        .nav()
+        .filtered_entries()
         .iter()
         .enumerate()
         .map(|(i, e)| {
             let is_selected = Some(i) == selected_idx;
-            let text = if e.is_dir() && show_marker {
+            let path = app.nav().current_dir().join(e.name());
+            let is_marked = app.nav().markers().contains(&path);
+
+            let name_str = if e.is_dir() && show_marker {
                 e.display_name()
             } else {
                 e.name_str()
             };
-            let style = context.styles.get_style(e.is_dir(), is_selected);
 
-            let line = Line::from(vec![Span::raw(context.padding_str), Span::raw(text)]);
+            let entry_style = context.styles.get_style(e.is_dir(), is_selected);
+            let mut spans = Vec::with_capacity(4);
 
-            ListItem::new(line).style(style)
+            if entry_padding == 0 {
+                spans.push(Span::raw(name_str));
+            } else {
+                let mut marker_style = marker_theme.color().as_style();
+                if is_selected {
+                    marker_style = marker_style.bg(entry_style.bg.unwrap_or_default());
+                }
+                if is_marked {
+                    spans.push(Span::styled(marker_icon, marker_style));
+                } else {
+                    spans.push(Span::styled(&marker_pad, marker_style));
+                }
+                if entry_padding > 1 {
+                    spans.push(Span::raw(" ".repeat(entry_padding - 1)));
+                }
+                // File name
+                spans.push(Span::raw(name_str));
+            }
+
+            let line = Line::from(spans);
+            ListItem::new(line).style(entry_style)
         })
         .collect();
 
@@ -85,13 +113,13 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
         items.push(ListItem::new(line).style(style));
     }
 
-    let mut state = ListState::default();
+    let mut state = ratatui::widgets::ListState::default();
     if app.has_visible_entries() {
         state.select(selected_idx);
     }
 
     frame.render_stateful_widget(
-        List::new(items)
+        ratatui::widgets::List::new(items)
             .block(context.block.border_style(context.accent_style))
             .highlight_style(Style::default())
             .highlight_symbol(context.highlight_symbol)

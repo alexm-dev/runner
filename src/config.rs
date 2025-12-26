@@ -92,6 +92,8 @@ impl Config {
         }
     }
 
+    // Getters
+
     pub fn dirs_first(&self) -> bool {
         self.dirs_first
     }
@@ -195,7 +197,7 @@ fg = "#353536"
 # bg = "default"
 
 [theme.directory]
-fg = "cyan"
+fg = "blue"
 # bg = "default"
 
 # [theme.separator]
@@ -222,8 +224,26 @@ fg = "cyan"
 fg = "magenta"
 # bg = "default"
 
+# [theme.marker]
+# icon = "*"
+# fg = "default"
+# bg = "default"
+
+# [theme.widget]
+# size = "medium"           # "small", "medium", "large" or [w ,h] or { w = 30, y = 30 }.
+# position = "center"       # "center", "top_left", "bottomright", or [x, y] (percent) or { x = 42, y = 80 }.
+# confirm_size = "large"
+
+# [theme.widget.color]
+# fg = "default"
+# bg = "default"
+
+# [theme.widget.border]
+# fg = "default"
+# bg = "default"
+
 [editor]
-cmd = "nvim"
+# cmd = "nvim"
 
 # [keys]
 # open_file = ["Enter"]
@@ -232,24 +252,43 @@ cmd = "nvim"
 # go_parent = ["h", "Left Arrow", "Backspace"]
 # go_into_dir = ["l", "Right Arrow"]
 # quit = ["q", "Esc"]
+# delete = ["d"]
+# copy = ["y"]
+# paste = ["p"]
+# rename = ["r"]
+# create = ["n"]
+# create_directory = ["Shift+n"]
+# filter = ["f"]
+# toggle_marker = [" "]     # " " - indicates space bar
 "##;
 
         let minimal_toml = r##"# runa.toml - minimal configuration
 # Only the essentials. The rest uses internal defaults.
 
 dirs_first = true
+show_hidden = false
+
+[display]
+borders = "split"
+entry_padding = 1
+
+[theme]
+selection_icon = ""
+
+[theme.selection]
+bg = "#333333"
+
+[theme.accent]
+fg = "#353536"
 
 [theme.directory]
-fg = "cyan"
+fg = "blue"
 
 [theme.path]
 fg = "magenta"
 
-[theme]
-selection_icon = "> "
-
 [editor]
-cmd = "nvim"
+# cmd = "nvim"
 "##;
 
         let content = if minimal { minimal_toml } else { full_toml };

@@ -8,13 +8,15 @@ pub struct LayoutConfig {
 }
 
 impl LayoutConfig {
-    pub fn parent_ratio(&self) -> u16 {
+    fn parent_ratio(&self) -> u16 {
         self.parent
     }
-    pub fn main_ratio(&self) -> u16 {
+
+    fn main_ratio(&self) -> u16 {
         self.main
     }
-    pub fn preview_ratio(&self) -> u16 {
+
+    fn preview_ratio(&self) -> u16 {
         self.preview
     }
 }
@@ -134,7 +136,7 @@ impl Default for Display {
             },
             preview_underline: true,
             preview_underline_color: false,
-            entry_padding: 0,
+            entry_padding: 1,
             scroll_padding: 5,
         }
     }

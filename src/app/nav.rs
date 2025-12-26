@@ -1,5 +1,5 @@
 use crate::file_manager::FileEntry;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
@@ -8,6 +8,8 @@ pub struct NavState {
     entries: Vec<FileEntry>,
     selected: usize,
     positions: HashMap<PathBuf, usize>,
+    markers: HashSet<PathBuf>,
+    filter: String,
     request_id: u64,
 }
 
@@ -18,19 +20,34 @@ impl NavState {
             entries: Vec::new(),
             selected: 0,
             positions: HashMap::new(),
+            markers: HashSet::new(),
+            filter: String::new(),
             request_id: 0,
         }
     }
 
+    // Getters / Accessors
+
     pub fn current_dir(&self) -> &Path {
         &self.current_dir
     }
+
     pub fn entries(&self) -> &[FileEntry] {
         &self.entries
     }
+
+    pub fn markers(&self) -> &HashSet<PathBuf> {
+        &self.markers
+    }
+
+    pub fn filter(&self) -> &str {
+        &self.filter
+    }
+
     pub fn selected_idx(&self) -> usize {
         self.selected
     }
+
     pub fn request_id(&self) -> u64 {
         self.request_id
     }
@@ -39,13 +56,15 @@ impl NavState {
         self.entries.get(self.selected)
     }
 
+    // Nav functions
+
     pub fn prepare_new_request(&mut self) -> u64 {
         self.request_id += 1;
         self.request_id
     }
 
     pub fn move_up(&mut self) -> bool {
-        let len = self.entries.len();
+        let len = self.shown_entries_len();
         if len == 0 {
             return false;
         }
@@ -59,7 +78,7 @@ impl NavState {
     }
 
     pub fn move_down(&mut self) -> bool {
-        let len = self.entries.len();
+        let len = self.shown_entries_len();
         if len == 0 {
             return false;
         }
@@ -104,7 +123,93 @@ impl NavState {
             self.selected = self.positions.get(&self.current_dir).cloned().unwrap_or(0);
         }
 
-        // Safety check with saturating_sub to avoid panic on empty dirs
         self.selected = self.selected.min(self.entries.len().saturating_sub(1));
+    }
+
+    pub fn toggle_marker(&mut self) {
+        if let Some(entry) = self.selected_shown_entry() {
+            let path = self.current_dir().join(entry.name());
+            if !self.markers.remove(&path) {
+                self.markers.insert(path);
+            }
+        }
+    }
+
+    pub fn clear_markers(&mut self) {
+        self.markers.clear();
+    }
+
+    pub fn get_action_targets(&self) -> HashSet<PathBuf> {
+        if self.markers.is_empty() {
+            self.selected_entry()
+                .map(|e| self.current_dir.join(e.name()))
+                .into_iter()
+                .collect()
+        } else {
+            self.markers.iter().cloned().collect()
+        }
+    }
+
+    // Filter functions
+
+    pub fn filtered_entries(&self) -> Vec<&FileEntry> {
+        if self.filter.is_empty() {
+            self.entries.iter().collect()
+        } else {
+            let filter_lower = self.filter.to_lowercase();
+            self.entries
+                .iter()
+                .filter(|e| {
+                    e.name()
+                        .to_string_lossy()
+                        .to_lowercase()
+                        .contains(&filter_lower)
+                })
+                .collect()
+        }
+    }
+
+    pub fn shown_entries(&self) -> Box<dyn Iterator<Item = &FileEntry> + '_> {
+        if self.filter.is_empty() {
+            Box::new(self.entries.iter())
+        } else {
+            let filter_lower = self.filter.to_lowercase();
+            Box::new(self.entries.iter().filter(move |e| {
+                e.name()
+                    .to_string_lossy()
+                    .to_lowercase()
+                    .contains(&filter_lower)
+            }))
+        }
+    }
+
+    pub fn shown_entries_len(&self) -> usize {
+        if self.filter.is_empty() {
+            self.entries.len()
+        } else {
+            let filter_lower = self.filter.to_lowercase();
+            self.entries
+                .iter()
+                .filter(|e| {
+                    e.name()
+                        .to_string_lossy()
+                        .to_lowercase()
+                        .contains(&filter_lower)
+                })
+                .count()
+        }
+    }
+
+    pub fn selected_shown_entry(&self) -> Option<&FileEntry> {
+        self.shown_entries().nth(self.selected)
+    }
+
+    pub fn set_filter(&mut self, filter: String) {
+        self.filter = filter;
+        self.selected = 0;
+    }
+
+    pub fn clear_filters(&mut self) {
+        self.filter.clear();
     }
 }
