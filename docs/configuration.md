@@ -138,6 +138,7 @@ bg = "default"
 # Full widget/popup theming: position, size, and colors
 
 [theme.widget]
+# Leave blank or omit to use the regular defaults.
 # Popup position: choose one of the following styles
 #   - Preset string:    "center", "top_left", "bottom_right", etc. Also possible to write "topleft", "bottomright", etc..
 #   - List:             [x, y]             # percent of screen, e.g., [38, 32]
@@ -153,8 +154,7 @@ size = "medium"
 # Confirmation popup size (for confirmations like deleting files):
 #   - Preset string, list, or table, just like "size" above.
 #   - Leave blank or omit to use the regular `size`.
-# Example: confirm_size = "large"
-# confirm_size = ""
+confirm_size = "large"
 
 [theme.widget.color]   # Popup/widget colors
 fg = "white"

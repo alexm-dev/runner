@@ -230,8 +230,9 @@ fg = "magenta"
 # bg = "default"
 
 # [theme.widget]
-# size = "small", "medium", "larger" or [w ,h] or { w = 30, y = 30 }.
-# position: "center", "top_left", "bottomright", or [x, y] (percent) or { x = 42, y = 80 }.
+# size = "small"            # "small", "medium", "large" or [w ,h] or { w = 30, y = 30 }.
+# position = "center"       # "center", "top_left", "bottomright", or [x, y] (percent) or { x = 42, y = 80 }.
+# confirm_size = "large"
 
 # [theme.widget.color]
 # fg = "default"
