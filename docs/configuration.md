@@ -16,8 +16,8 @@ runa is under active development and options may change over time.
 
 If you don't have a config file yet, you can generate one automatically:
 
-- `rn --init`: Generates the full configuration.
-- `rn --init-minimal`: Generates a minimal, clean config file, with some common overrides
+- `rn --init`: Generates the configuration.
+- `rn --init-full`: Generates a full config files with all options as seen below.
 - `rn --config-help`: Displays all configuration options.
 
 ## General Settings

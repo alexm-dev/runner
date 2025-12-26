@@ -68,8 +68,11 @@ You can generate a default config using the --init or --init-minimal flag:
 ```bash
 rn --init
 
-# For a very minimal config
-rn --init-minimal
+# For the whole configuration options runa.toml
+rn --init-full
+
+# For help with all the configuration options.
+rn --config-help
 ```
 
 This will generate a config in the default config path.
