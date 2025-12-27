@@ -72,7 +72,7 @@ impl<'a> AppState<'a> {
         self.exit_input_mode();
     }
 
-    // Actions
+    // Handle actions
 
     pub fn exit_input_mode(&mut self) {
         self.actions.exit_mode();
@@ -98,6 +98,7 @@ impl<'a> AppState<'a> {
 
     fn apply_filter(&mut self) {
         self.actions.action_filter(&mut self.nav);
+        self.request_preview();
     }
 
     fn confirm_delete(&mut self) {
