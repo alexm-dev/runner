@@ -90,10 +90,10 @@ jobs:
           for dir in artifacts/bin-*; do
             platform=${dir#artifacts/bin-}
             if [ -f "$dir/rn.exe" ]; then
-              zip -j "dist/rn-$platform.zip" "$dir/rn.exe"
+              zip -j "dist/runa-$platform.zip" "$dir/rn.exe"
             else
-              tar -czvf "dist/rn-$platform.tar.gz" -C "$dir" rn
-              zip -j "dist/rn-$platform.zip" "$dir/rn"
+              tar -czvf "dist/runa-$platform.tar.gz" -C "$dir" rn
+              zip -j "dist/runa-$platform.zip" "$dir/rn"
             fi
           done
 
@@ -115,7 +115,7 @@ jobs:
           ' CHANGELOG.md > release_notes.md
 
           if [ ! -s release_notes.md ]; then
-            echo "Error: Could not find section for $VERSION in CHANGELOG.md"
+            echo "Error: Could not find section for version $VERSION in CHANGELOG.md"
             exit 1
           fi
 
@@ -128,6 +128,6 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --notes-file release_notes.md
           else
-            gh release create "$TAG" --title "Release $TAG" --notes-file release_notes.md --draft=false
+            gh release create "$TAG" --title "runa $TAG" --notes-file release_notes.md --draft=false
           fi
           gh release upload "$TAG" dist/* --clobber
