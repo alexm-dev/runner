@@ -54,7 +54,7 @@ jobs:
           git config --global user.email "runa-ci@proton.me"
           git config --global commit.gpgsign true
           git config --global user.signingkey "$GPG_KEY_ID"
-          git config --global gpg.program "gpg --homedir $GNUPGHOME"
+          git config --global gpg.program gpg
 
       - name: Commit and Push
         run: |
