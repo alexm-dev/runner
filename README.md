@@ -67,7 +67,7 @@ cargo build --release
 
 ### Usage
 
-Run runa with:  
+Run runa with:
 `rn`
 
 ## Configuration
