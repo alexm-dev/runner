@@ -62,7 +62,6 @@ After downloading, add the `rn` (Linux/macOS) or `rn.exe` (Windows) binary to yo
 > Get-FileHash runa-windows-x86_64.zip -Algorithm SHA256
 > ```
 > Compare the output with the corresponding entry in `SHA256SUMS.txt`.
-> ```
 
 ### Build from source
 
