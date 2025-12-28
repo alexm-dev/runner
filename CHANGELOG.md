@@ -3,7 +3,10 @@
 ## [0.3.5] - 2025-12-28
 
 ### Fixed
-**Preview Pane**: Fixed a brief flash of old directory entries when rapidly navigating between directories in the preview pane.
+- **Preview Pane**: Resolved a race condition that caused a brief flash of old directory entries when rapidly navigating between folders immediately after startup.
+
+### Internal
+- **Allocation Optimization**: Optimized `tick()` in `app.rs` to pre-calculate the selected path, reducing the times `PathBuf` and string joins are done during the tick loop.
 
 
 ---
