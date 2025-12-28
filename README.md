@@ -1,10 +1,10 @@
 # `runa - rn`
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/alexm-dev/runa/rust.yml?style=for-the-badge&logo=github&label=Build)](https://github.com/alexm-dev/runa/actions)
-[![Latest Release](https://img.shields.io/github/v/release/alexm-dev/runa?style=for-the-badge&color=8839ef&label=Release)](https://github.com/alexm-dev/runa/releases)
-[![Crates.io](https://img.shields.io/crates/v/runa-tui?style=for-the-badge&color=e67e22&logo=rust)](https://crates.io/crates/runa-tui)
-[![Language](https://img.shields.io/badge/language-Rust-DEA584?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
-[![License](https://img.shields.io/github/license/alexm-dev/runa?style=for-the-badge&color=3498db)](LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/alexm-dev/runa/rust.yml?style=flat-square&logo=github&label=build)](https://github.com/alexm-dev/runa/actions)
+[![Latest Release](https://img.shields.io/github/v/release/alexm-dev/runa?style=flat-square&color=8839ef&label=release)](https://github.com/alexm-dev/runa/releases)
+[![Crates.io](https://img.shields.io/crates/v/runa-tui?style=flat-square&color=e67e22&logo=rust)](https://crates.io/crates/runa-tui)
+[![Language](https://img.shields.io/badge/language-Rust-DEA584?style=flat-square&logo=rust)](https://www.rust-lang.org/)
+[![License](https://img.shields.io/github/license/alexm-dev/runa?style=flat-square&color=3498db)](LICENSE)
 
 **Documentation**
 - [Configuration](docs/configuration.md)
@@ -16,23 +16,33 @@
 A fast and lightweight console file browser written in Rust
 
 **rn - runa** is a minimalist terminal file manager focused on speed and simplicity.  
-
 It allows you to navigate directories, view file listings, and perform typical file browser actions.  
 
-**runa** is a work in progress.  
-It is being actively developed and will change over time.  
+
+> [!IMPORTANT]
+> **runa** is a work in progress. It is being actively developed and features may change over time.
 
 ## Changelog
-
 For a detailed list of changes and release notes, see [CHANGELOG.md](./CHANGELOG.md).
 
 ## Installation
 
-Installation via cargo:
+### Installation via cargo:
 
 ```bash
 cargo install runa-tui
 ```
+
+### Pre-compiled Binaries
+
+If you'd like to download Pre-compiled binaries instead of isntalling runa as a crate in cargo,
+you can grab the latest binaries for Linux, Windows and macOS form the [Release](https://github.com/alexm-dev/runa/releases) page.
+
+> [!TIP]
+> **Checksum Check:** You can verify the integrity of the release binaries using the `SHA256SUMS.txt` file in the [Release](https://github.com/alexm-dev/runa/releases) page.
+> ```bash
+> sha256sum -c SHA256SUMS.txt
+> ```
 
 ### Build from source
 
@@ -114,6 +124,23 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 
 ---
+
+## Support & Contribute
+If you enjoy using **runa**, you can help the project grow:
+
+* ⭐ **Star the Repo:** It helps more people discover runa :)
+* 🐛 **Report Bugs:** Open an issue if something doesn't work as expected.
+* 💡 **Feature Requests:** Suggest new ideas in the [Issues](https://github.com/alexm-dev/runa/issues) tab.
+* 🦀 **Contribute:** Pull requests are always welcome!
+
+
+## Built With
+`runa` stands on the shoulders of these incredible Rust crates:
+
+- **TUI Framework:** [Ratatui](https://ratatui.rs) & [Crossterm](https://github.com/crossterm-rs/crossterm)
+- **Configuration:** [Serde](https://serde.rs) & [TOML](https://github.com/toml-rs/toml)
+- **System Integration:** [Dirs](https://github.com/dirs-dev/dirs-rs) (Standard config locations)
+- **Concurrency:** [Crossbeam-channel](https://github.com/crossbeam-rs/crossbeam)
 
 ## License
 This project is Licensed under the MIT License  
