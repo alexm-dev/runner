@@ -68,10 +68,7 @@ cargo build --release
 ### Usage
 
 Run runa with:  
-
-```bash
-rn
-```
+`rn`
 
 ## Configuration
 
