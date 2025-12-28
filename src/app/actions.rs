@@ -129,7 +129,7 @@ impl ActionContext {
         if let Some(source) = &self.clipboard {
             let first_file_name = source
                 .iter()
-                .next()
+                .min()
                 .and_then(|p| p.file_name())
                 .map(|n| n.to_os_string());
 
