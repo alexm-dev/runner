@@ -107,14 +107,20 @@ jobs:
         shell: bash
         run: |
           VERSION=$(echo "${{ github.event.inputs.tag }}" | sed 's/^v//')
-          awk -v ver="[$VERSION]" '
-            index($0, ver) && /^#+/ { p=1; next }
-            /^---/ || (/^#+/ && p) { p=0 }
+          echo "Searching for version: $VERSION"
+
+          awk -v ver="$VERSION" '
+            $0 ~ "^#+" && index($0, ver) { p=1; next }
+            ($0 ~ "^---" || ($0 ~ "^##" && p)) { p=0; exit }
             p { print }
           ' CHANGELOG.md > release_notes.md
 
+          echo "--- Content of release_notes.md ---"
+          cat release_notes.md
+          echo "-----------------------------------"
+
           if [ ! -s release_notes.md ]; then
-            echo "Error: Could not find section for version $VERSION in CHANGELOG.md"
+            echo "Error: Extraction failed. Check your CHANGELOG.md formatting."
             exit 1
           fi
 

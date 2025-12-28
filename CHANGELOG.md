@@ -1,6 +1,6 @@
 # Changelog
 
-### [0.3.4] - 2025-12-28
+## [0.3.4] - 2025-12-28
 
 ### Added
 - **Input polish**: Added cursor movement within input fields.
