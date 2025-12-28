@@ -21,7 +21,7 @@ jobs:
             makepkg --printsrcinfo > .SRCINFO"
 
       - name: Publish to AUR
-        uses: ksxpc/github-actions-deploy-aur@v3
+        uses: KSXGitHub/github-actions-deploy-aur@v4
         with:
           pkgname: runa
           pkgbuild: ./PKGBUILD
