@@ -289,6 +289,7 @@ impl<'a> AppState<'a> {
         if let Some(entry) = self.nav.selected_shown_entry() {
             let path = self.nav.current_dir().join(entry.name());
             let req_id = self.preview.prepare_new_request(path.clone());
+            // Set the directory generation for the preview to the request_id for WorkerResponse
             self.preview.set_dir_generation(self.nav().request_id());
 
             if entry.is_dir() {
