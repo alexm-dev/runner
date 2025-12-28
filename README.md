@@ -1,8 +1,9 @@
 # `runa - rn`
 
 [![Build](https://github.com/alexm-dev/runa/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/alexm-dev/runa/actions)
+[![Latest Release](https://img.shields.io/github/v/release/alexm-dev/runa?style=for-the-badge&color=8839ef)](https://github.com/alexm-dev/runa/releases)
 [![Crates.io](https://img.shields.io/crates/v/runa-tui.svg)](https://crates.io/crates/runa-tui)
-[![Language](https://img.shields.io/badge/language-Rust-orange)](https://www.rust-lang.org/)
+[![Language](https://img.shields.io/badge/language-Rust-DEA584?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 **Documentation**
