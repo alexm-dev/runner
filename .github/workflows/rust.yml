@@ -45,6 +45,7 @@ jobs:
         run: cargo build --release
 
       - name: Test
+        shell: bash
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             cargo test --all --release --verbose
