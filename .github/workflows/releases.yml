@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to upload binaries'
+        description: 'Release tag'
         required: true
 
 permissions:
@@ -21,46 +21,58 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            artifact_name: rn-linux
+            platform: linux-x86_64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            platform: linux-arm64
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            artifact_name: rn-windows.exe
+            platform: windows-x86_64
           - target: x86_64-apple-darwin
             os: macos-latest
-            artifact_name: rn-macos
+            platform: macos-x86_64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            platform: macos-arm64
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
+      - name: Install ARM Linker
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+        shell: bash
+        run: |
+          if [ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]; then
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+          fi
+          cargo build --release --target ${{ matrix.target }}
 
       - name: Prepare Binary
         shell: bash
         run: |
           mkdir -p dist
           if [ "${{ runner.os }}" = "Windows" ]; then
-            cp "target/${{ matrix.target }}/release/rn.exe" "dist/${{ matrix.artifact_name }}"
+            cp target/${{ matrix.target }}/release/rn.exe dist/rn-${{ matrix.platform }}.exe
           else
-            cp "target/${{ matrix.target }}/release/rn" "dist/${{ matrix.artifact_name }}"
+            cp target/${{ matrix.target }}/release/rn dist/rn-${{ matrix.platform }}
+            chmod +x dist/rn-${{ matrix.platform }}
           fi
-
-      - name: Make Unix binaries executable
-        if: runner.os != 'Windows'
-        run: chmod +x dist/${{ matrix.artifact_name }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: dist/${{ matrix.artifact_name }}
+          name: bin-${{ matrix.platform }}
+          path: dist/rn-*
 
-  checksums:
+  checksums_and_archives:
     if: github.actor == 'alexm-dev'
     needs: build
     runs-on: ubuntu-latest
@@ -71,13 +83,17 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - name: List all files to be released
-        run: ls -lh dist
-
-      - name: Make Unix binaries executable (safety net)
+      - name: Create archives
         run: |
-          chmod +x dist/rn-linux || true
-          chmod +x dist/rn-macos || true
+          cd dist
+          for f in rn-*; do
+            if [[ $f == *.exe ]]; then
+              zip "${f%.exe}.zip" "$f"
+            else
+              tar -czvf "$f.tar.gz" "$f"
+              zip "$f.zip" "$f"
+            fi
+          done
 
       - name: Calculate SHA256SUMS
         run: |
@@ -85,11 +101,8 @@ jobs:
           sha256sum rn-* > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
-      - name: Upload binaries and checksums to release
+      - name: Upload to Release
         run: |
-          gh release upload "${{ github.event.inputs.tag }}" dist/rn-* dist/SHA256SUMS.txt --clobber
+          gh release upload "${{ github.event.inputs.tag }}" dist/* --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Print final asset list (debug)
-        run: ls -lh dist/
