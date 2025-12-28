@@ -197,11 +197,10 @@ pub fn start_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse
                                 if let Some(name) = s.file_name() {
                                     let target = get_unused_path(&dest.join(name));
 
-                                    if let Some(ref ft) = focus_target {
-                                        if ft == name {
-                                            focus_target =
-                                                target.file_name().map(|n| n.to_os_string());
-                                        }
+                                    if let Some(ref ft) = focus_target
+                                        && ft == name
+                                    {
+                                        focus_target = target.file_name().map(|n| n.to_os_string());
                                     }
 
                                     let _ = if cut {
