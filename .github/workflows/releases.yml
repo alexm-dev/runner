@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   build:
+    if: github.actor == 'alexm-dev'
     name: Build (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -60,6 +61,7 @@ jobs:
           path: dist/${{ matrix.artifact_name }}
 
   checksums:
+    if: github.actor == 'alexm-dev'
     needs: build
     runs-on: ubuntu-latest
     steps:
