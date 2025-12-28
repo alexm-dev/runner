@@ -10,7 +10,9 @@ on:
 jobs:
   publish_aur:
     runs-on: ubuntu-latest
-    if: github.actor == 'alexm-dev'
+    if: github.actor == 'alexm-dev' && startsWith(github.event.inputs.tag, 'v')
+    env:
+      CI_GPG_KEY: ${{ secrets.RUNA_CI_GPG_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,15 +21,43 @@ jobs:
       - name: Generate .SRCINFO
         run: |
           docker run --rm -v ".:/pkg" -w /pkg archlinux:latest bash -c "
-            pacman -Sy --noconfirm pacman-contrib sudo &&
-            useradd -m builduser &&
-            echo 'builduser ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers &&
-            chown -R builduser:builduser /pkg &&
-            sudo -u builduser makepkg --printsrcinfo > .SRCINFO &&
+            set -e
+            pacman -Sy --noconfirm pacman-contrib sudo
+            useradd -m builduser
+            echo 'builduser ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+            chown -R builduser:builduser /pkg
+            sudo -u builduser makepkg --printsrcinfo > .SRCINFO
             chown -R root:root /pkg
           "
 
-      - name: Publish to AUR
+      - name: Setup SSH key for AUR
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+
+      - name: Import CI GPG key
+        run: |
+          mkdir -p ~/.gnupg
+          echo "$CI_GPG_KEY" | gpg --batch --import
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+
+      - name: Configure Git for signing
+        run: |
+          git config user.name "alexm-dev"
+          git config user.email "runa-dev@proton.me"
+          git config commit.gpgsign true
+          git config gpg.program gpg
+
+      - name: Commit and Publish to AUR
+        run: |
+          git add .SRCINFO
+          git commit -S -m "Update to ${{ github.event.inputs.tag }} via GitHub Actions"
+        env:
+          CI_GPG_KEY: ${{ secrets.RUNA_CI_GPG_KEY }}
+
+      - name: Push to AUR
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
         with:
           pkgname: runa
@@ -35,4 +65,9 @@ jobs:
           commit_username: alexm-dev
           commit_email: runa-dev@proton.me
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: "Update to ${{ github.event.inputs.tag }}"
+          commit_message: "Update to ${{ github.event.inputs.tag }} via GitHub Actions"
+
+      - name: Cleanup
+        run: |
+          rm -rf ~/.ssh/id_rsa
+          rm -rf ~/.gnupg
