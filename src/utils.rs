@@ -3,6 +3,7 @@
 use crate::config::Editor;
 use ratatui::style::Color;
 use std::io;
+use std::path::{Path, PathBuf};
 
 /// Parses a string (color name or hex) into a ratatui::style::color
 ///
@@ -73,4 +74,36 @@ pub fn open_in_editor(editor: &Editor, file_path: &std::path::Path) -> std::io::
     execute!(io::stdout(), EnterAlternateScreen)?;
     enable_raw_mode()?;
     status.map(|_| ())
+}
+
+/// Finds the next available filename by appending _1, _2, etc. if the target exists
+///
+/// Example: "notes.txt" -> "notes_1.txt"
+pub fn get_unused_path(path: &Path) -> PathBuf {
+    if !path.exists() {
+        return path.to_path_buf();
+    }
+
+    let parent = path.parent().unwrap_or_else(|| Path::new(""));
+    let name = path.file_name().unwrap_or_default();
+
+    let stem = Path::new(name)
+        .file_stem()
+        .unwrap_or_default()
+        .to_string_lossy();
+
+    let ext = Path::new(name)
+        .extension()
+        .map(|e| format!(".{}", e.to_string_lossy()))
+        .unwrap_or_default();
+
+    let mut counter = 1;
+    loop {
+        let new_name = format!("{}_{}{}", stem, counter, ext);
+        let target = parent.join(new_name);
+        if !target.exists() {
+            return target;
+        }
+        counter += 1;
+    }
 }

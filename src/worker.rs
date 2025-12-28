@@ -26,6 +26,7 @@ use unicode_width::UnicodeWidthChar;
 
 use crate::file_manager::{FileEntry, browse_dir};
 use crate::formatter::Formatter;
+use crate::utils::get_unused_path;
 
 /// Tasks sent to the worker thread via channel.
 ///
@@ -156,17 +157,32 @@ pub fn start_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse
                             Ok("Items deleted".to_string())
                         }
                         FileOperation::Rename { old, new } => {
-                            focus_target = new.file_name().map(|n| n.to_os_string());
-                            std::fs::rename(old, new)
-                                .map(|_| "Renamed".into())
-                                .map_err(|e| e.to_string())
+                            let target = new;
+
+                            if target.exists() {
+                                Err(format!(
+                                    "Rename failed: '{}' already exists",
+                                    target.file_name().unwrap_or_default().to_string_lossy()
+                                ))
+                            } else {
+                                focus_target = target.file_name().map(|n| n.to_os_string());
+                                std::fs::rename(old, &target)
+                                    .map(|_| "Renamed".into())
+                                    .map_err(|e| e.to_string())
+                            }
                         }
                         FileOperation::Create { path, is_dir } => {
-                            focus_target = path.file_name().map(|n| n.to_os_string());
+                            let target = get_unused_path(&path);
+                            focus_target = target.file_name().map(|n| n.to_os_string());
+
                             let res = if is_dir {
-                                std::fs::create_dir_all(&path)
+                                std::fs::create_dir_all(&target)
                             } else {
-                                std::fs::File::create(&path).map(|_| ())
+                                std::fs::OpenOptions::new()
+                                    .write(true)
+                                    .create_new(true)
+                                    .open(&target)
+                                    .map(|_| ())
                             };
                             res.map(|_| "Created".into()).map_err(|e| e.to_string())
                         }
@@ -179,11 +195,19 @@ pub fn start_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse
                             focus_target = focus;
                             for s in src {
                                 if let Some(name) = s.file_name() {
-                                    let target = dest.join(name);
+                                    let target = get_unused_path(&dest.join(name));
+
+                                    if let Some(ref ft) = focus_target {
+                                        if ft == name {
+                                            focus_target =
+                                                target.file_name().map(|n| n.to_os_string());
+                                        }
+                                    }
+
                                     let _ = if cut {
-                                        std::fs::rename(s, target)
+                                        std::fs::rename(s, &target)
                                     } else {
-                                        std::fs::copy(s, target).map(|_| ())
+                                        std::fs::copy(s, &target).map(|_| ())
                                     };
                                 }
                             }
