@@ -33,7 +33,6 @@ pub struct PreviewState {
     current_path: Option<PathBuf>,
     request_id: u64,
     pending: bool,
-    dir_generation: u64,
     last_input_time: Instant,
 }
 
@@ -52,10 +51,6 @@ impl PreviewState {
         self.request_id
     }
 
-    pub fn dir_generation(&self) -> u64 {
-        self.dir_generation
-    }
-
     // Setters / mutators
 
     pub fn set_selected_idx(&mut self, idx: usize) {
@@ -70,10 +65,6 @@ impl PreviewState {
     pub fn mark_pending(&mut self) {
         self.pending = true;
         self.last_input_time = Instant::now();
-    }
-
-    pub fn set_dir_generation(&mut self, value: u64) {
-        self.dir_generation = value;
     }
 
     // Debounce timing for preview render
@@ -138,7 +129,6 @@ impl Default for PreviewState {
             current_path: None,
             request_id: 0,
             pending: false,
-            dir_generation: 0,
             last_input_time: Instant::now(),
         }
     }

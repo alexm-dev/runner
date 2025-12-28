@@ -127,6 +127,10 @@ impl<'a> AppState<'a> {
         self.config
     }
 
+    pub fn metrics(&self) -> &LayoutMetrics {
+        &self.metrics
+    }
+
     pub fn metrics_mut(&mut self) -> &mut LayoutMetrics {
         &mut self.metrics
     }
@@ -178,6 +182,12 @@ impl<'a> AppState<'a> {
             changed = true;
         }
 
+        // Optimized tick() loop
+        let current_selection_path = self
+            .nav
+            .selected_entry()
+            .map(|entry| self.nav.current_dir().join(entry.name()));
+
         // Process worker response
         while let Ok(response) = self.response_rx.try_recv() {
             changed = true;
@@ -197,14 +207,16 @@ impl<'a> AppState<'a> {
                     }
                     // PREVIEW CHECK: Must match the current preview request
                     else if request_id == self.preview.request_id() {
-                        self.preview.update_from_entries(entries, request_id);
-                        if let Some(entry) = self.nav.selected_entry() {
-                            let path = self.nav.current_dir().join(entry.name());
-                            if let Some(&cached_pos) = self.nav.get_position().get(&path) {
-                                self.preview.set_selected_idx(cached_pos);
-                            } else {
-                                self.preview.set_selected_idx(0);
-                            }
+                        if current_selection_path.as_ref() == Some(&path) {
+                            self.preview.update_from_entries(entries, request_id);
+
+                            let pos = current_selection_path
+                                .as_ref()
+                                .and_then(|p| self.nav.get_position().get(p))
+                                .copied()
+                                .unwrap_or(0);
+
+                            self.preview.set_selected_idx(pos);
                         }
                     }
                     // PARENT CHECK: Must match the current parent request
@@ -221,9 +233,7 @@ impl<'a> AppState<'a> {
                     }
                 }
                 WorkerResponse::PreviewLoaded { lines, request_id } => {
-                    if request_id == self.preview.request_id()
-                        && self.preview.dir_generation() == self.nav.request_id()
-                    {
+                    if request_id == self.preview.request_id() {
                         self.preview.update_content(lines, request_id);
                     }
                 }
@@ -290,7 +300,6 @@ impl<'a> AppState<'a> {
             let path = self.nav.current_dir().join(entry.name());
             let req_id = self.preview.prepare_new_request(path.clone());
             // Set the directory generation for the preview to the request_id for WorkerResponse
-            self.preview.set_dir_generation(self.nav().request_id());
 
             if entry.is_dir() {
                 let _ = self.worker_tx.send(WorkerTask::LoadDirectory {
