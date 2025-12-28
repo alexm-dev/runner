@@ -107,20 +107,21 @@ jobs:
         shell: bash
         run: |
           VERSION=$(echo "${{ github.event.inputs.tag }}" | sed 's/^v//')
-          echo "Searching for version: $VERSION"
+          
+          sed 's/\r//' CHANGELOG.md > clean_changelog.md
 
           awk -v ver="$VERSION" '
-            $0 ~ "^#+" && index($0, ver) { p=1; next }
-            ($0 ~ "^---" || ($0 ~ "^##" && p)) { p=0; exit }
+            BEGIN { ver_pattern = "\\[v?" ver "\\]" }
+            $0 ~ "^#+ " ver_pattern { p=1; next }
+            p && ($0 ~ "^---" || $0 ~ "^## \\[") { p=0; exit }
             p { print }
-          ' CHANGELOG.md > release_notes.md
+          ' clean_changelog.md > release_notes.md
 
-          echo "--- Content of release_notes.md ---"
-          cat release_notes.md
-          echo "-----------------------------------"
+          sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' release_notes.md
 
           if [ ! -s release_notes.md ]; then
-            echo "Error: Extraction failed. Check your CHANGELOG.md formatting."
+            echo "Error: Extraction failed for version $VERSION"
+            echo "Check if your CHANGELOG.md has a header like: ## [$VERSION]"
             exit 1
           fi
 
@@ -131,11 +132,8 @@ jobs:
           TAG: ${{ github.event.inputs.tag }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Updating existing release notes..."
             gh release edit "$TAG" --notes-file release_notes.md
           else
-            echo "Creating new release..."
-            gh release create "$TAG" --title "runa $TAG" --notes-file release_notes.md --draft=false
+            gh release create "$TAG" --title "runa $TAG" --notes-file release_notes.md
           fi
-          echo "Uploading assets..."
           gh release upload "$TAG" dist/* --clobber
