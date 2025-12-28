@@ -11,7 +11,7 @@
 
 ### Internal
 - **Hardened NavState**: Threw 1 million iterations at the navigation math. It’s rock solid now.
-- **Refactoring**: Renamed `popup` to `dialog` across codebose for better naming. (Just feels better).
+- **Refactoring**: Renamed `popup` to `dialog` across codebase for better naming. (Just feels better).
 - **Testing**: Added a bunch more of unit tests.
 - **Documentation**: Added some documentation of code and modules. Still working on more...
 
