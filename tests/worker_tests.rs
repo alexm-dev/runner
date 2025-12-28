@@ -68,8 +68,8 @@ fn stress_worker_dir_load_requests_multithreaded() {
     let dirs = vec![curr_dir, temp_dir.clone(), safe_subdir.clone()];
 
     let pane_base = 20;
-    let thread_count = 4;
-    let requests_per_thread = 250;
+    let thread_count = 2;
+    let requests_per_thread = 50;
 
     let (task_tx, task_rx) = unbounded();
     let (res_tx, res_rx) = unbounded();

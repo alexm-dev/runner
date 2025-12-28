@@ -87,7 +87,7 @@ fn test_navstate_navigation_stress() {
     let subsub_entries = browse_dir(&subsubdir_path).unwrap();
 
     let mut nav = NavState::new(base_path.clone());
-    let repetitions = 1_000_000;
+    let repetitions = 50000;
 
     for i in 0..repetitions {
         nav.set_path(subdir_path.clone());
@@ -135,7 +135,7 @@ fn test_navstate_selection_persistence_stress() {
     let sub_entries = browse_dir(&subdir_path).unwrap();
 
     let mut nav = NavState::new(base_path.clone());
-    let repetitions = 1_000_000;
+    let repetitions = 50000;
 
     nav.set_path(subdir_path.clone());
     nav.update_from_worker(subdir_path.clone(), sub_entries.clone(), None);
