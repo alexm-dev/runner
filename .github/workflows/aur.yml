@@ -17,8 +17,13 @@ jobs:
       - name: Generate .SRCINFO
         run: |
           docker run --rm -v ".:/pkg" -w /pkg archlinux:latest bash -c "
-            pacman -Sy --noconfirm pacman-contrib &&
-            makepkg --printsrcinfo > .SRCINFO"
+            pacman -Sy --noconfirm pacman-contrib sudo &&
+            useradd -m builduser &&
+            echo 'builduser ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers &&
+            chown -R builduser:builduser /pkg &&
+            sudo -u builduser makepkg --printsrcinfo > .SRCINFO &&
+            chown -R root:root /pkg
+          "
 
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
