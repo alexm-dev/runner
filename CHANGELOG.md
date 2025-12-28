@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.5] - 2025-12-28
+
+### Fixed
+**Preview Pane**: Fixed a brief flash of old directory entries when rapidly navigating between directories in the preview pane.
+
+
+---
+
+
 ## [0.3.4] - 2025-12-28
 
 ### Added
