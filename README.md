@@ -47,6 +47,8 @@ yay -S runa
 If you'd like to download Pre-compiled binaries instead of isntalling runa as a crate in cargo or via the AUR,
 you can grab the latest binaries for Linux, Windows and macOS form the [Release](https://github.com/alexm-dev/runa/releases) page.
 
+After downloading, add the `rn` (Linux/macOS) or `rn.exe` (Windows) binary to your system `PATH` to use runa from your terminal.
+
 > [!TIP]
 > **Checksum Check:** You can verify the integrity of the release binaries using the `SHA256SUMS.txt` file in the [Release](https://github.com/alexm-dev/runa/releases) page.
 > ```bash
