@@ -5,6 +5,7 @@
 
 use crate::app::actions::{ActionMode, InputMode};
 use crate::app::{AppState, KeypressResult, NavState};
+use crate::file_manager::FileInfo;
 use crate::keymap::{FileAction, NavAction};
 use crossterm::event::{KeyCode::*, KeyEvent};
 use std::time::{Duration, Instant};
@@ -200,6 +201,7 @@ impl<'a> AppState<'a> {
             FileAction::Create => self.prompt_create_file(),
             FileAction::CreateDirectory => self.prompt_create_folder(),
             FileAction::Filter => self.prompt_filter(),
+            FileAction::ShowInfo => self.show_file_info(),
         }
         KeypressResult::Continue
     }
@@ -253,6 +255,16 @@ impl<'a> AppState<'a> {
             "Filter: ".to_string(),
             Some(current_filter),
         );
+    }
+
+    fn show_file_info(&mut self) {
+        if let Some(entry) = self.nav.selected_shown_entry() {
+            let path = self.nav.current_dir().join(entry.name());
+            if let Ok(file_info) = FileInfo::get_file_info(&path) {
+                self.actions
+                    .enter_mode(ActionMode::ShowInfo { info: file_info }, String::new());
+            }
+        }
     }
 
     // Mode function

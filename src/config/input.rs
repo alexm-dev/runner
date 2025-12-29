@@ -23,6 +23,7 @@ pub struct Keys {
     create_directory: Vec<String>,
     filter: Vec<String>,
     toggle_marker: Vec<String>,
+    show_info: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -107,6 +108,7 @@ impl Default for Keys {
             create_directory: vec!["Shift+n".into()],
             filter: vec!["f".into()],
             toggle_marker: vec![" ".into()],
+            show_info: vec!["Ctrl+i".into()],
         }
     }
 }

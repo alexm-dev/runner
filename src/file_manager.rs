@@ -3,7 +3,10 @@
 //! Provides the FileEntry struct which is used throughout runa.
 
 use std::ffi::OsString;
-use std::fs;
+use std::fs::{self, Permissions, symlink_metadata};
+use std::io;
+use std::path::Path;
+use std::time::SystemTime;
 
 /// Represents a single entry in a directory listing
 #[derive(Debug, Clone)]
@@ -52,6 +55,70 @@ impl FileEntry {
 
     pub fn set_display_name(&mut self, new_name: String) {
         self.display_name = new_name;
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum FileType {
+    File,
+    Directory,
+    Symlink,
+    Other,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FileInfo {
+    name: OsString,
+    size: Option<u64>,
+    modified: Option<SystemTime>,
+    permissions: Option<Permissions>,
+    file_type: FileType,
+}
+
+impl FileInfo {
+    pub fn name(&self) -> &OsString {
+        &self.name
+    }
+
+    pub fn size(&self) -> &Option<u64> {
+        &self.size
+    }
+
+    pub fn modified(&self) -> &Option<SystemTime> {
+        &self.modified
+    }
+
+    pub fn permissions(&self) -> &Option<Permissions> {
+        &self.permissions
+    }
+
+    pub fn file_type(&self) -> &FileType {
+        &self.file_type
+    }
+
+    pub fn get_file_info(path: &Path) -> io::Result<FileInfo> {
+        let metadata = symlink_metadata(path)?;
+        let file_type = if metadata.is_file() {
+            FileType::File
+        } else if metadata.is_dir() {
+            FileType::Directory
+        } else if metadata.file_type().is_symlink() {
+            FileType::Symlink
+        } else {
+            FileType::Other
+        };
+
+        Ok(FileInfo {
+            name: path.file_name().unwrap_or_default().to_os_string(),
+            size: if metadata.is_file() {
+                Some(metadata.len())
+            } else {
+                None
+            },
+            modified: metadata.modified().ok(),
+            permissions: Some(metadata.permissions()),
+            file_type,
+        })
     }
 }
 

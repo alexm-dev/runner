@@ -35,6 +35,7 @@ pub enum FileAction {
     Create,
     CreateDirectory,
     Filter,
+    ShowInfo,
 }
 
 /// System actions (quit)
