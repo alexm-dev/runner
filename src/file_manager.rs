@@ -1,12 +1,15 @@
 //! File and directory browsing logic for runa.
 //!
 //! Provides the FileEntry struct which is used throughout runa.
+//! Also holds all the FileInfo and FileType structs used by the ShowInfo Overlay
 
 use std::ffi::OsString;
-use std::fs::{self, Permissions, symlink_metadata};
+use std::fs::{self, symlink_metadata};
 use std::io;
 use std::path::Path;
 use std::time::SystemTime;
+
+use crate::formatter::format_attributes;
 
 /// Represents a single entry in a directory listing
 #[derive(Debug, Clone)]
@@ -58,6 +61,9 @@ impl FileEntry {
     }
 }
 
+/// Enumerator for the filye types which are then shown inside [FileInfo]
+///
+/// Hold File, Directory, Symlink and Other types.
 #[derive(Debug, Clone, PartialEq)]
 pub enum FileType {
     File,
@@ -66,16 +72,19 @@ pub enum FileType {
     Other,
 }
 
+/// Main FileInfo struct that holds each info field for the ShowInfo overlay widget.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FileInfo {
     name: OsString,
     size: Option<u64>,
     modified: Option<SystemTime>,
-    permissions: Option<Permissions>,
+    attributes: String,
     file_type: FileType,
 }
 
 impl FileInfo {
+    // Accessors
+
     pub fn name(&self) -> &OsString {
         &self.name
     }
@@ -88,14 +97,15 @@ impl FileInfo {
         &self.modified
     }
 
-    pub fn permissions(&self) -> &Option<Permissions> {
-        &self.permissions
+    pub fn attributes(&self) -> &str {
+        &self.attributes
     }
 
     pub fn file_type(&self) -> &FileType {
         &self.file_type
     }
 
+    // Main file info getter used by the ShowInfo overlay functions
     pub fn get_file_info(path: &Path) -> io::Result<FileInfo> {
         let metadata = symlink_metadata(path)?;
         let file_type = if metadata.is_file() {
@@ -116,7 +126,7 @@ impl FileInfo {
                 None
             },
             modified: metadata.modified().ok(),
-            permissions: Some(metadata.permissions()),
+            attributes: format_attributes(&metadata),
             file_type,
         })
     }

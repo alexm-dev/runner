@@ -11,6 +11,7 @@
 //!
 //! See submodules [panes] and [widgets] for detailed drawing functions.
 
+pub mod overlays;
 pub mod panes;
 pub mod widgets;
 
@@ -21,6 +22,7 @@ use crate::{
         actions::{ActionMode, InputMode},
     },
     ui::{
+        overlays::Overlay,
         panes::{PaneStyles, PreviewOptions},
         widgets::{draw_input_dialog, draw_show_info_dialog, draw_status_line},
     },
@@ -244,9 +246,13 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             },
         );
     }
+
     draw_status_line(frame, app);
-    draw_show_info_dialog(frame, app, accent_style);
     draw_input_dialog(frame, app, accent_style);
+
+    if let Some(Overlay::ShowInfo { info }) = app.overlays().top() {
+        draw_show_info_dialog(frame, app, accent_style, info);
+    }
 }
 
 /// Returns the rectangular areas for all active panes, given the current configuration
