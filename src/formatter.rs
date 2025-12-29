@@ -7,7 +7,6 @@
 use crate::file_manager::{FileEntry, FileType};
 use std::collections::HashSet;
 use std::ffi::OsString;
-use std::fs::Permissions;
 use std::sync::Arc;
 
 pub struct Formatter {
@@ -112,30 +111,26 @@ impl Formatter {
     }
 } // impl Formatter
 
-pub fn format_permission(perm: &Permissions) -> String {
+pub fn format_permissions(perm: &std::fs::Permissions) -> String {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         let mode = perm.mode();
-        let chars = |shift| {
-            [
-                if (mode >> (shift + 2)) & 1 != 0 {
-                    'r'
-                } else {
-                    '-'
-                },
-                if (mode >> (shift + 1)) & 1 != 0 {
-                    'w'
-                } else {
-                    '-'
-                },
-                if (mode >> shift) & 1 != 0 { 'x' } else { '-' },
-            ]
-        };
-        let (ur, uw, ux) = (chars(6)[0], chars(6)[1], chars(6)[2]);
-        let (gr, gw, gx) = (chars(3)[0], chars(3)[1], chars(3)[2]);
-        let (or, ow, ox) = (chars(0)[0], chars(0)[1], chars(0)[2]);
-        format!("{}{}{}{}{}{}{}", ur, uw, ux, gr, gw, gx, or, ow, ox)
+        let mut chars = ['-'; 9];
+        let shifts = [6, 3, 0];
+        for (i, &shift) in shifts.iter().enumerate() {
+            let base = i * 3;
+            if (mode >> (shift + 2)) & 1u32 != 0 {
+                chars[base] = 'r';
+            }
+            if (mode >> (shift + 1)) & 1u32 != 0 {
+                chars[base + 1] = 'w';
+            }
+            if (mode >> shift) & 1u32 != 0 {
+                chars[base + 2] = 'x';
+            }
+        }
+        chars.iter().collect()
     }
     #[cfg(not(unix))]
     {
