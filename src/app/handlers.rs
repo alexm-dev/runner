@@ -154,7 +154,7 @@ impl<'a> AppState<'a> {
                 self.refresh_show_info_if_open();
                 return res;
             }
-            NavAction::ToggleMarker => self.nav.toggle_marker(),
+            NavAction::ToggleMarker => self.nav.toggle_marker_advance(),
         }
         KeypressResult::Continue
     }
