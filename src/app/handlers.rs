@@ -135,8 +135,14 @@ impl<'a> AppState<'a> {
 
     pub fn handle_nav_action(&mut self, action: NavAction) -> KeypressResult {
         match action {
-            NavAction::GoUp => self.move_nav_if_possible(|nav| nav.move_up()),
-            NavAction::GoDown => self.move_nav_if_possible(|nav| nav.move_down()),
+            NavAction::GoUp => {
+                self.move_nav_if_possible(|nav| nav.move_up());
+                self.maybe_update_show_info();
+            }
+            NavAction::GoDown => {
+                self.move_nav_if_possible(|nav| nav.move_down());
+                self.maybe_update_show_info();
+            }
             NavAction::GoParent => return self.handle_go_parent(),
             NavAction::GoIntoDir => return self.handle_go_into_dir(),
             NavAction::ToggleMarker => self.nav.toggle_marker(),
@@ -201,7 +207,13 @@ impl<'a> AppState<'a> {
             FileAction::Create => self.prompt_create_file(),
             FileAction::CreateDirectory => self.prompt_create_folder(),
             FileAction::Filter => self.prompt_filter(),
-            FileAction::ShowInfo => self.show_file_info(),
+            FileAction::ShowInfo => {
+                if let ActionMode::ShowInfo { .. } = self.actions.mode() {
+                    self.actions.exit_mode();
+                } else {
+                    self.show_file_info();
+                }
+            }
         }
         KeypressResult::Continue
     }
@@ -273,5 +285,11 @@ impl<'a> AppState<'a> {
         let buffer = initial.unwrap_or_default();
         self.actions
             .enter_mode(ActionMode::Input { mode, prompt }, buffer);
+    }
+
+    fn maybe_update_show_info(&mut self) {
+        if let ActionMode::ShowInfo { .. } = self.actions.mode() {
+            self.show_file_info();
+        }
     }
 }
