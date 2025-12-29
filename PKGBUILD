@@ -1,4 +1,4 @@
-# Maintainer: alexm-dev <runa-dev@proton.me>
+# Maintainer: alexm-dev <runa-dev at proton dot me>
 # Contributor: Luis Martinez <luis dot martinez at disroot dot org>
 
 pkgname=runa
