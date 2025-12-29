@@ -93,12 +93,14 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     let path_style = theme_cfg.path().as_style();
 
     let padding_str = display_cfg.padding_str();
+    let border_type = display_cfg.border_shape().as_border_type();
 
     // Root Border / Header Logic
     if display_cfg.is_unified() {
         let mut outer_block = Block::default()
             .borders(Borders::ALL)
-            .border_style(accent_style);
+            .border_style(accent_style)
+            .border_type(border_type);
         if display_cfg.titles() {
             outer_block = outer_block.title(Line::from(vec![Span::styled(
                 format!(" {} ", path_str),
@@ -134,6 +136,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             PaneContext {
                 area: chunks[pane_idx],
                 block: widgets::get_pane_block("Parent", app),
+                border_type: border_type,
                 accent_style,
                 styles: PaneStyles {
                     item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
@@ -183,6 +186,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             PaneContext {
                 area: chunks[pane_idx],
                 block: widgets::get_pane_block("Files", app),
+                border_type: border_type,
                 accent_style,
                 styles: pane_style,
                 highlight_symbol: symbol,
@@ -223,6 +227,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             PaneContext {
                 area: chunks[pane_idx],
                 block: widgets::get_pane_block("Preview", app),
+                border_type: border_type,
                 accent_style,
                 styles: PaneStyles {
                     item: theme_cfg.parent().effective_style(&theme_cfg.entry()),

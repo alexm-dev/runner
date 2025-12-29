@@ -7,6 +7,7 @@
 
 use crate::app::{AppState, PreviewData};
 use crate::file_manager::FileEntry;
+use ratatui::widgets::BorderType;
 use ratatui::{
     Frame,
     layout::Rect,
@@ -51,6 +52,7 @@ impl PaneStyles {
 pub struct PaneContext<'a> {
     pub area: Rect,
     pub block: Block<'a>,
+    pub border_type: BorderType,
     pub accent_style: Style,
     pub styles: PaneStyles,
     pub highlight_symbol: &'a str,
@@ -145,14 +147,19 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
         ListItem::new(line).style(entry_style)
     });
 
-    let mut state = ratatui::widgets::ListState::default();
+    let mut state = ListState::default();
     if app.has_visible_entries() {
         state.select(selected_idx);
     }
 
     frame.render_stateful_widget(
-        ratatui::widgets::List::new(items)
-            .block(context.block.border_style(context.accent_style))
+        List::new(items)
+            .block(
+                context
+                    .block
+                    .border_style(context.accent_style)
+                    .border_type(context.border_type),
+            )
             .highlight_style(Style::default())
             .highlight_symbol(context.highlight_symbol)
             .scroll_padding(app.config().display().scroll_padding()),
@@ -237,7 +244,12 @@ pub fn draw_preview(
 
             frame.render_stateful_widget(
                 List::new(items)
-                    .block(context.block.border_style(context.accent_style))
+                    .block(
+                        context
+                            .block
+                            .border_style(context.accent_style)
+                            .border_type(context.border_type),
+                    )
                     .highlight_style(Style::default())
                     .highlight_symbol(context.highlight_symbol),
                 context.area,
@@ -279,7 +291,12 @@ pub fn draw_parent(
 
     frame.render_stateful_widget(
         List::new(items)
-            .block(context.block.border_style(context.accent_style))
+            .block(
+                context
+                    .block
+                    .border_style(context.accent_style)
+                    .border_type(context.border_type),
+            )
             .highlight_style(Style::default())
             .highlight_symbol(context.highlight_symbol),
         context.area,

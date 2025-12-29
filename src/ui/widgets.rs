@@ -12,6 +12,7 @@ use crate::app::AppState;
 use crate::file_manager::{FileInfo, FileType};
 use crate::formatter::{format_file_size, format_file_time, format_file_type};
 use crate::ui::{ActionMode, InputMode};
+use ratatui::widgets::BorderType;
 use ratatui::{
     Frame,
     layout::{Alignment, Rect},
@@ -185,8 +186,10 @@ impl Default for DialogStyle {
 /// Returns the Rect of the calculated are of the dialog
 pub fn dialog_area(area: Rect, size: DialogSize, pos: DialogPosition) -> Rect {
     let (w_pct, h_pct) = size.percentages();
-    let w = (area.width * w_pct / 100).max(1).min(area.width);
-    let h = (area.height * h_pct / 100).max(1).min(area.height);
+    let min_w = 7;
+    let min_h = 3;
+    let w = (area.width * w_pct / 100).max(min_w).min(area.width);
+    let h = (area.height * h_pct / 100).max(min_h).min(area.height);
 
     match pos {
         DialogPosition::Center => Rect {
@@ -261,6 +264,7 @@ pub fn dialog_area(area: Rect, size: DialogSize, pos: DialogPosition) -> Rect {
 pub fn draw_dialog(
     frame: &mut Frame,
     area: Rect,
+    border: BorderType,
     pos: DialogPosition,
     size: DialogSize,
     style: &DialogStyle,
@@ -274,6 +278,7 @@ pub fn draw_dialog(
     let mut block = Block::default()
         .borders(style.border)
         .border_style(style.border_style)
+        .border_type(border)
         .style(style.bg);
 
     if let Some(title) = &style.title {
@@ -282,7 +287,8 @@ pub fn draw_dialog(
 
     let para = Paragraph::new(content.into())
         .block(block)
-        .alignment(alignment.unwrap_or(Alignment::Left));
+        .alignment(alignment.unwrap_or(Alignment::Left))
+        .style(style.fg);
     frame.render_widget(para, dialog);
 }
 
@@ -317,6 +323,7 @@ pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style)
         let posititon = widget.position().unwrap_or(DialogPosition::Center);
         let size = widget.size().unwrap_or(DialogSize::Small);
         let confirm_size = widget.confirm_size_or(DialogSize::Large);
+        let border_type = app.config().display().border_shape().as_border_type();
 
         if *mode == InputMode::ConfirmDelete {
             let action_targets = app.nav().get_action_targets();
@@ -346,14 +353,18 @@ pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style)
 
             let dialog_style = DialogStyle {
                 border: Borders::ALL,
-                border_style: widget.border_or(Style::default().fg(Color::Red)),
+                border_style: widget.border_style_or(Style::default().fg(Color::Red)),
                 bg: widget.bg_or(Style::default().bg(Color::Reset)),
                 fg: widget.fg_or(Style::default().fg(Color::Reset)),
-                title: Some(" Confirm Delete ".into()),
+                title: Some(Span::styled(
+                    " Confirm Delete ",
+                    Style::default().fg(Color::Red),
+                )),
             };
             draw_dialog(
                 frame,
                 frame.area(),
+                border_type,
                 posititon,
                 confirm_size,
                 &dialog_style,
@@ -363,12 +374,12 @@ pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style)
         } else {
             let dialog_style = DialogStyle {
                 border: Borders::ALL,
-                border_style: widget.border_or(accent_style),
+                border_style: widget.border_style_or(accent_style),
                 bg: widget.bg_or(Style::default().bg(Color::Reset)),
                 fg: widget.fg_or(Style::default().fg(Color::Reset)),
                 title: Some(Span::styled(
                     format!(" {} ", prompt),
-                    widget.fg_or(Style::default().fg(Color::Reset)),
+                    widget.title_style_or(Style::default()),
                 )),
             };
 
@@ -383,6 +394,7 @@ pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style)
             draw_dialog(
                 frame,
                 frame.area(),
+                border_type,
                 posititon,
                 size,
                 &dialog_style,
@@ -475,9 +487,10 @@ pub fn draw_show_info_dialog(
     accent_style: Style,
     info: &FileInfo,
 ) {
-    let widget = app.config().theme().widget();
+    let widget_info = app.config().theme().info();
     let info_cfg = &app.config().display().info();
     let position = info_cfg.position().unwrap_or(DialogPosition::BottomLeft);
+    let border_type = app.config().display().border_shape().as_border_type();
 
     let mut lines = Vec::new();
     if info_cfg.name() {
@@ -520,18 +533,19 @@ pub fn draw_show_info_dialog(
 
     let dialog_style = DialogStyle {
         border: Borders::ALL,
-        border_style: widget.border_or(accent_style),
-        bg: widget.bg_or(Style::default().bg(ratatui::style::Color::Reset)),
-        fg: widget.fg_or(Style::default().fg(ratatui::style::Color::Reset)),
+        border_style: widget_info.border_style_or(accent_style),
+        bg: widget_info.bg_or(Style::default().bg(ratatui::style::Color::Reset)),
+        fg: widget_info.fg_or(Style::default().fg(ratatui::style::Color::Reset)),
         title: Some(Span::styled(
             " File Info ",
-            widget.fg_or(Style::default().fg(ratatui::style::Color::Reset)),
+            widget_info.title_style_or(Style::default()),
         )),
     };
 
     draw_dialog(
         frame,
         area,
+        border_type,
         position,
         dialog_size,
         &dialog_style,

@@ -4,6 +4,7 @@
 //! configuration file.
 
 use crate::ui::widgets::DialogPosition;
+use ratatui::widgets::BorderType;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -83,6 +84,7 @@ pub struct Display {
     selection_marker: bool,
     dir_marker: bool,
     borders: BorderStyle,
+    border_shape: BorderShape,
     titles: bool,
     separators: bool,
     parent: bool,
@@ -103,6 +105,24 @@ pub enum BorderStyle {
     Split,
 }
 
+#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum BorderShape {
+    Plain,
+    Rounded,
+    Double,
+}
+
+impl BorderShape {
+    pub fn as_border_type(&self) -> BorderType {
+        match self {
+            BorderShape::Plain => BorderType::Plain,
+            BorderShape::Rounded => BorderType::Rounded,
+            BorderShape::Double => BorderType::Double,
+        }
+    }
+}
+
 impl Display {
     pub fn selection_marker(&self) -> bool {
         self.selection_marker
@@ -118,6 +138,10 @@ impl Display {
 
     pub fn is_split(&self) -> bool {
         matches!(self.borders, BorderStyle::Split)
+    }
+
+    pub fn border_shape(&self) -> &BorderShape {
+        &self.border_shape
     }
 
     pub fn titles(&self) -> bool {
@@ -186,6 +210,7 @@ impl Default for Display {
             selection_marker: true,
             dir_marker: true,
             borders: BorderStyle::Split,
+            border_shape: BorderShape::Plain,
             titles: false,
             separators: true,
             parent: true,
