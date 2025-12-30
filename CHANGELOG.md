@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.7] - 2025-12-30
+
+Quick patch to fix the cli message to show the correct cli args.
+
+### Fixed
+- **CLI message**: Fixed cli initial message to correctly show the cli args. `--init-minimal` to `--init-full`
+
+### Changed
+- **Widget Size Default**: Adjusted the default for dialog widgets to DialogSize::Small.
+
+
+---
+
+
 ## [0.3.6] - 2025-12-30
 
 ### Added
