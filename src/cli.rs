@@ -74,7 +74,7 @@ runa - Full Configuration Guide (runa.toml)
 # General Settings
   dirs_first              (bool)  Sort directories before files
   show_hidden             (bool)  Show hidden files (dotfiles)
-  show_system             (bool)  Show system/protected files
+  show_system             (bool)  Show system/protected files. Mostly usefull for Windows.
   case_insensitive        (bool)  Ignore case when searching/sorting
   always_show             (list)  List of hidden names to always show
 
@@ -82,6 +82,7 @@ runa - Full Configuration Guide (runa.toml)
   selection_marker        (bool)  Show the cursor marker
   dir_marker              (bool)  Show a marker for directories
   borders                 (str)   "none", "unified", or "split"
+  border_shape            (str)   "square", "rounded" or "double"
   titles                  (bool)  Show pane titles at the top
   separators              (bool)  Draw vertical lines between panes
   parent                  (bool)  Show the parent directory pane
@@ -96,6 +97,13 @@ runa - Full Configuration Guide (runa.toml)
   main                    (u16)   Width % of the center pane
   preview                 (u16)   Width % of the preview pane
 
+[display.info]            Toggle the file info attributes
+  name                    (bool)
+  file_type               (bool)
+  size                    (bool)
+  modified                (bool)
+  perms                   (bool)
+
 [theme]
   selection_icon          (str)   The cursor string (e.g., "> ")
 
@@ -109,31 +117,40 @@ runa - Full Configuration Guide (runa.toml)
 [theme.preview]           Preview pane text       fg (str), bg (str)
 [theme.path]              Path bar colors         fg (str), bg (str)
 [theme.underline]         Underline colors        fg (str), bg (str)
-[theme.widget]            Dialog/widget settings:
-  position                (str/list/table)  "center", "top_left", "bottom_right", [38, 32], { x = 25, y = 60 }
-  size                    (str/list/table)  "small", "medium", "large", [38, 32], { w = 38, h = 32 }
-[theme.widget.color]      fg/bg for dialog/widgets  fg (str), bg (str)
-[theme.widget.border]     fg/bg for dialog borders   fg (str), bg (str)
+[theme.widget]            Global dialog/widgets
+    position              (str/list/table)  "center", "top_left", [x, y], { x, y }
+    size                  (str/list/table)  "small", "medium", [w, h], { w, h }
+    confirm_size          (str/list/table)  Size for confirmation dialogs
+    color.fg/bg           (str)
+    border.fg/bg          (str)
+    title.fg/bg           (str)
+# Supported: dot notation (color.fg) or [theme.widget.color] subtables
 
+[theme.info]              File info overlay
+    color.fg/bg,          (str)
+    border.fg/bg,         (str)
+    title.fg/bg,          (str)
+    position              (str/list/table) "center", "top_left", [x, y], { x, y }
 
 [editor]
-  cmd                    (str)   Command to open files (e.g., "nvim")
+  cmd                     (str)   Command to open files (e.g., "nvim")
 
 [keys]
-  open_file              (list)  e.g., ["Enter"]
-  go_up                  (list)  e.g., ["k", "Up"]
-  go_down                (list)  e.g., ["j", "Down"]
-  go_parent              (list)  e.g., ["h", "Left", "Backspace"]
-  go_into_dir            (list)  e.g., ["l", "Right"]
-  quit                   (list)  e.g., ["q", "Esc"]
-  delete                 (list)  e.g., ["d"]
-  copy                   (list)  e.g., ["y"]
-  paste                  (list)  e.g., ["p"]
-  rename                 (list)  e.g., ["r"]
-  create                 (list)  e.g., ["n"]
-  create_directory       (list)  e.g., ["Shift+n"]
-  filter                 (list)  e.g., ["f"]
-  toggle_marker          (list)  e.g., [" "]
+  open_file               (list)  e.g., ["Enter"]
+  go_up                   (list)  e.g., ["k", "Up"]
+  go_down                 (list)  e.g., ["j", "Down"]
+  go_parent               (list)  e.g., ["h", "Left", "Backspace"]
+  go_into_dir             (list)  e.g., ["l", "Right"]
+  quit                    (list)  e.g., ["q", "Esc"]
+  delete                  (list)  e.g., ["d"]
+  copy                    (list)  e.g., ["y"]
+  paste                   (list)  e.g., ["p"]
+  rename                  (list)  e.g., ["r"]
+  create                  (list)  e.g., ["n"]
+  create_directory        (list)  e.g., ["Shift+n"]
+  filter                  (list)  e.g., ["f"]
+  toggle_marker           (list)  e.g., [" "]
+  info                    (list)  e.g., ["i"]
 
 Use 'Shift+x' or 'Ctrl+x' as needed. " " means space bar.
 
