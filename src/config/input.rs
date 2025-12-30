@@ -23,6 +23,7 @@ pub struct Keys {
     create_directory: Vec<String>,
     filter: Vec<String>,
     toggle_marker: Vec<String>,
+    show_info: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -87,6 +88,10 @@ impl Keys {
     pub fn toggle_marker(&self) -> &Vec<String> {
         &self.toggle_marker
     }
+
+    pub fn show_info(&self) -> &Vec<String> {
+        &self.show_info
+    }
 }
 
 impl Default for Keys {
@@ -107,6 +112,7 @@ impl Default for Keys {
             create_directory: vec!["Shift+n".into()],
             filter: vec!["f".into()],
             toggle_marker: vec![" ".into()],
+            show_info: vec!["i".into()],
         }
     }
 }

@@ -9,7 +9,10 @@
 //! - Configurable dialog/widget style, position and style
 
 use crate::app::AppState;
+use crate::file_manager::{FileInfo, FileType};
+use crate::formatter::{format_file_size, format_file_time, format_file_type};
 use crate::ui::{ActionMode, InputMode};
+use ratatui::widgets::BorderType;
 use ratatui::{
     Frame,
     layout::{Alignment, Rect},
@@ -178,13 +181,22 @@ impl Default for DialogStyle {
     }
 }
 
+/// Struct to hold the overall layout of a dialog widget
+pub struct DialogLayout {
+    pub area: Rect,
+    pub position: DialogPosition,
+    pub size: DialogSize,
+}
+
 /// Function to correctly calculate the area of the dialog
 ///
 /// Returns the Rect of the calculated are of the dialog
 pub fn dialog_area(area: Rect, size: DialogSize, pos: DialogPosition) -> Rect {
     let (w_pct, h_pct) = size.percentages();
-    let w = (area.width * w_pct / 100).max(1).min(area.width);
-    let h = (area.height * h_pct / 100).max(1).min(area.height);
+    let min_w = 7;
+    let min_h = 3;
+    let w = (area.width * w_pct / 100).max(min_w).min(area.width);
+    let h = (area.height * h_pct / 100).max(min_h).min(area.height);
 
     match pos {
         DialogPosition::Center => Rect {
@@ -258,20 +270,20 @@ pub fn dialog_area(area: Rect, size: DialogSize, pos: DialogPosition) -> Rect {
 /// Takes the frame area as a rect, sets the position of the dialog and the overall style.
 pub fn draw_dialog(
     frame: &mut Frame,
-    area: Rect,
-    pos: DialogPosition,
-    size: DialogSize,
+    layout: DialogLayout,
+    border: BorderType,
     style: &DialogStyle,
     content: impl Into<String>,
     alignment: Option<Alignment>,
 ) {
-    let dialog = dialog_area(area, size, pos);
+    let dialog = dialog_area(layout.area, layout.size, layout.position);
 
     frame.render_widget(Clear, dialog);
 
     let mut block = Block::default()
         .borders(style.border)
         .border_style(style.border_style)
+        .border_type(border)
         .style(style.bg);
 
     if let Some(title) = &style.title {
@@ -280,7 +292,8 @@ pub fn draw_dialog(
 
     let para = Paragraph::new(content.into())
         .block(block)
-        .alignment(alignment.unwrap_or(Alignment::Left));
+        .alignment(alignment.unwrap_or(Alignment::Left))
+        .style(style.fg);
     frame.render_widget(para, dialog);
 }
 
@@ -312,9 +325,10 @@ pub fn draw_separator(frame: &mut Frame, area: Rect, style: Style) {
 pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) {
     if let ActionMode::Input { mode, prompt } = &app.actions().mode() {
         let widget = app.config().theme().widget();
-        let posititon = widget.position().unwrap_or(DialogPosition::Center);
+        let position = dialog_position_unified(widget.position(), app, DialogPosition::Center);
         let size = widget.size().unwrap_or(DialogSize::Small);
         let confirm_size = widget.confirm_size_or(DialogSize::Large);
+        let border_type = app.config().display().border_shape().as_border_type();
 
         if *mode == InputMode::ConfirmDelete {
             let action_targets = app.nav().get_action_targets();
@@ -344,16 +358,25 @@ pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style)
 
             let dialog_style = DialogStyle {
                 border: Borders::ALL,
-                border_style: widget.border_or(Style::default().fg(Color::Red)),
+                border_style: widget.border_style_or(Style::default().fg(Color::Red)),
                 bg: widget.bg_or(Style::default().bg(Color::Reset)),
                 fg: widget.fg_or(Style::default().fg(Color::Reset)),
-                title: Some(" Confirm Delete ".into()),
+                title: Some(Span::styled(
+                    " Confirm Delete ",
+                    Style::default().fg(Color::Red),
+                )),
             };
+
+            let dialog_layout = DialogLayout {
+                area: frame.area(),
+                position,
+                size: confirm_size,
+            };
+
             draw_dialog(
                 frame,
-                frame.area(),
-                posititon,
-                confirm_size,
+                dialog_layout,
+                border_type,
                 &dialog_style,
                 format!("{prompt}{preview}"),
                 Some(Alignment::Left),
@@ -361,18 +384,24 @@ pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style)
         } else {
             let dialog_style = DialogStyle {
                 border: Borders::ALL,
-                border_style: widget.border_or(accent_style),
+                border_style: widget.border_style_or(accent_style),
                 bg: widget.bg_or(Style::default().bg(Color::Reset)),
                 fg: widget.fg_or(Style::default().fg(Color::Reset)),
                 title: Some(Span::styled(
                     format!(" {} ", prompt),
-                    widget.fg_or(Style::default().fg(Color::Reset)),
+                    widget.title_style_or(Style::default()),
                 )),
+            };
+
+            let dialog_layout = DialogLayout {
+                area: frame.area(),
+                position,
+                size,
             };
 
             let input_text = app.actions().input_buffer();
             let cursor_pos = app.actions().input_cursor_pos();
-            let dialog_area = dialog_area(frame.area(), size, posititon);
+            let dialog_area = dialog_area(frame.area(), size, position);
             let visible_width = dialog_area.width.saturating_sub(2) as usize;
 
             let (display_input, cursor_offset) =
@@ -380,9 +409,8 @@ pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style)
 
             draw_dialog(
                 frame,
-                frame.area(),
-                posititon,
-                size,
+                dialog_layout,
+                border_type,
                 &dialog_style,
                 display_input,
                 Some(Alignment::Left),
@@ -417,13 +445,16 @@ pub fn draw_status_line(frame: &mut Frame, app: &crate::app::AppState) {
 
     let msg = parts.join(" | ");
     if !msg.is_empty() {
+        let pad = 2;
+        let padded_width = area.width.saturating_sub(pad);
         let rect = Rect {
             x: area.x,
             y: area.y,
-            width: area.width,
+            width: padded_width,
             height: 1,
         };
-        let line = Line::from(Span::styled(msg, Style::default().fg(Color::Gray)));
+        let style = app.config().theme().status_line().as_style();
+        let line = Line::from(Span::styled(msg, style));
         let paragraph = Paragraph::new(line).alignment(ratatui::layout::Alignment::Right);
         frame.render_widget(paragraph, rect);
     }
@@ -460,4 +491,109 @@ fn input_field_view(input_text: &str, cursor_pos: usize, visible_width: usize) -
 
         (&input_text[start..], cursor_offset)
     }
+}
+
+/// Draw the show info dialog with file information
+/// such as name, type, size, modified time and permissions.
+///
+/// Takes the app state, accent style and the overlay to check if it is ShowInfo
+/// and draws the dialog accordingly.
+pub fn draw_show_info_dialog(
+    frame: &mut Frame,
+    app: &AppState,
+    accent_style: Style,
+    info: &FileInfo,
+) {
+    let widget_info = app.config().theme().info();
+    let info_cfg = &app.config().display().info();
+    let position = dialog_position_unified(info_cfg.position(), app, DialogPosition::BottomLeft);
+    let border_type = app.config().display().border_shape().as_border_type();
+
+    let mut lines = Vec::new();
+    if info_cfg.name() {
+        lines.push(format!("Name:      {}", info.name().to_string_lossy()));
+    }
+    if info_cfg.file_type() {
+        lines.push(format!("Type:      {}", format_file_type(info.file_type())));
+    }
+    if info_cfg.size() {
+        lines.push(format!(
+            "Size:      {}",
+            format_file_size(*info.size(), info.file_type() == &FileType::Directory)
+        ));
+    }
+    if info_cfg.modified() {
+        lines.push(format!("Modified:  {}", format_file_time(*info.modified())));
+    }
+    if info_cfg.perms() {
+        lines.push(format!("Perms:     {}", info.attributes()));
+    }
+    if lines.is_empty() {
+        return;
+    }
+
+    let content_width = lines.iter().map(|s| s.chars().count()).max().unwrap_or(0);
+    let min_width = 27;
+    let border_pad = 2;
+    let right_pad = 2;
+    let width = (content_width + right_pad).max(min_width) + border_pad;
+    let area = frame.area();
+
+    // Clamp to frame area
+    let width = width.min(area.width as usize);
+    let height = (lines.len() + border_pad).min(area.height as usize);
+
+    // Convert dialog size percantes to cell positions.
+    let w_pct = ((width as f32 / area.width as f32) * 100.0).ceil() as u16;
+    let h_pct = ((height as f32 / area.height as f32) * 100.0).ceil() as u16;
+    let dialog_size = DialogSize::Custom(w_pct, h_pct);
+
+    let dialog_style = DialogStyle {
+        border: Borders::ALL,
+        border_style: widget_info.border_style_or(accent_style),
+        bg: widget_info.bg_or(Style::default().bg(ratatui::style::Color::Reset)),
+        fg: widget_info.fg_or(Style::default().fg(ratatui::style::Color::Reset)),
+        title: Some(Span::styled(
+            " File Info ",
+            widget_info.title_style_or(Style::default()),
+        )),
+    };
+
+    let dialog_layout = DialogLayout {
+        area,
+        position,
+        size: dialog_size,
+    };
+
+    draw_dialog(
+        frame,
+        dialog_layout,
+        border_type,
+        &dialog_style,
+        lines.join("\n"),
+        Some(Alignment::Left),
+    );
+}
+
+/// Helper function to make adjusted dialog positions for unified borders
+/// Returns a dialog position adjusted for unified borders (app-wide title/status).
+fn adjusted_dialog_position(pos: DialogPosition, is_unified: bool) -> DialogPosition {
+    match (is_unified, pos) {
+        (true, DialogPosition::TopRight) => DialogPosition::Custom(100, 3),
+        (true, DialogPosition::TopLeft) => DialogPosition::Custom(0, 3),
+        (true, DialogPosition::Custom(x, 0)) => DialogPosition::Custom(x, 3),
+        _ => pos,
+    }
+}
+
+/// Calculates the final position for a dialog, handling unified border nudging.
+/// Wrapper function to be used by draw widget functions to calculate the positions.
+fn dialog_position_unified(
+    configured: &Option<DialogPosition>,
+    app: &AppState,
+    fallback: DialogPosition,
+) -> DialogPosition {
+    let display_cfg = app.config().display();
+    let base = configured.unwrap_or(fallback);
+    adjusted_dialog_position(base, display_cfg.is_unified())
 }

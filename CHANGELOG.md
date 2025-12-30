@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.3.6] - 2025-12-30
+
+### Added
+- **Overlay widgets**: Added support for overaly widgets to dynamically toggle between widgets. Implemented the ShowInfo overaly as the first one.
+- **ShowInfo**: Implemented the new showinfo overlay for file information.
+- **Toggle Marker Advance**: Improved marker toggle logic. Now jumps to the next entry to make marking more seamless and easier.
+- **Border shape**: Added border shapes to configuration. "square", "rounded" or "double".
+- **Status line configuration**: Added status line configuration options.
+
+### Changed
+- Refactored dialog position logic for all widgets: Dialogs that use `TopLeft`, `TopRight`, or `Custom()` now appear a few rows lower in unified border mode so they never cover status or title lines
+
+### Fixed
+- **Input fields**: Input widgets now dynamically crop/scroll horizontally and keep the widget size during terminal resize.
+
+### Internal
+- **Theme/Config Consistency**: Dialog style, position, and size are now fully driven from theme/configuration.
+- New `dialog_position_unified` and `adjusted_dialog_position` helpers to help with the widget drawing modes for each border mode.
+
+
+---
+
+
 ## [0.3.5] - 2025-12-28
 
 ### Fixed

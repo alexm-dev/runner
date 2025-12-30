@@ -27,6 +27,7 @@ pub use preview::{PreviewData, PreviewState};
 use crate::app::actions::ActionContext;
 use crate::config::Config;
 use crate::keymap::{Action, Keymap, SystemAction};
+use crate::ui::overlays::OverlayStack;
 use crate::worker::{WorkerResponse, WorkerTask, start_worker};
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use crossterm::event::KeyEvent;
@@ -73,6 +74,7 @@ impl Default for LayoutMetrics {
 /// - Live layout information
 /// - crossbeam channels for communication with background worker threads
 /// - Notification timing and loading indicators
+/// - UI overlay for a seamless widet rendering
 ///
 /// Functions are provided for the core event loop, input handling, file navigationm
 /// worker requests and Notification management.
@@ -92,6 +94,7 @@ pub struct AppState<'a> {
     is_loading: bool,
 
     notification_time: Option<Instant>,
+    overlays: OverlayStack,
 }
 
 impl<'a> AppState<'a> {
@@ -114,6 +117,7 @@ impl<'a> AppState<'a> {
             response_rx,
             is_loading: false,
             notification_time: None,
+            overlays: OverlayStack::new(),
         };
 
         app.request_dir_load(None);
@@ -153,6 +157,14 @@ impl<'a> AppState<'a> {
 
     pub fn notification_time(&self) -> &Option<Instant> {
         &self.notification_time
+    }
+
+    pub fn overlays(&self) -> &OverlayStack {
+        &self.overlays
+    }
+
+    pub fn overlays_mut(&mut self) -> &mut OverlayStack {
+        &mut self.overlays
     }
 
     // Entry functions
@@ -204,6 +216,7 @@ impl<'a> AppState<'a> {
                         self.is_loading = false;
                         self.request_preview();
                         self.request_parent_content();
+                        self.refresh_show_info_if_open();
                     }
                     // PREVIEW CHECK: Must match the current preview request
                     else if request_id == self.preview.request_id() {

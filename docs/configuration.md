@@ -51,6 +51,9 @@ dir_marker = true
 # Border style: "none", "unified", or "split"
 borders = "split"
 
+# Border shape: "square", "rounded" or "double"
+border_shape = "square"
+
 # Show pane titles at the top (e.g., "Main", "Preview")
 titles = false
 
@@ -80,6 +83,14 @@ scroll_padding = 5
 parent = 20
 main = 40
 preview = 40
+
+# Diplays the file info attributes.
+[display.info]
+name = true
+file_type = true
+size = true
+modified = true
+perms = true
 ```
 
 
@@ -88,13 +99,33 @@ preview = 40
 ## Theme Configuration
 
 ```toml
+# Color keys for most sections are always placed directly in the table:
+# [theme.selection]
+# fg = "yellow"
+# bg = "default"
+#
+# For larger sections such as [theme.widget] or [theme.info], you may use either
+# dot notation (e.g. color.fg, border.bg) OR define subtables like [theme.widget.color]:
+#
+# [theme.widget]
+# color.fg = "white"
+# color.bg = "black"
+# border.fg = "magenta"
+#
+# Alternatively, this works and is equivalent:
+# [theme.widget.color]
+# fg = "white"
+# bg = "black"
+#
+# [theme.widget.border]
+# fg = "magenta"
+#
+# Theme color values can be terminal color names ("Red", "Blue", etc.), hex ("#RRGGBB"), or "default".
+
 [theme]
 # The symbol for the current selection. Use "" or " " to disable.
 selection_icon = ">"
 
-# Theme color values can be terminal color names ("Red", "Blue", etc.), hex ("#RRGGBB"), or "default".
-
-# Each [theme.*] section supports keys: fg (foreground), bg (background)
 [theme.selection]     # Selection bar colors
 fg = "default"
 bg = "default"
@@ -161,15 +192,34 @@ size = "medium"
 #   - Leave blank or omit to use the regular `size`.
 confirm_size = "large"
 
-[theme.widget.color]   # Popup/widget colors
-fg = "white"
-bg = "black"
+# Coloring for the widgets
+color.fg = "white"
+color.bg = "black"
 
-[theme.widget.border]  # Popup/widget border colors
+border.fg = "magenta"
+border.bg = "default"
+
+title.fg = "default"
+title.bg = "default"
+
+# Configuration for the status_line
+[theme.status_line]
 fg = "magenta"
 bg = "default"
-```
 
+# Configuration for the File info widget
+[theme.info]
+color.fg = "default"
+color.bg = "default"
+
+border.fg = "default"
+border.bg = "default"
+
+title.fg = "default"
+title.bg = "default"
+
+position = "bottom_left"
+```
 
 
 
@@ -205,6 +255,7 @@ create              = ["n"]
 create_directory    = ["Shift+n"]
 filter              = ["f"]
 toggle_marker       = [" "]     # space bar
+info                = ["i"]
 ```
 
 You may remove any binding to let it fall back to the default.

@@ -4,6 +4,7 @@
 //! Defines available modes/actions for file operations (copy, paste, rename, create, delete, filter).
 
 use crate::app::nav::NavState;
+use crate::file_manager::FileInfo;
 use crate::keymap::FileAction;
 use crate::worker::{FileOperation, WorkerTask};
 use crossbeam_channel::Sender;
@@ -18,6 +19,7 @@ pub enum ActionMode {
     Normal,
     Input { mode: InputMode, prompt: String },
     Confim { prompt: String, action: FileAction },
+    ShowInfo { info: FileInfo },
 }
 
 /// Enumerates all the available input field modes

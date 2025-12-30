@@ -3,11 +3,17 @@
 //! The [Formatter] struct holds pane width and rules for sorting and filtering entries,
 //! based on user preferences from the runa.toml configuration.
 //! Used to prepare file lists for display in each pane.
+//!
+//! Also formatts FileTypes to be used by FileInfo and ShowInfo overlay widget.
 
-use crate::file_manager::FileEntry;
+use crate::file_manager::{FileEntry, FileType};
+use chrono::{DateTime, Local};
+use humansize::{DECIMAL, format_size};
 use std::collections::HashSet;
 use std::ffi::OsString;
+use std::fs::Metadata;
 use std::sync::Arc;
+use std::time::SystemTime;
 
 pub struct Formatter {
     dirs_first: bool,
@@ -109,4 +115,88 @@ impl Formatter {
         });
         self.format(entries);
     }
-} // impl Formatter
+}
+
+/// Formatts the file attributes like Directory, Symlink, and permissions in a unix-like format
+///
+/// On Unix: Returns a string like 'drwxr-xr-x' etc. for directories and files.
+/// On Windows: Returns a short string showing file type and attributes like:
+/// (`d`, `l`, `h` for hidden, `s` for system, `a` for archive, `r` for read-only). Not all flags map 1:1 to Unix.
+pub fn format_attributes(meta: &Metadata) -> String {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::FileTypeExt;
+        use std::os::unix::fs::PermissionsExt;
+
+        let file_type = meta.file_type();
+        let first = if file_type.is_dir() {
+            'd'
+        } else if file_type.is_symlink() {
+            'l'
+        } else {
+            '-'
+        };
+        let mode = meta.permissions().mode();
+        let mut chars = [first, '-', '-', '-', '-', '-', '-', '-', '-', '-'];
+        let shifts = [6, 3, 0];
+        for (i, &shift) in shifts.iter().enumerate() {
+            let base = 1 + i * 3;
+            if (mode >> (shift + 2)) & 1u32 != 0 {
+                chars[base] = 'r';
+            }
+            if (mode >> (shift + 1)) & 1u32 != 0 {
+                chars[base + 1] = 'w';
+            }
+            if (mode >> shift) & 1u32 != 0 {
+                chars[base + 2] = 'x';
+            }
+        }
+        chars.iter().collect()
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        let attr = meta.file_attributes();
+        let mut out = String::with_capacity(7);
+        out.push(if attr & 0x10 != 0 {
+            'd'
+        } else if attr & 0x400 != 0 {
+            'l'
+        } else {
+            '-'
+        });
+        out.push(if attr & 0x02 != 0 { 'h' } else { '-' });
+        out.push(if attr & 0x04 != 0 { 's' } else { '-' });
+        out.push(if attr & 0x20 != 0 { 'a' } else { '-' });
+        out.push(if attr & 0x01 != 0 { 'r' } else { '-' });
+        out
+    }
+}
+
+pub fn format_file_type(file_type: &FileType) -> &'static str {
+    match file_type {
+        FileType::File => "File",
+        FileType::Directory => "Directory",
+        FileType::Symlink => "Symlink",
+        FileType::Other => "Other",
+    }
+}
+
+pub fn format_file_size(size: Option<u64>, is_dir: bool) -> String {
+    if is_dir {
+        "-".into()
+    } else if let Some(sz) = size {
+        format_size(sz, DECIMAL)
+    } else {
+        "-".to_string()
+    }
+}
+
+pub fn format_file_time(modified: Option<SystemTime>) -> String {
+    modified
+        .map(|mtime| {
+            let dt: DateTime<Local> = DateTime::from(mtime);
+            dt.format("%Y-%m-%d %H:%M:%S").to_string()
+        })
+        .unwrap_or_else(|| "-".to_string())
+}

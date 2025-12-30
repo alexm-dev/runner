@@ -5,7 +5,9 @@
 
 use crate::app::actions::{ActionMode, InputMode};
 use crate::app::{AppState, KeypressResult, NavState};
+use crate::file_manager::FileInfo;
 use crate::keymap::{FileAction, NavAction};
+use crate::ui::overlays::Overlay;
 use crossterm::event::{KeyCode::*, KeyEvent};
 use std::time::{Duration, Instant};
 
@@ -134,11 +136,25 @@ impl<'a> AppState<'a> {
 
     pub fn handle_nav_action(&mut self, action: NavAction) -> KeypressResult {
         match action {
-            NavAction::GoUp => self.move_nav_if_possible(|nav| nav.move_up()),
-            NavAction::GoDown => self.move_nav_if_possible(|nav| nav.move_down()),
-            NavAction::GoParent => return self.handle_go_parent(),
-            NavAction::GoIntoDir => return self.handle_go_into_dir(),
-            NavAction::ToggleMarker => self.nav.toggle_marker(),
+            NavAction::GoUp => {
+                self.move_nav_if_possible(|nav| nav.move_up());
+                self.refresh_show_info_if_open();
+            }
+            NavAction::GoDown => {
+                self.move_nav_if_possible(|nav| nav.move_down());
+                self.refresh_show_info_if_open();
+            }
+            NavAction::GoParent => {
+                let res = self.handle_go_parent();
+                self.refresh_show_info_if_open();
+                return res;
+            }
+            NavAction::GoIntoDir => {
+                let res = self.handle_go_into_dir();
+                self.refresh_show_info_if_open();
+                return res;
+            }
+            NavAction::ToggleMarker => self.nav.toggle_marker_advance(),
         }
         KeypressResult::Continue
     }
@@ -200,6 +216,7 @@ impl<'a> AppState<'a> {
             FileAction::Create => self.prompt_create_file(),
             FileAction::CreateDirectory => self.prompt_create_folder(),
             FileAction::Filter => self.prompt_filter(),
+            FileAction::ShowInfo => self.toggle_file_info(),
         }
         KeypressResult::Continue
     }
@@ -255,8 +272,42 @@ impl<'a> AppState<'a> {
         );
     }
 
-    // Mode function
+    // ShowInfo handlers helpers for correct toggle and showing of FileInfo
 
+    fn show_file_info(&mut self) {
+        if let Some(entry) = self.nav.selected_shown_entry() {
+            let path = self.nav.current_dir().join(entry.name());
+            if let Ok(file_info) = crate::file_manager::FileInfo::get_file_info(&path) {
+                self.overlays_mut()
+                    .push(Overlay::ShowInfo { info: file_info });
+            }
+        }
+    }
+
+    fn toggle_file_info(&mut self) {
+        if let Some(Overlay::ShowInfo { .. }) = self.overlays().top() {
+            self.overlays_mut().pop();
+        } else {
+            self.show_file_info();
+        }
+    }
+
+    /// Helper function to determine if ShowInfo is triggered
+    /// If ShowInfo is not open, does nothing.
+    pub fn refresh_show_info_if_open(&mut self) {
+        if let Some(Overlay::ShowInfo { .. }) = self.overlays().top()
+            && let Some(entry) = self.nav.selected_shown_entry()
+        {
+            let path = self.nav.current_dir().join(entry.name());
+            if let Ok(file_info) = FileInfo::get_file_info(&path) {
+                self.overlays_mut().pop();
+                self.overlays_mut()
+                    .push(Overlay::ShowInfo { info: file_info });
+            }
+        }
+    }
+
+    // Mode function
     pub fn enter_input_mode(&mut self, mode: InputMode, prompt: String, initial: Option<String>) {
         let buffer = initial.unwrap_or_default();
         self.actions

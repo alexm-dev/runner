@@ -11,6 +11,7 @@
 //!
 //! See submodules [panes] and [widgets] for detailed drawing functions.
 
+pub mod overlays;
 pub mod panes;
 pub mod widgets;
 
@@ -20,8 +21,11 @@ use crate::{
         AppState,
         actions::{ActionMode, InputMode},
     },
-    ui::panes::{PaneStyles, PreviewOptions},
-    ui::widgets::{draw_input_dialog, draw_status_line},
+    ui::{
+        overlays::Overlay,
+        panes::{PaneStyles, PreviewOptions},
+        widgets::{draw_input_dialog, draw_show_info_dialog, draw_status_line},
+    },
 };
 use ratatui::{
     Frame,
@@ -89,6 +93,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     let path_style = theme_cfg.path().as_style();
 
     let padding_str = display_cfg.padding_str();
+    let border_type = display_cfg.border_shape().as_border_type();
 
     // Root Border / Header Logic
     if display_cfg.is_unified() {
@@ -130,6 +135,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             PaneContext {
                 area: chunks[pane_idx],
                 block: widgets::get_pane_block("Parent", app),
+                border_type,
                 accent_style,
                 styles: PaneStyles {
                     item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
@@ -179,6 +185,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             PaneContext {
                 area: chunks[pane_idx],
                 block: widgets::get_pane_block("Files", app),
+                border_type,
                 accent_style,
                 styles: pane_style,
                 highlight_symbol: symbol,
@@ -219,6 +226,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             PaneContext {
                 area: chunks[pane_idx],
                 block: widgets::get_pane_block("Preview", app),
+                border_type,
                 accent_style,
                 styles: PaneStyles {
                     item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
@@ -242,8 +250,13 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             },
         );
     }
+
     draw_status_line(frame, app);
     draw_input_dialog(frame, app, accent_style);
+
+    if let Some(Overlay::ShowInfo { info }) = app.overlays().top() {
+        draw_show_info_dialog(frame, app, accent_style, info);
+    }
 }
 
 /// Returns the rectangular areas for all active panes, given the current configuration

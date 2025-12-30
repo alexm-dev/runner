@@ -146,6 +146,17 @@ impl NavState {
         }
     }
 
+    pub fn toggle_marker_advance(&mut self) {
+        self.toggle_marker();
+        let count = self.shown_entries_len();
+
+        if count > 1 && self.selected + 1 < count {
+            self.selected += 1;
+        } else if count > 1 {
+            self.selected = 0;
+        }
+    }
+
     pub fn clear_markers(&mut self) {
         self.markers.clear();
     }

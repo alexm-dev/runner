@@ -112,6 +112,8 @@ pub struct WidgetTheme {
     #[serde(default)]
     border: ColorPair,
     #[serde(default)]
+    title: ColorPair,
+    #[serde(default)]
     position: Option<DialogPosition>,
     #[serde(default)]
     size: Option<DialogSize>,
@@ -140,12 +142,20 @@ impl WidgetTheme {
             .unwrap_or(fallback)
     }
 
-    pub fn border_or(&self, fallback: Style) -> Style {
-        if self.border.fg() == Color::Reset {
-            fallback
+    pub fn border_style_or(&self, fallback: Style) -> Style {
+        let fg = if self.border.fg != Color::Reset {
+            self.border.fg
         } else {
-            Style::default().fg(self.border.fg())
-        }
+            fallback.fg.unwrap_or(Color::Reset)
+        };
+
+        let bg = if self.border.bg != Color::Reset {
+            self.border.bg
+        } else {
+            fallback.bg.unwrap_or(Color::Reset)
+        };
+
+        fallback.fg(fg).bg(bg)
     }
 
     pub fn fg_or(&self, fallback: Style) -> Style {
@@ -163,6 +173,20 @@ impl WidgetTheme {
             Style::default().bg(self.color.bg())
         }
     }
+
+    pub fn title_style_or(&self, fallback: Style) -> Style {
+        let fg = if self.title.fg != Color::Reset {
+            self.title.fg
+        } else {
+            fallback.fg.unwrap_or(Color::Reset)
+        };
+        let bg = if self.title.bg != Color::Reset {
+            self.title.bg
+        } else {
+            fallback.bg.unwrap_or(Color::Reset)
+        };
+        fallback.fg(fg).bg(bg)
+    }
 }
 
 impl Default for WidgetTheme {
@@ -170,6 +194,7 @@ impl Default for WidgetTheme {
         WidgetTheme {
             color: ColorPair::default(),
             border: ColorPair::default(),
+            title: ColorPair::default(),
             position: Some(DialogPosition::Center),
             size: Some(DialogSize::Medium),
             confirm_size: Some(DialogSize::Large),
@@ -190,8 +215,12 @@ pub struct Theme {
     parent: ColorPair,
     preview: ColorPair,
     path: ColorPair,
+    status_line: ColorPair,
     marker: MarkerTheme,
     widget: WidgetTheme,
+    /// info does not honor the .size field from widget.
+    /// info gets auto-sized based on attributes enabled.
+    info: WidgetTheme,
 }
 
 impl Theme {
@@ -235,12 +264,20 @@ impl Theme {
         self.path
     }
 
+    pub fn status_line(&self) -> ColorPair {
+        self.status_line
+    }
+
     pub fn marker(&self) -> &MarkerTheme {
         &self.marker
     }
 
     pub fn widget(&self) -> &WidgetTheme {
         &self.widget
+    }
+
+    pub fn info(&self) -> &WidgetTheme {
+        &self.info
     }
 }
 
@@ -263,8 +300,10 @@ impl Default for Theme {
                 fg: Color::Magenta,
                 ..ColorPair::default()
             },
+            status_line: ColorPair::default(),
             marker: MarkerTheme::default(),
             widget: WidgetTheme::default(),
+            info: WidgetTheme::default(),
         }
     }
 }

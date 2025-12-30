@@ -1,9 +1,15 @@
 //! File and directory browsing logic for runa.
 //!
 //! Provides the FileEntry struct which is used throughout runa.
+//! Also holds all the FileInfo and FileType structs used by the ShowInfo Overlay
 
 use std::ffi::OsString;
-use std::fs;
+use std::fs::{self, symlink_metadata};
+use std::io;
+use std::path::Path;
+use std::time::SystemTime;
+
+use crate::formatter::format_attributes;
 
 /// Represents a single entry in a directory listing
 #[derive(Debug, Clone)]
@@ -52,6 +58,77 @@ impl FileEntry {
 
     pub fn set_display_name(&mut self, new_name: String) {
         self.display_name = new_name;
+    }
+}
+
+/// Enumerator for the filye types which are then shown inside [FileInfo]
+///
+/// Hold File, Directory, Symlink and Other types.
+#[derive(Debug, Clone, PartialEq)]
+pub enum FileType {
+    File,
+    Directory,
+    Symlink,
+    Other,
+}
+
+/// Main FileInfo struct that holds each info field for the ShowInfo overlay widget.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FileInfo {
+    name: OsString,
+    size: Option<u64>,
+    modified: Option<SystemTime>,
+    attributes: String,
+    file_type: FileType,
+}
+
+impl FileInfo {
+    // Accessors
+
+    pub fn name(&self) -> &OsString {
+        &self.name
+    }
+
+    pub fn size(&self) -> &Option<u64> {
+        &self.size
+    }
+
+    pub fn modified(&self) -> &Option<SystemTime> {
+        &self.modified
+    }
+
+    pub fn attributes(&self) -> &str {
+        &self.attributes
+    }
+
+    pub fn file_type(&self) -> &FileType {
+        &self.file_type
+    }
+
+    // Main file info getter used by the ShowInfo overlay functions
+    pub fn get_file_info(path: &Path) -> io::Result<FileInfo> {
+        let metadata = symlink_metadata(path)?;
+        let file_type = if metadata.is_file() {
+            FileType::File
+        } else if metadata.is_dir() {
+            FileType::Directory
+        } else if metadata.file_type().is_symlink() {
+            FileType::Symlink
+        } else {
+            FileType::Other
+        };
+
+        Ok(FileInfo {
+            name: path.file_name().unwrap_or_default().to_os_string(),
+            size: if metadata.is_file() {
+                Some(metadata.len())
+            } else {
+                None
+            },
+            modified: metadata.modified().ok(),
+            attributes: format_attributes(&metadata),
+            file_type,
+        })
     }
 }
 
