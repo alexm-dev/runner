@@ -323,7 +323,7 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             dirs_first: true,
-            show_hidden: false,
+            show_hidden: true,
             show_system: false,
             case_insensitive: true,
             always_show: Arc::new(HashSet::new()),

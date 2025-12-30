@@ -209,9 +209,9 @@ impl Default for Display {
         Display {
             selection_marker: true,
             dir_marker: true,
-            borders: BorderStyle::Split,
+            borders: BorderStyle::Unified,
             border_shape: BorderShape::Square,
-            titles: false,
+            titles: true,
             separators: true,
             parent: true,
             preview: true,

@@ -284,16 +284,25 @@ impl Theme {
 impl Default for Theme {
     fn default() -> Self {
         Theme {
-            accent: ColorPair::default(),
-            selection: ColorPair::default(),
+            accent: ColorPair {
+                fg: Color::DarkGray,
+                ..ColorPair::default()
+            },
+            selection: ColorPair {
+                bg: Color::Indexed(236),
+                ..ColorPair::default()
+            },
             underline: ColorPair::default(),
             entry: ColorPair::default(),
             directory: ColorPair {
-                fg: Color::Cyan,
+                fg: Color::Blue,
                 ..ColorPair::default()
             },
-            separator: ColorPair::default(),
-            selection_icon: ">".into(),
+            separator: ColorPair {
+                fg: Color::DarkGray,
+                ..ColorPair::default()
+            },
+            selection_icon: "".into(),
             parent: ColorPair::default(),
             preview: ColorPair::default(),
             path: ColorPair {
