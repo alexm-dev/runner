@@ -125,7 +125,6 @@ impl Formatter {
 pub fn format_attributes(meta: &Metadata) -> String {
     #[cfg(unix)]
     {
-        use std::os::unix::fs::FileTypeExt;
         use std::os::unix::fs::PermissionsExt;
 
         let file_type = meta.file_type();
