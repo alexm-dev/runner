@@ -18,6 +18,7 @@
 ### Internal
 - **Theme/Config Consistency**: Dialog style, position, and size are now fully driven from theme/configuration.
 - New `dialog_position_unified` and `adjusted_dialog_position` helpers to help with the widget drawing modes for each border mode.
+- **Dependencies**: Added `humansize` and `chrono` crates for ShowInfo overlay widget.
 
 
 ---
