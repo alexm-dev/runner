@@ -3,7 +3,7 @@
 use crate::config::Editor;
 use ratatui::style::Color;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::{MAIN_SEPARATOR, Path, PathBuf};
 
 /// Parses a string (color name or hex) into a ratatui::style::color
 ///
@@ -118,7 +118,11 @@ pub fn shorten_home_path<P: AsRef<Path>>(path: P) -> String {
         if stripped.as_os_str().is_empty() {
             return "~".to_string();
         } else {
-            return format!("~/{}", stripped.display());
+            let mut short = stripped.display().to_string();
+            if short.starts_with(MAIN_SEPARATOR) {
+                short.remove(0);
+            }
+            return format!("~{}{}", MAIN_SEPARATOR, short);
         }
     }
     path.display().to_string()

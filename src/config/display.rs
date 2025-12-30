@@ -69,9 +69,9 @@ impl Default for ShowInfoOptions {
     fn default() -> Self {
         ShowInfoOptions {
             name: true,
-            file_type: true,
+            file_type: false,
             size: true,
-            modified: false,
+            modified: true,
             perms: false,
             position: None,
         }

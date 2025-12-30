@@ -285,7 +285,7 @@ impl Default for Theme {
     fn default() -> Self {
         Theme {
             accent: ColorPair {
-                fg: Color::DarkGray,
+                fg: Color::Indexed(238),
                 ..ColorPair::default()
             },
             selection: ColorPair {
@@ -299,7 +299,7 @@ impl Default for Theme {
                 ..ColorPair::default()
             },
             separator: ColorPair {
-                fg: Color::DarkGray,
+                fg: Color::Indexed(238),
                 ..ColorPair::default()
             },
             selection_icon: "".into(),
@@ -312,7 +312,13 @@ impl Default for Theme {
             status_line: ColorPair::default(),
             marker: MarkerTheme::default(),
             widget: WidgetTheme::default(),
-            info: WidgetTheme::default(),
+            info: WidgetTheme {
+                title: ColorPair {
+                    fg: Color::Magenta,
+                    ..ColorPair::default()
+                },
+                ..WidgetTheme::default()
+            },
         }
     }
 }

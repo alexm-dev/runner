@@ -16,6 +16,7 @@ use ratatui::{
     widgets::{Block, List, ListItem, ListState, Paragraph},
 };
 use std::collections::HashSet;
+use std::path::MAIN_SEPARATOR;
 
 pub struct PaneStyles {
     pub item: Style,
@@ -268,9 +269,10 @@ pub fn draw_parent(
 ) {
     if entries.is_empty() {
         // No extra args: if it's empty, we assume/render root indicator
+        let root_str = MAIN_SEPARATOR.to_string();
         let line = Line::from(vec![
             Span::raw(context.padding_str),
-            Span::styled("/", context.styles.dir),
+            Span::styled(root_str, context.styles.dir),
         ]);
         frame.render_widget(Paragraph::new(line).block(context.block), context.area);
         return;
