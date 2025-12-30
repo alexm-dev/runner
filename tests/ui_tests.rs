@@ -5,16 +5,18 @@ use runa_tui::file_manager;
 use runa_tui::formatter::Formatter;
 use runa_tui::ui::layout_chunks;
 use std::collections::HashSet;
+use std::error;
 use std::path::Path;
 use std::sync::Arc;
+use tempfile::tempdir;
 
 #[test]
-fn test_formatter_truncation_and_padding() {
+fn test_formatter_truncation_and_padding() -> Result<(), Box<dyn error::Error>> {
     let width = 10;
     let formatter = Formatter::new(true, true, true, false, Arc::new(HashSet::new()), width);
 
     let path = Path::new(".");
-    let mut entries = file_manager::browse_dir(path).expect("Failed to read dir");
+    let mut entries = file_manager::browse_dir(path)?;
 
     formatter.format(&mut entries);
 
@@ -59,17 +61,18 @@ fn test_formatter_truncation_and_padding() {
             }
         }
     }
+    Ok(())
 }
 
 #[test]
-fn test_formatter_empty_dir() {
-    use std::env;
-
+fn test_formatter_empty_dir() -> Result<(), Box<dyn error::Error>> {
     let width = 15;
     let formatter = Formatter::new(true, true, true, false, Arc::new(HashSet::new()), width);
 
-    let empty_path = env::temp_dir();
-    let mut entries = file_manager::browse_dir(&empty_path).unwrap();
+    let temp_dir = tempdir()?;
+
+    let empty_path = temp_dir.path();
+    let mut entries = file_manager::browse_dir(&empty_path)?;
     formatter.format(&mut entries);
 
     for entry in entries {
@@ -80,10 +83,11 @@ fn test_formatter_empty_dir() {
             entry.name_str()
         );
     }
+    Ok(())
 }
 
 #[test]
-fn test_layout_chunks_with_config() {
+fn test_layout_chunks_with_config() -> Result<(), Box<dyn error::Error>> {
     let size = Rect::new(0, 0, 100, 10);
 
     // define a config string where ratios = 150%
@@ -99,7 +103,7 @@ fn test_layout_chunks_with_config() {
             preview = 50
         "#;
 
-    let raw: RawConfig = toml::from_str(toml_content).unwrap();
+    let raw: RawConfig = toml::from_str(toml_content)?;
     let config = Config::from(raw);
 
     let app = AppState::new(&config).expect("Failed to create AppState");
@@ -111,4 +115,5 @@ fn test_layout_chunks_with_config() {
 
     assert!(total_width <= 100);
     assert!(chunks[0].width >= 33 && chunks[0].width <= 34);
+    Ok(())
 }

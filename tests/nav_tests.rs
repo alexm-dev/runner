@@ -2,21 +2,22 @@ use rand::rng;
 use rand::seq::SliceRandom;
 use runa_tui::app::NavState;
 use runa_tui::file_manager::browse_dir;
+use std::error;
 use std::fs;
 use std::fs::File;
 use tempfile::tempdir;
 
 #[test]
-fn test_navstate_rapid_navigation() {
-    let dir = tempdir().expect("failed to create sandbox");
+fn test_navstate_rapid_navigation() -> Result<(), Box<dyn error::Error>> {
+    let dir = tempdir()?;
     let file_count = 10;
 
     for i in 0..file_count {
         let file_path = dir.path().join(format!("testfile_{i}.txt"));
-        File::create(&file_path).expect("failed to create dummy file");
+        File::create(&file_path)?;
     }
 
-    let entries = browse_dir(dir.path()).expect("failed to read tempdir");
+    let entries = browse_dir(dir.path())?;
     assert!(!entries.is_empty(), "sandbox should not be empty");
 
     let mut nav = NavState::new(dir.path().to_path_buf());
@@ -40,7 +41,7 @@ fn test_navstate_rapid_navigation() {
         "wrong index after DOWN stress"
     );
 
-    let selected = nav.selected_entry().expect("no entry selected after DOWN");
+    let selected = nav.selected_entry().ok_or("no entry selected after DOWN")?;
     assert_eq!(selected.name_str(), entries[expected_idx].name_str());
 
     let up_presses = 1000;
@@ -56,7 +57,7 @@ fn test_navstate_rapid_navigation() {
         "wrong index after UP stress"
     );
 
-    let selected_up = nav.selected_entry().expect("no entry selected after UP");
+    let selected_up = nav.selected_entry().ok_or("no entry selected after UP")?;
     assert_eq!(selected_up.name_str(), entries[expected_idx_up].name_str());
 
     // Ensure the internal state hasn't corrupted the entry list
@@ -67,24 +68,25 @@ fn test_navstate_rapid_navigation() {
             "data corruption at index {i}"
         );
     }
+    Ok(())
 }
 
 #[test]
-fn test_navstate_navigation_stress() {
-    let base = tempdir().expect("sandbox setup failed");
+fn test_navstate_navigation_stress() -> Result<(), Box<dyn error::Error>> {
+    let base = tempdir()?;
     let base_path = base.path().to_path_buf();
     let subdir_path = base_path.join("subdir");
     let subsubdir_path = subdir_path.join("subsub");
 
-    fs::create_dir(&subdir_path).unwrap();
-    fs::create_dir(&subsubdir_path).unwrap();
-    File::create(base_path.join("file_base.txt")).unwrap();
-    File::create(subdir_path.join("file_sub.txt")).unwrap();
-    File::create(subsubdir_path.join("file_subsub.txt")).unwrap();
+    fs::create_dir(&subdir_path)?;
+    fs::create_dir(&subsubdir_path)?;
+    File::create(base_path.join("file_base.txt"))?;
+    File::create(subdir_path.join("file_sub.txt"))?;
+    File::create(subsubdir_path.join("file_subsub.txt"))?;
 
-    let base_entries = browse_dir(&base_path).unwrap();
-    let sub_entries = browse_dir(&subdir_path).unwrap();
-    let subsub_entries = browse_dir(&subsubdir_path).unwrap();
+    let base_entries = browse_dir(&base_path)?;
+    let sub_entries = browse_dir(&subdir_path)?;
+    let subsub_entries = browse_dir(&subsubdir_path)?;
 
     let mut nav = NavState::new(base_path.clone());
     let repetitions = 500;
@@ -99,7 +101,7 @@ fn test_navstate_navigation_stress() {
             "Iter {i} missing subsub"
         );
 
-        let parent_path = nav.current_dir().parent().unwrap();
+        let parent_path = nav.current_dir().parent().ok_or("No parent dir")?;
         assert_eq!(parent_path, base_path, "Iter {i} parent mismatch");
 
         nav.set_path(subsubdir_path.clone());
@@ -118,21 +120,22 @@ fn test_navstate_navigation_stress() {
         assert_eq!(nav.current_dir(), &base_path);
         assert!(nav.entries().iter().any(|e| e.name() == "subdir"));
     }
+    Ok(())
 }
 
 #[test]
-fn test_navstate_selection_persistence_stress() {
-    let base = tempdir().expect("sandbox setup failed");
+fn test_navstate_selection_persistence_stress() -> Result<(), Box<dyn error::Error>> {
+    let base = tempdir()?;
     let base_path = base.path().to_path_buf();
     let subdir_path = base_path.join("subdir");
 
-    fs::create_dir_all(&subdir_path).unwrap();
+    fs::create_dir_all(&subdir_path)?;
     for i in 0..20 {
-        File::create(subdir_path.join(format!("file_{}.txt", i))).unwrap();
+        File::create(subdir_path.join(format!("file_{}.txt", i)))?;
     }
 
-    let base_entries = browse_dir(&base_path).unwrap();
-    let sub_entries = browse_dir(&subdir_path).unwrap();
+    let base_entries = browse_dir(&base_path)?;
+    let sub_entries = browse_dir(&subdir_path)?;
 
     let mut nav = NavState::new(base_path.clone());
     let repetitions = 200;
@@ -162,11 +165,12 @@ fn test_navstate_selection_persistence_stress() {
             i
         );
     }
+    Ok(())
 }
 
 #[test]
-fn test_navstate_filter_persistence() {
-    let dir = tempdir().expect("failed to create sandbox");
+fn test_navstate_filter_persistence() -> Result<(), Box<dyn error::Error>> {
+    let dir = tempdir()?;
     let base_path = dir.path().to_path_buf();
 
     let names = vec![
@@ -181,10 +185,10 @@ fn test_navstate_filter_persistence() {
         "styles.css",
     ];
     for name in &names {
-        fs::write(base_path.join(name), "").expect("failed to write sandbox file");
+        fs::write(base_path.join(name), "")?;
     }
 
-    let mut entries = browse_dir(&base_path).expect("failed to read sandbox");
+    let mut entries = browse_dir(&base_path)?;
     entries.shuffle(&mut rng());
 
     let mut nav = NavState::new(base_path.clone());
@@ -195,18 +199,19 @@ fn test_navstate_filter_persistence() {
     let actual_start_pos = nav
         .shown_entries()
         .position(|e| e.name_str() == target_name)
-        .expect("Target not found in nav state");
+        .ok_or("Target not found in nav state")?;
 
     for _ in 0..actual_start_pos {
         nav.move_down();
     }
 
-    assert_eq!(nav.selected_entry().unwrap().name_str(), target_name);
+    let selected = nav.selected_entry().ok_or("No entry selected")?;
+    assert_eq!(selected.name_str(), target_name);
 
     let input_buffer = "file".to_string();
     nav.set_filter(input_buffer);
 
-    let final_entry = nav.selected_entry().expect("Selection lost after filter");
+    let final_entry = nav.selected_entry().ok_or("Selection lost after filter")?;
 
     assert_eq!(
         final_entry.name_str(),
@@ -214,19 +219,20 @@ fn test_navstate_filter_persistence() {
         "Selection persistence failed! Found {} instead. Filter was 'file'.",
         final_entry.name_str()
     );
+    Ok(())
 }
 
 #[test]
-fn test_navstate_marker_persistence() {
-    let dir = tempdir().expect("failed to create sandbox");
+fn test_navstate_marker_persistence() -> Result<(), Box<dyn error::Error>> {
+    let dir = tempdir()?;
     let base_path = dir.path().to_path_buf();
 
     let names = vec!["apple.txt", "banana.txt", "crab.txt"];
     for name in &names {
-        fs::write(base_path.join(name), "").expect("failed to write sandbox file");
+        fs::write(base_path.join(name), "")?;
     }
 
-    let mut entries = browse_dir(&base_path).expect("failed to read sandbox");
+    let mut entries = browse_dir(&base_path)?;
     // Shuffle to ensure we arent relying on alphabetical order
     entries.shuffle(&mut rng());
 
@@ -239,7 +245,7 @@ fn test_navstate_marker_persistence() {
         let pos = nav
             .shown_entries()
             .position(|e| e.name_str() == target)
-            .expect("target not found");
+            .ok_or("target not found")?;
 
         // Reset to top and move down to simulate real user navigation
         while nav.selected_idx() > 0 {
@@ -249,7 +255,8 @@ fn test_navstate_marker_persistence() {
             nav.move_down();
         }
 
-        assert_eq!(nav.selected_entry().unwrap().name_str(), target);
+        let selected = nav.selected_entry().ok_or("No entry selected to mark")?;
+        assert_eq!(selected.name_str(), target);
         nav.toggle_marker();
     }
 
@@ -258,7 +265,8 @@ fn test_navstate_marker_persistence() {
     nav.set_filter("crab".to_string());
 
     assert_eq!(nav.shown_entries_len(), 1);
-    assert_eq!(nav.selected_entry().unwrap().name_str(), "crab.txt");
+    let crab_selected = nav.selected_entry().ok_or("No crab selected")?;
+    assert_eq!(crab_selected.name_str(), "crab.txt");
 
     let targets = nav.get_action_targets();
     assert_eq!(
@@ -278,7 +286,7 @@ fn test_navstate_marker_persistence() {
     let apple_pos = nav
         .shown_entries()
         .position(|e| e.name_str() == "apple.txt")
-        .unwrap();
+        .ok_or("Apple not found")?;
     while nav.selected_idx() < apple_pos {
         nav.move_down();
     }
@@ -289,4 +297,5 @@ fn test_navstate_marker_persistence() {
     nav.toggle_marker();
     assert_eq!(nav.markers().len(), 1);
     assert!(nav.markers().contains(&base_path.join("banana.txt")));
+    Ok(())
 }

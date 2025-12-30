@@ -7,36 +7,32 @@ use std::fs;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
+use tempfile::tempdir;
 use unicode_width::UnicodeWidthStr;
 
 #[test]
-fn test_worker_load_current_dir() {
+fn test_worker_load_current_dir() -> Result<(), Box<dyn std::error::Error>> {
     let (task_tx, task_rx) = unbounded();
     let (res_tx, res_rx) = unbounded();
 
     start_worker(task_rx, res_tx);
 
-    let curr_dir = match env::current_dir() {
-        Ok(dir) => dir,
-        Err(e) => panic!("Failed to get current dir: {}", e),
-    };
+    let curr_dir = env::current_dir()?;
 
-    task_tx
-        .send(WorkerTask::LoadDirectory {
-            path: curr_dir,
-            focus: None,
-            dirs_first: true,
-            show_hidden: false,
-            show_system: false,
-            case_insensitive: true,
-            always_show: Arc::new(HashSet::new()),
-            pane_width: 20,
-            request_id: 1,
-        })
-        .unwrap();
+    task_tx.send(WorkerTask::LoadDirectory {
+        path: curr_dir,
+        focus: None,
+        dirs_first: true,
+        show_hidden: false,
+        show_system: false,
+        case_insensitive: true,
+        always_show: Arc::new(HashSet::new()),
+        pane_width: 20,
+        request_id: 1,
+    })?;
 
-    match res_rx.recv() {
-        Ok(WorkerResponse::DirectoryLoaded { entries, .. }) => {
+    match res_rx.recv()? {
+        WorkerResponse::DirectoryLoaded { entries, .. } => {
             assert!(!entries.is_empty(), "Current dir should not be empty");
 
             // Check display name width
@@ -49,23 +45,21 @@ fn test_worker_load_current_dir() {
                 );
             }
         }
-        Ok(WorkerResponse::Error(e)) => panic!("Worker error: {}", e),
+        WorkerResponse::Error(e) => panic!("Worker error: {}", e),
         _ => panic!("Unexpected worker response"),
     }
+    Ok(())
 }
 
 #[test]
-fn stress_worker_dir_load_requests_multithreaded() {
-    let temp_dir = env::temp_dir();
-    let safe_subdir = temp_dir.join("runa_test_safe_dir");
-    fs::create_dir_all(&safe_subdir).expect("Could not create safe test dir");
+fn stress_worker_dir_load_requests_multithreaded() -> Result<(), Box<dyn std::error::Error>> {
+    let temp_dir = tempdir()?;
+    let safe_subdir = temp_dir.path().join("runa_test_safe_dir");
+    fs::create_dir_all(&safe_subdir)?;
 
-    let curr_dir = match env::current_dir() {
-        Ok(dir) => dir,
-        Err(e) => panic!("Failed to get current dir: {}", e),
-    };
+    let curr_dir = env::current_dir()?;
 
-    let dirs = vec![curr_dir, temp_dir.clone(), safe_subdir.clone()];
+    let dirs = vec![curr_dir, temp_dir.path().to_path_buf(), safe_subdir.clone()];
 
     let pane_base = 20;
     let thread_count = 2;
@@ -150,9 +144,5 @@ fn stress_worker_dir_load_requests_multithreaded() {
         valid_responses, total_requests,
         "Not all worker requests returned results!"
     );
-
-    // Cleanup test subdir
-    if safe_subdir.exists() {
-        let _ = fs::remove_dir_all(&safe_subdir);
-    }
+    Ok(())
 }
