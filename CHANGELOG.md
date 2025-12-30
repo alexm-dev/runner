@@ -3,7 +3,7 @@
 ## [0.3.6] - 2025-12-30
 
 ### Added
-- **Overlay widgets**: Added support for overaly widgets to dynamically toggle between widgets. Implemented the ShowInfo overaly as the first one.
+- **Overlay widgets**: Added support for overlay widgets to dynamically toggle between widgets. Implemented the ShowInfo overlay as the first one.
 - **ShowInfo**: Implemented the new showinfo overlay for file information.
 - **Toggle Marker Advance**: Improved marker toggle logic. Now jumps to the next entry to make marking more seamless and easier.
 - **Border shape**: Added border shapes to configuration. "square", "rounded" or "double".
