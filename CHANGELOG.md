@@ -2,12 +2,14 @@
 
 ## [0.3.9] - 2025-12-30
 
-Changed internal default colors for a more pleasant "out-of-the-box" experience.
+### Added
+- **Path string**: Display `~` for the home directory at the top of the TUI instead of the full absolute path.
 
 ### Changed
 **Internal default colors**: Changed internal default colors of `border`, `selection`, `titles` and `directory`.
 **show_hidden**: Enabled `show_hidden` by default and is set to enabled internally.
 **
+
 
 ---
 

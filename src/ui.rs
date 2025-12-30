@@ -26,6 +26,7 @@ use crate::{
         panes::{PaneStyles, PreviewOptions},
         widgets::{draw_input_dialog, draw_show_info_dialog, draw_status_line},
     },
+    utils::shorten_home_path,
 };
 use ratatui::{
     Frame,
@@ -89,7 +90,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
 
     let accent_style = theme_cfg.accent().as_style();
     let selection_style = theme_cfg.selection().as_style();
-    let path_str = app.nav().current_dir().to_string_lossy();
+    let path_str = shorten_home_path(app.nav().current_dir());
     let path_style = theme_cfg.path().as_style();
 
     let padding_str = display_cfg.padding_str();

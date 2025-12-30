@@ -107,3 +107,19 @@ pub fn get_unused_path(path: &Path) -> PathBuf {
         counter += 1;
     }
 }
+
+/// Util function to shorten home directory to ~.
+/// Is used by the path_str in the ui.rs render function.
+pub fn shorten_home_path<P: AsRef<Path>>(path: P) -> String {
+    let path = path.as_ref();
+    if let Some(home_dir) = dirs::home_dir()
+        && let Ok(stripped) = path.strip_prefix(&home_dir)
+    {
+        if stripped.as_os_str().is_empty() {
+            return "~".to_string();
+        } else {
+            return format!("~/{}", stripped.display());
+        }
+    }
+    path.display().to_string()
+}
