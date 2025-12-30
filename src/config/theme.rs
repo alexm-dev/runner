@@ -215,6 +215,7 @@ pub struct Theme {
     parent: ColorPair,
     preview: ColorPair,
     path: ColorPair,
+    status_line: ColorPair,
     marker: MarkerTheme,
     widget: WidgetTheme,
     info: WidgetTheme,
@@ -261,6 +262,10 @@ impl Theme {
         self.path
     }
 
+    pub fn status_line(&self) -> ColorPair {
+        self.status_line
+    }
+
     pub fn marker(&self) -> &MarkerTheme {
         &self.marker
     }
@@ -293,6 +298,7 @@ impl Default for Theme {
                 fg: Color::Magenta,
                 ..ColorPair::default()
             },
+            status_line: ColorPair::default(),
             marker: MarkerTheme::default(),
             widget: WidgetTheme::default(),
             info: WidgetTheme::default(),
