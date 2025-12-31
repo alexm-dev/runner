@@ -56,6 +56,11 @@ After downloading, add the `rn` (Linux/macOS) or `rn.exe` (Windows) binary to yo
 > ```bash
 > sha256sum -c SHA256SUMS.txt
 > ```
+> This checks all the checksums of the SHA256SUMS.txt.
+> To check a specific release archive:
+> ```bash
+> grep runa-linux-x86_64.tar.gz SHA256SUMS.txt | sha256sum -c
+> ```
 >
 > Windows
 > ```powershell
