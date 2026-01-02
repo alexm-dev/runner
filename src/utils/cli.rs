@@ -57,8 +57,8 @@ USAGE:
 
 OPTIONS:
     --help, -h            Print help information
-    --init                Generate full default config at ~/.config/runa/runa.toml
-    --init-minimal        Generate minimal config (overrides only)
+    --init                Generate a default config at ~/.config/runa/runa.toml
+    --init-full           Generate full config
     --config-help         Display all the configuration options
 
 ENVIRONMENT:

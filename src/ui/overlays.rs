@@ -5,7 +5,7 @@
 //!
 //! Is used throughout the ui modules and in handlers.rs.
 
-use crate::file_manager::FileInfo;
+use crate::core::FileInfo;
 
 #[derive(Clone)]
 pub enum Overlay {

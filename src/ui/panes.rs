@@ -6,7 +6,7 @@
 //! Used internally by [ui::render]
 
 use crate::app::{AppState, PreviewData};
-use crate::file_manager::FileEntry;
+use crate::core::FileEntry;
 use ratatui::widgets::BorderType;
 use ratatui::{
     Frame,

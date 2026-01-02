@@ -1,9 +1,9 @@
 use ratatui::layout::Rect;
 use runa_tui::app::AppState;
-use runa_tui::config::{Config, RawConfig};
-use runa_tui::file_manager;
-use runa_tui::formatter::Formatter;
-use runa_tui::ui::layout_chunks;
+use runa_tui::config::{Config, load::RawConfig};
+use runa_tui::core;
+use runa_tui::ui::render::layout_chunks;
+use runa_tui::utils::Formatter;
 use std::collections::HashSet;
 use std::error;
 use std::path::Path;
@@ -16,7 +16,7 @@ fn test_formatter_truncation_and_padding() -> Result<(), Box<dyn error::Error>> 
     let formatter = Formatter::new(true, true, true, false, Arc::new(HashSet::new()), width);
 
     let path = Path::new(".");
-    let mut entries = file_manager::browse_dir(path)?;
+    let mut entries = core::browse_dir(path)?;
 
     formatter.format(&mut entries);
 
@@ -72,7 +72,7 @@ fn test_formatter_empty_dir() -> Result<(), Box<dyn error::Error>> {
     let temp_dir = tempdir()?;
 
     let empty_path = temp_dir.path();
-    let mut entries = file_manager::browse_dir(&empty_path)?;
+    let mut entries = core::browse_dir(&empty_path)?;
     formatter.format(&mut entries);
 
     for entry in entries {

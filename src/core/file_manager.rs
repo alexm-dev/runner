@@ -9,7 +9,7 @@ use std::io;
 use std::path::Path;
 use std::time::SystemTime;
 
-use crate::formatter::format_attributes;
+use crate::utils::format_attributes;
 
 /// Represents a single entry in a directory listing
 #[derive(Debug, Clone)]

@@ -1,7 +1,7 @@
 use rand::rng;
 use rand::seq::SliceRandom;
 use runa_tui::app::NavState;
-use runa_tui::file_manager::browse_dir;
+use runa_tui::core::browse_dir;
 use std::error;
 use std::fs;
 use std::fs::File;

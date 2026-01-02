@@ -2,9 +2,9 @@
 //! Entry point for runa
 
 use runa_tui::app;
-use runa_tui::cli::{CliAction, handle_args};
 use runa_tui::config::Config;
-use runa_tui::terminal;
+use runa_tui::core::terminal;
+use runa_tui::utils::cli::{CliAction, handle_args};
 
 fn main() -> std::io::Result<()> {
     match handle_args() {

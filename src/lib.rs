@@ -1,11 +1,10 @@
+//! Internal library crate for runa.
+//!
+//! The shipped application is the `rn` binary (`src/main.rs`). This library exists to
+//! share code between targets (binary, tests) and to keep modules organized.
+
 pub mod app;
-pub mod cli;
 pub mod config;
-pub mod file_manager;
-pub mod formatter;
-pub mod keymap;
-pub mod search;
-pub mod terminal;
+pub mod core;
 pub mod ui;
 pub mod utils;
-pub mod worker;

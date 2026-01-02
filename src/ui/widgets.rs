@@ -9,9 +9,9 @@
 //! - Configurable dialog/widget style, position and style
 
 use crate::app::AppState;
-use crate::file_manager::{FileInfo, FileType};
-use crate::formatter::{format_file_size, format_file_time, format_file_type};
-use crate::ui::{ActionMode, InputMode};
+use crate::app::actions::{ActionMode, InputMode};
+use crate::core::{FileInfo, file_manager::FileType};
+use crate::utils::{format_file_size, format_file_time, format_file_type};
 use ratatui::widgets::BorderType;
 use ratatui::{
     Frame,

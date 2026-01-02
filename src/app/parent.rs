@@ -3,7 +3,7 @@
 //! Tracks entries, selection, worker requests for the parent pane view above the current working
 //! directory
 
-use crate::file_manager::FileEntry;
+use crate::core::FileEntry;
 use std::path::{Path, PathBuf};
 
 /// Holds the state of the parent directory pane

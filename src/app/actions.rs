@@ -3,10 +3,10 @@
 //! Contains the [ActionContext] struct, tracking user input state, clipboard, and action modes.
 //! Defines available modes/actions for file operations (copy, paste, rename, create, delete, filter).
 
+use crate::app::keymap::FileAction;
 use crate::app::nav::NavState;
-use crate::file_manager::{FileEntry, FileInfo};
-use crate::keymap::FileAction;
-use crate::worker::{FileOperation, WorkerTask};
+use crate::core::worker::{FileOperation, WorkerTask};
+use crate::core::{FileEntry, FileInfo};
 use crossbeam_channel::Sender;
 use std::collections::HashSet;
 use std::path::PathBuf;

@@ -3,10 +3,11 @@
 //! This module implements [AppState] methods that process key events, file/nav actions,
 //! and input modes (rename, filter, etc).
 
+use crate::app::NavState;
 use crate::app::actions::{ActionMode, InputMode};
-use crate::app::{AppState, KeypressResult, NavState};
-use crate::file_manager::FileInfo;
-use crate::keymap::{FileAction, NavAction};
+use crate::app::keymap::{FileAction, NavAction};
+use crate::app::state::{AppState, KeypressResult};
+use crate::core::FileInfo;
 use crate::ui::overlays::Overlay;
 use crossterm::event::{KeyCode::*, KeyEvent};
 use std::time::{Duration, Instant};
@@ -326,7 +327,7 @@ impl<'a> AppState<'a> {
     fn show_file_info(&mut self) {
         if let Some(entry) = self.nav.selected_shown_entry() {
             let path = self.nav.current_dir().join(entry.name());
-            if let Ok(file_info) = crate::file_manager::FileInfo::get_file_info(&path) {
+            if let Ok(file_info) = FileInfo::get_file_info(&path) {
                 self.overlays_mut()
                     .push(Overlay::ShowInfo { info: file_info });
             }

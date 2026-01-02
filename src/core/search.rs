@@ -1,4 +1,4 @@
-use crate::file_manager::FileEntry;
+use crate::core::FileEntry;
 use fuzzy_matcher::FuzzyMatcher;
 use fuzzy_matcher::skim::SkimMatcherV2;
 use std::ffi::OsString;

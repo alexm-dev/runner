@@ -1,6 +1,6 @@
 use crossbeam_channel::unbounded;
 use rand::{Rng, rng};
-use runa_tui::worker::{WorkerResponse, WorkerTask, start_worker};
+use runa_tui::core::worker::{WorkerResponse, WorkerTask, start_worker};
 use std::collections::HashSet;
 use std::env;
 use std::fs;

@@ -24,9 +24,8 @@ use std::thread;
 use crossbeam_channel::{Receiver, Sender};
 use unicode_width::UnicodeWidthChar;
 
-use crate::file_manager::{FileEntry, browse_dir};
-use crate::formatter::Formatter;
-use crate::utils::get_unused_path;
+use crate::core::{FileEntry, file_manager::browse_dir};
+use crate::utils::{Formatter, get_unused_path};
 
 /// Tasks sent to the worker thread via channel.
 ///

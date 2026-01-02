@@ -3,7 +3,7 @@
 //! Manages the current directory, file entries, selection, markers and filters.
 //! Provides helpers for pane navigation, selection, filtering, and bulk actions.
 
-use crate::file_manager::FileEntry;
+use crate::core::FileEntry;
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
