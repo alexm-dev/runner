@@ -46,6 +46,24 @@ impl<'a> AppState<'a> {
                 KeypressResult::Consumed
             }
 
+            Up => {
+                if matches!(mode, InputMode::Find) {
+                    self.actions.find_state_mut().select_prev();
+                    KeypressResult::Consumed
+                } else {
+                    KeypressResult::Continue
+                }
+            }
+
+            Down => {
+                if matches!(mode, InputMode::Find) {
+                    self.actions.find_state_mut().select_next();
+                    KeypressResult::Consumed
+                } else {
+                    KeypressResult::Continue
+                }
+            }
+
             Right => {
                 self.actions.action_move_cursor_right();
                 KeypressResult::Consumed
@@ -205,7 +223,11 @@ impl<'a> AppState<'a> {
     }
 
     fn handle_find(&mut self) {
-        let Some(r) = self.actions.find_results().first() else {
+        let Some(r) = self
+            .actions
+            .find_results()
+            .get(self.actions.find_selected())
+        else {
             return;
         };
         let path = r.path();

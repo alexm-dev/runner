@@ -44,6 +44,7 @@ pub struct FindState {
     request_id: u64,
     debounce: Option<Instant>,
     last_query: String,
+    selected: usize,
     cancel: Option<Arc<AtomicBool>>,
 }
 
@@ -58,6 +59,10 @@ impl FindState {
         self.request_id
     }
 
+    fn selected(&self) -> usize {
+        self.selected
+    }
+
     fn cancel_current(&mut self) {
         if let Some(token) = self.cancel.take() {
             token.store(true, Ordering::Relaxed);
@@ -66,6 +71,7 @@ impl FindState {
 
     fn set_results(&mut self, results: Vec<FindResult>) {
         self.cache = results;
+        self.selected = 0;
     }
 
     fn set_cancel(&mut self, token: Arc<AtomicBool>) {
@@ -110,6 +116,22 @@ impl FindState {
         self.debounce = None;
         self.last_query.clear();
     }
+
+    pub fn select_next(&mut self) {
+        if self.selected + 1 < self.cache.len() {
+            self.selected += 1;
+        }
+    }
+
+    pub fn select_prev(&mut self) {
+        if self.selected > 0 {
+            self.selected -= 1;
+        }
+    }
+
+    pub fn reset_selected(&mut self) {
+        self.selected = 0;
+    }
 }
 
 /// Tracks current user action and input buffer state for file operations and commands.
@@ -144,8 +166,18 @@ impl ActionContext {
         &self.clipboard
     }
 
+    // Find functions
+
+    pub fn find_state_mut(&mut self) -> &mut FindState {
+        &mut self.find
+    }
+
     pub fn find_results(&self) -> &[FindResult] {
         self.find.results()
+    }
+
+    pub fn find_selected(&self) -> usize {
+        self.find.selected()
     }
 
     pub fn set_find_results(&mut self, results: Vec<FindResult>) {

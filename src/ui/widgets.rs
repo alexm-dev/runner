@@ -613,16 +613,25 @@ pub fn draw_find_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) 
 
     let input_text = app.actions().input_buffer();
     let results = app.actions().find_results();
+    let selected = app.actions().find_selected();
     let area = frame.area();
     let dialog_rect = dialog_area(area, size, position);
 
-    let mut display_lines = Vec::with_capacity(results.len() + 2);
+    let max_visible = dialog_rect.height.saturating_sub(4) as usize;
+    let total = results.len();
+
+    let selected = selected.min(total.saturating_sub(1));
+    let mut scroll = 0;
+    if selected >= max_visible {
+        scroll = selected + 1 - max_visible;
+    }
+
+    let mut display_lines = Vec::with_capacity(max_visible + 2);
 
     display_lines.push(Line::from(vec![Span::styled(
         input_text,
         Style::default().add_modifier(Modifier::BOLD),
     )]));
-
     display_lines.push(Line::from(""));
 
     if results.is_empty() {
@@ -631,14 +640,13 @@ pub fn draw_find_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) 
             Style::default().fg(Color::DarkGray),
         )));
     } else {
-        for (idx, r) in results.iter().enumerate() {
-            let marker = if idx == 0 { "› " } else { "  " };
-            let marker_style = if idx == 0 {
+        for (idx, r) in results.iter().enumerate().skip(scroll).take(max_visible) {
+            let marker = if idx == selected { "› " } else { "  " };
+            let marker_style = if idx == selected {
                 accent_style
             } else {
                 Style::default()
             };
-
             display_lines.push(Line::from(vec![
                 Span::styled(marker, marker_style),
                 Span::raw(r.relative()),
