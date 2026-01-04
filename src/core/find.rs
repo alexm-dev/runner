@@ -128,12 +128,7 @@ pub fn find_recursive(
 
     for (score, path, is_dir) in raw_results {
         let rel = path.strip_prefix(&root_buf).unwrap_or(&path);
-        let mut relative = rel.to_string_lossy().into_owned();
-
-        #[cfg(windows)]
-        {
-            relative = relative.replace('\\', "/");
-        }
+        let relative = normalize_relative_path(rel);
 
         out.push(FindResult {
             path,
@@ -144,4 +139,16 @@ pub fn find_recursive(
     }
 
     Ok(())
+}
+
+fn normalize_relative_path(path: &Path) -> String {
+    let rel = path.to_string_lossy().into_owned();
+    #[cfg(windows)]
+    {
+        rel.replace('\\', "/")
+    }
+    #[cfg(not(windows))]
+    {
+        rel
+    }
 }
