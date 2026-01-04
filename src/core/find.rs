@@ -123,7 +123,6 @@ pub fn find_recursive(
         .map_err(|_| io::Error::other("Mutex poisoned by a panicked thread"))?;
 
     let mut raw_results: Vec<_> = heap.into_vec();
-
     raw_results.sort_by(|a, b| b.0.cmp(&a.0));
 
     for (score, path, is_dir) in raw_results {
@@ -137,10 +136,10 @@ pub fn find_recursive(
             score,
         });
     }
-
     Ok(())
 }
 
+/// Helper to normalize the relative paths for each OS used for the find functions.
 fn normalize_relative_path(path: &Path) -> String {
     let rel = path.to_string_lossy().into_owned();
     #[cfg(windows)]
