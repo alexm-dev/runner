@@ -5,7 +5,7 @@
 //!
 //! Is used throughout the ui modules and in handlers.rs.
 
-use crate::file_manager::FileInfo;
+use crate::core::FileInfo;
 
 #[derive(Clone)]
 pub enum Overlay {
@@ -33,6 +33,10 @@ impl OverlayStack {
 
     pub fn top(&self) -> Option<&Overlay> {
         self.overlays.last()
+    }
+
+    pub fn top_mut(&mut self) -> Option<&mut Overlay> {
+        self.overlays.last_mut()
     }
 }
 

@@ -9,7 +9,7 @@ use std::io;
 use std::path::Path;
 use std::time::SystemTime;
 
-use crate::formatter::format_attributes;
+use crate::utils::format_attributes;
 
 /// Represents a single entry in a directory listing
 #[derive(Debug, Clone)]
@@ -24,6 +24,26 @@ pub struct FileEntry {
 }
 
 impl FileEntry {
+    pub fn new(
+        name: OsString,
+        name_str: String,
+        lowercase_name: String,
+        display_name: String,
+        is_dir: bool,
+        is_hidden: bool,
+        is_system: bool,
+    ) -> Self {
+        FileEntry {
+            name,
+            name_str,
+            lowercase_name,
+            display_name,
+            is_dir,
+            is_hidden,
+            is_system,
+        }
+    }
+
     // Getters / accessors
 
     pub fn name(&self) -> &OsString {

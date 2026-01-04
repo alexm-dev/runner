@@ -3,7 +3,7 @@
 //! Manages the current directory, file entries, selection, markers and filters.
 //! Provides helpers for pane navigation, selection, filtering, and bulk actions.
 
-use crate::file_manager::FileEntry;
+use crate::core::FileEntry;
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
@@ -16,6 +16,7 @@ pub struct NavState {
     positions: HashMap<PathBuf, usize>,
     markers: HashSet<PathBuf>,
     filter: String,
+    filters: HashMap<PathBuf, String>,
     request_id: u64,
 }
 
@@ -28,6 +29,7 @@ impl NavState {
             positions: HashMap::new(),
             markers: HashSet::new(),
             filter: String::new(),
+            filters: HashMap::new(),
             request_id: 0,
         }
     }
@@ -110,9 +112,20 @@ impl NavState {
         self.current_dir = path;
         self.entries.clear();
         self.selected = 0;
-        self.clear_filters();
+        self.restore_filter_for_current_dir();
         // instantly ends all pending messages from the previous directory.
         self.request_id += 1;
+    }
+
+    pub fn set_selected(&mut self, idx: usize) {
+        let max = self.shown_entries_len();
+        self.selected = if max == 0 {
+            0
+        } else if idx >= max {
+            max - 1
+        } else {
+            idx
+        };
     }
 
     pub fn update_from_worker(
@@ -210,6 +223,7 @@ impl NavState {
         }
 
         let target_name = self.selected_shown_entry().map(|e| e.name().to_os_string());
+        self.save_filter_for_current_dir();
 
         self.filter = filter;
 
@@ -225,5 +239,23 @@ impl NavState {
 
     pub fn clear_filters(&mut self) {
         self.filter.clear();
+        self.save_filter_for_current_dir();
+    }
+
+    fn save_filter_for_current_dir(&mut self) {
+        if self.filter.is_empty() {
+            self.filters.remove(&self.current_dir);
+        } else {
+            self.filters
+                .insert(self.current_dir.clone(), self.filter.clone());
+        }
+    }
+
+    fn restore_filter_for_current_dir(&mut self) {
+        self.filter = self
+            .filters
+            .get(&self.current_dir)
+            .cloned()
+            .unwrap_or_default();
     }
 }

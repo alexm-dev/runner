@@ -1,0 +1,153 @@
+//! The (fuzzy) find module for the find function in runa
+//!
+//! This module implements the [find_recursive()] function and the [FindResult].
+//!
+//! The [FindResult] struct is used to correctly dispaly the calculated results of the
+//! find_recursive function. It is used mainly by ui/actions
+
+use fuzzy_matcher::FuzzyMatcher;
+use fuzzy_matcher::skim::SkimMatcherV2;
+use ignore::WalkBuilder;
+use num_cpus;
+use std::cmp::Ordering;
+use std::collections::BinaryHeap;
+use std::io;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct FindResult {
+    path: PathBuf,
+    relative: String,
+    is_dir: bool,
+    score: i64,
+}
+
+impl Ord for FindResult {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.score.cmp(&self.score)
+    }
+}
+
+impl PartialOrd for FindResult {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl FindResult {
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
+    pub fn relative(&self) -> &str {
+        &self.relative
+    }
+
+    pub fn is_dir(&self) -> bool {
+        self.is_dir
+    }
+
+    pub fn score(&self) -> i64 {
+        self.score
+    }
+}
+
+/// Performs a fuzzy, parallel filesystem search at root.
+///
+/// Returns up to max_results best matches in out which is sorted by a score.
+pub fn find_recursive(
+    base_dir: &Path,
+    query: &str,
+    out: &mut Vec<FindResult>,
+    cancel: Arc<std::sync::atomic::AtomicBool>,
+    max_results: usize,
+) -> io::Result<()> {
+    out.clear();
+    if query.is_empty() {
+        return Ok(());
+    }
+
+    let results: Arc<Mutex<BinaryHeap<(i64, PathBuf, bool)>>> =
+        Arc::new(Mutex::new(BinaryHeap::with_capacity(max_results + 1)));
+
+    let query_str = query.to_owned();
+    let root_buf = base_dir.to_path_buf();
+
+    WalkBuilder::new(base_dir)
+        .standard_filters(true)
+        .threads(num_cpus::get().saturating_sub(1).max(1))
+        .build_parallel()
+        .run(|| {
+            let results = Arc::clone(&results);
+            let query = query_str.clone();
+            let root_ref = root_buf.clone();
+            let matcher = SkimMatcherV2::default();
+            let cancel = Arc::clone(&cancel);
+
+            Box::new(move |entry| {
+                if cancel.load(std::sync::atomic::Ordering::Relaxed) {
+                    return ignore::WalkState::Quit;
+                }
+
+                let entry = match entry {
+                    Ok(e) => e,
+                    Err(_) => return ignore::WalkState::Continue,
+                };
+
+                let rel_path = entry.path().strip_prefix(&root_ref).unwrap_or(entry.path());
+                let rel_str = rel_path.to_string_lossy();
+
+                if let Some(score) = matcher.fuzzy_match(&rel_str, &query)
+                    && let Ok(mut guard) = results.lock()
+                    && (guard.len() < max_results
+                        || score > guard.peek().map(|(s, _, _)| *s).unwrap_or(0))
+                {
+                    guard.push((
+                        score,
+                        entry.path().to_path_buf(),
+                        entry.file_type().map(|f| f.is_dir()).unwrap_or(false),
+                    ));
+
+                    if guard.len() > max_results {
+                        guard.pop();
+                    }
+                }
+                ignore::WalkState::Continue
+            })
+        });
+
+    let heap = Arc::try_unwrap(results)
+        .map_err(|_| io::Error::other("Thread synchronization failed"))?
+        .into_inner()
+        .map_err(|_| io::Error::other("Mutex poisoned by a panicked thread"))?;
+
+    let mut raw_results: Vec<_> = heap.into_vec();
+    raw_results.sort_by(|a, b| b.0.cmp(&a.0));
+
+    for (score, path, is_dir) in raw_results {
+        let rel = path.strip_prefix(&root_buf).unwrap_or(&path);
+        let relative = normalize_relative_path(rel);
+
+        out.push(FindResult {
+            path,
+            relative,
+            is_dir,
+            score,
+        });
+    }
+    Ok(())
+}
+
+/// Helper to normalize the relative paths for each OS used for the find functions.
+fn normalize_relative_path(path: &Path) -> String {
+    let rel = path.to_string_lossy().into_owned();
+    #[cfg(windows)]
+    {
+        rel.replace('\\', "/")
+    }
+    #[cfg(not(windows))]
+    {
+        rel
+    }
+}

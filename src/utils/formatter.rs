@@ -6,7 +6,8 @@
 //!
 //! Also formatts FileTypes to be used by FileInfo and ShowInfo overlay widget.
 
-use crate::file_manager::{FileEntry, FileType};
+use crate::core::FileEntry;
+use crate::core::file_manager::FileType;
 use chrono::{DateTime, Local};
 use humansize::{DECIMAL, format_size};
 use std::collections::HashSet;

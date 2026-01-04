@@ -4,12 +4,16 @@
 //! Defines available modes/actions for file operations (copy, paste, rename, create, delete, filter).
 
 use crate::app::nav::NavState;
-use crate::file_manager::FileInfo;
-use crate::keymap::FileAction;
-use crate::worker::{FileOperation, WorkerTask};
+use crate::core::FileInfo;
+use crate::core::find::FindResult;
+use crate::core::worker::{FileOperation, WorkerTask};
 use crossbeam_channel::Sender;
 use std::collections::HashSet;
 use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
+use std::time::Instant;
 
 /// Describes the current mode for action handling/input.
 ///
@@ -18,7 +22,6 @@ use std::path::PathBuf;
 pub enum ActionMode {
     Normal,
     Input { mode: InputMode, prompt: String },
-    Confim { prompt: String, action: FileAction },
     ShowInfo { info: FileInfo },
 }
 
@@ -32,6 +35,103 @@ pub enum InputMode {
     NewFolder,
     Filter,
     ConfirmDelete,
+    Find,
+}
+
+#[derive(Default)]
+pub struct FindState {
+    cache: Vec<FindResult>,
+    request_id: u64,
+    debounce: Option<Instant>,
+    last_query: String,
+    selected: usize,
+    cancel: Option<Arc<AtomicBool>>,
+}
+
+impl FindState {
+    // Getters / Accessors
+
+    fn results(&self) -> &[FindResult] {
+        &self.cache
+    }
+
+    fn request_id(&self) -> u64 {
+        self.request_id
+    }
+
+    fn selected(&self) -> usize {
+        self.selected
+    }
+
+    // Find functions
+
+    fn cancel_current(&mut self) {
+        if let Some(token) = self.cancel.take() {
+            token.store(true, Ordering::Relaxed);
+        }
+    }
+
+    fn set_results(&mut self, results: Vec<FindResult>) {
+        self.cache = results;
+        self.selected = 0;
+    }
+
+    fn set_cancel(&mut self, token: Arc<AtomicBool>) {
+        self.cancel = Some(token);
+    }
+
+    fn clear_results(&mut self) {
+        self.cache.clear();
+    }
+
+    fn prepare_new_request(&mut self) -> u64 {
+        self.request_id = self.request_id.wrapping_add(1);
+        self.request_id
+    }
+
+    fn set_debounce(&mut self, delay: Duration) {
+        self.debounce = Some(Instant::now() + delay);
+    }
+
+    fn take_query(&mut self, current_query: &str) -> Option<String> {
+        let until = self.debounce?;
+        if Instant::now() < until {
+            return None;
+        }
+
+        self.debounce = None;
+        if current_query == self.last_query {
+            self.last_query.clear();
+            return None;
+        }
+
+        self.last_query.clear();
+        self.last_query.push_str(current_query);
+        Some(current_query.to_string())
+    }
+
+    fn reset(&mut self) {
+        self.cancel_current();
+        self.cache.clear();
+        self.debounce = None;
+        self.last_query.clear();
+    }
+
+    pub fn select_next(&mut self) {
+        if self.selected + 1 < self.cache.len() {
+            self.selected += 1;
+        }
+    }
+
+    pub fn select_prev(&mut self) {
+        if self.selected > 0 {
+            self.selected -= 1;
+        }
+    }
+
+    pub fn reset_selected(&mut self) {
+        self.selected = 0;
+    }
 }
 
 /// Tracks current user action and input buffer state for file operations and commands.
@@ -44,6 +144,7 @@ pub struct ActionContext {
     input_cursor_pos: usize,
     clipboard: Option<HashSet<PathBuf>>,
     is_cut: bool,
+    find: FindState,
 }
 
 impl ActionContext {
@@ -61,20 +162,54 @@ impl ActionContext {
         self.input_cursor_pos
     }
 
-    pub fn input_cursor_pos_mut(&mut self) -> &mut usize {
-        &mut self.input_cursor_pos
-    }
-
-    pub fn input_buffer_mut(&mut self) -> &mut String {
-        &mut self.input_buffer
-    }
-
     pub fn clipboard(&self) -> &Option<HashSet<PathBuf>> {
         &self.clipboard
     }
 
-    pub fn is_cut(&self) -> bool {
-        self.is_cut
+    // Find functions
+
+    pub fn find_state_mut(&mut self) -> &mut FindState {
+        &mut self.find
+    }
+
+    pub fn find_results(&self) -> &[FindResult] {
+        self.find.results()
+    }
+
+    pub fn find_selected(&self) -> usize {
+        self.find.selected()
+    }
+
+    pub fn set_find_results(&mut self, results: Vec<FindResult>) {
+        self.find.set_results(results)
+    }
+
+    pub fn clear_find_results(&mut self) {
+        self.find.clear_results()
+    }
+
+    pub fn find_request_id(&self) -> u64 {
+        self.find.request_id()
+    }
+
+    pub fn prepare_new_find_request(&mut self) -> u64 {
+        self.find.prepare_new_request()
+    }
+
+    pub fn take_query(&mut self) -> Option<String> {
+        self.find.take_query(&self.input_buffer)
+    }
+
+    pub fn find_debounce(&mut self, delay: Duration) {
+        self.find.set_debounce(delay);
+    }
+
+    pub fn cancel_find(&mut self) {
+        self.find.cancel_current();
+    }
+
+    pub fn set_cancel_find_token(&mut self, token: Arc<AtomicBool>) {
+        self.find.set_cancel(token);
     }
 
     // Mode functions
@@ -92,9 +227,10 @@ impl ActionContext {
     pub fn exit_mode(&mut self) {
         self.mode = ActionMode::Normal;
         self.input_buffer.clear();
+        self.find.reset();
     }
 
-    // Actions for inputs
+    // Actions functions
 
     pub fn action_delete(&mut self, nav: &mut NavState, worker_tx: &Sender<WorkerTask>) {
         let targets = nav.get_action_targets();
@@ -249,6 +385,7 @@ impl Default for ActionContext {
             input_cursor_pos: 0,
             clipboard: None,
             is_cut: false,
+            find: FindState::default(),
         }
     }
 }

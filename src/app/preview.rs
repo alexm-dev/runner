@@ -3,7 +3,7 @@
 //! Tracks the state of the file/directory preview for the UI, including loaded preview
 //! data, debounce for background rendering, selection within the preview and request tracking
 
-use crate::file_manager::FileEntry;
+use crate::core::FileEntry;
 use std::path::PathBuf;
 use std::time::Instant;
 
