@@ -288,8 +288,9 @@ pub fn draw_show_info_dialog(
 /// Draws the fuzzy find dialog widget
 ///
 /// Draws the input field and the result field as one widget.
-///
 /// Scrolls the entries of the find result. (max_visible = 15).
+/// Sets a find result indicator in the input line to the right.
+/// Find result indicator being on the input line makes the actual input line smaller.
 pub fn draw_find_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) {
     let actions = app.actions();
     let widget = app.config().theme().widget();
@@ -298,6 +299,7 @@ pub fn draw_find_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) 
     let border_type = app.config().display().border_shape().as_border_type();
 
     let input_text = actions.input_buffer();
+    let cursor_pos = actions.input_cursor_pos();
     let results = actions.find_results();
     let selected = actions.find_selected();
     let area = frame.area();
@@ -316,10 +318,52 @@ pub fn draw_find_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) 
 
     let mut display_lines = Vec::with_capacity(max_visible + 2);
 
-    display_lines.push(Line::from(vec![Span::styled(
-        input_text,
+    let indicator = format!(
+        "[{} / {}]",
+        if total == 0 { 0 } else { selected + 1 },
+        total
+    );
+    let field_width = dialog_rect.width.saturating_sub(2) as usize;
+    let indicator_width = indicator.width() + 2;
+    let max_input_width = field_width.saturating_sub(indicator_width);
+
+    let (display_input, cursor_x) = if input_text.width() <= max_input_width {
+        (
+            input_text.to_string(),
+            input_text[..cursor_pos.min(input_text.len())].width(),
+        )
+    } else {
+        let mut cur_width = 0;
+        let mut start = input_text.len();
+        for (idx, ch) in input_text.char_indices().rev() {
+            cur_width += ch.width().unwrap_or(0);
+            if cur_width > max_input_width {
+                start = idx + ch.len_utf8();
+                break;
+            }
+        }
+        let display = input_text[start..].to_string();
+        let cursor = if cursor_pos < start {
+            0
+        } else {
+            input_text[start..cursor_pos.min(input_text.len())].width()
+        };
+        (display, cursor)
+    };
+    let pad_width = max_input_width.saturating_sub(display_input.width());
+    let mut line_input = vec![Span::styled(
+        display_input,
         Style::default().add_modifier(Modifier::BOLD),
-    )]));
+    )];
+    if pad_width > 0 {
+        line_input.push(Span::raw(" ".repeat(pad_width)));
+    }
+    line_input.push(Span::raw("  "));
+    line_input.push(Span::styled(
+        indicator,
+        Style::default().fg(Color::DarkGray),
+    ));
+    display_lines.push(Line::from(line_input));
     display_lines.push(Line::from(""));
 
     if results.is_empty() {
@@ -377,12 +421,7 @@ pub fn draw_find_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) 
         display_lines,
         Some(Alignment::Left),
     );
-
-    let visible_text = &input_text[..app.actions().input_cursor_pos().min(input_text.len())];
-    frame.set_cursor_position((
-        dialog_rect.x + 1 + visible_text.width() as u16,
-        dialog_rect.y + 1,
-    ));
+    frame.set_cursor_position((dialog_rect.x + 1 + cursor_x as u16, dialog_rect.y + 1));
 }
 
 /// Helper function to make adjusted dialog positions for unified borders
