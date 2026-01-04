@@ -1,4 +1,13 @@
-//! Misc utilits functions for color parsing and external editor for opening files with.
+//! Miscellaneous utility functions for runa.
+//!
+//! This module contains the [Formatter] and various formatting functions for displaying file info.
+//! It also includes the [helpers] submodule, which provides commonly used utilities such as:
+//! - Color parsing
+//! - Opening a file/path in the chosen editor
+//! - Computing an unused path for core/workers
+//! - Shortening the home directory path to "~"
+//!
+//! All of these utilities are used throughout runa for convenience and code clarity.
 
 pub mod cli;
 pub mod formatter;

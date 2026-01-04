@@ -1,6 +1,14 @@
-//! Helpers for runa
+//! Helpers for runa.
 //!
-//! Holds the min, default and the max find result numbers which is uses throughout runa.
+//! This module defines constants for the minimum, default, and maximum find result limits used throughout runa.
+//! It also provides utility functions:
+//! - Color parsing from strings or hex codes
+//! - Opening paths/files in the user's chosen editor
+//! - Generating unused filenames to prevent accidental overwrite
+//! - Displaying home directories as "~" in file paths
+//! - Clamping the find result count to safe values
+//!
+//! These helpers are used throughout runa.
 
 use crate::config::Editor;
 use ratatui::style::Color;
