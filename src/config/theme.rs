@@ -3,12 +3,15 @@
 //! This module defines the theme configuration options which are read from the runa.toml
 //! configuration file.
 
+mod gruvbox;
+
+use crate::config::theme::gruvbox::*;
 use crate::ui::widgets::{DialogPosition, DialogSize};
 use crate::utils::parse_color;
 use ratatui::style::{Color, Style};
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct ColorPair {
     #[serde(default, deserialize_with = "deserialize_color_field")]
     fg: Color,
@@ -73,7 +76,7 @@ impl ColorPair {
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct MarkerTheme {
     #[serde(default)]
     icon: String,
@@ -199,6 +202,12 @@ impl WidgetTheme {
     }
 }
 
+impl PartialEq for WidgetTheme {
+    fn eq(&self, other: &Self) -> bool {
+        self.color == other.color && self.border == other.border && self.title == other.title
+    }
+}
+
 impl Default for WidgetTheme {
     fn default() -> Self {
         WidgetTheme {
@@ -216,6 +225,7 @@ impl Default for WidgetTheme {
 #[derive(Deserialize, Debug)]
 #[serde(default)]
 pub struct Theme {
+    name: Option<String>,
     selection: ColorPair,
     underline: ColorPair,
     accent: ColorPair,
@@ -290,11 +300,69 @@ impl Theme {
     pub fn info(&self) -> &WidgetTheme {
         &self.info
     }
+
+    pub fn with_overrides(self) -> Self {
+        if let Some(ref n) = self.name {
+            let mut base = match n.as_str() {
+                "gruvbox-dark-hard" => gruvbox_dark_hard(),
+                "gruvbox-dark" => gruvbox_dark(),
+                "gruvbox-light" => gruvbox_light(),
+                _ => Theme::default(),
+            };
+            if self.accent != Theme::default().accent {
+                base.accent = self.accent;
+            }
+            if self.selection != Theme::default().selection {
+                base.selection = self.selection;
+            }
+            if self.underline != Theme::default().underline {
+                base.underline = self.underline;
+            }
+            if self.entry != Theme::default().entry {
+                base.entry = self.entry;
+            }
+            if self.directory != Theme::default().directory {
+                base.directory = self.directory;
+            }
+            if self.separator != Theme::default().separator {
+                base.separator = self.separator;
+            }
+            if self.selection_icon != Theme::default().selection_icon {
+                base.selection_icon = self.selection_icon.clone();
+            }
+            if self.parent != Theme::default().parent {
+                base.parent = self.parent;
+            }
+            if self.preview != Theme::default().preview {
+                base.preview = self.preview;
+            }
+            if self.path != Theme::default().path {
+                base.path = self.path;
+            }
+            if self.status_line != Theme::default().status_line {
+                base.status_line = self.status_line;
+            }
+            if self.marker != Theme::default().marker {
+                base.marker = self.marker.clone();
+            }
+            if self.widget != Theme::default().widget {
+                base.widget = self.widget.clone();
+            }
+            if self.info != Theme::default().info {
+                base.info = self.info.clone();
+            }
+            base.name = Some(n.clone());
+            base
+        } else {
+            self
+        }
+    }
 }
 
 impl Default for Theme {
     fn default() -> Self {
         Theme {
+            name: None,
             accent: ColorPair {
                 fg: Color::Indexed(238),
                 ..ColorPair::default()

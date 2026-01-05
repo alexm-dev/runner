@@ -84,7 +84,10 @@ impl Config {
 
         match std::fs::read_to_string(&path) {
             Ok(content) => match toml::from_str::<RawConfig>(&content) {
-                Ok(raw) => raw.into(),
+                Ok(mut raw) => {
+                    raw.theme = raw.theme.with_overrides();
+                    raw.into()
+                }
                 Err(e) => {
                     eprintln!("Error parsing config: {}", e);
                     Self::default()
