@@ -19,7 +19,6 @@ use std::sync::{Arc, Mutex};
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct FindResult {
     path: PathBuf,
-    relative: String,
     is_dir: bool,
     score: i64,
 }
@@ -41,16 +40,17 @@ impl FindResult {
         &self.path
     }
 
-    pub fn relative(&self) -> &str {
-        &self.relative
-    }
-
     pub fn is_dir(&self) -> bool {
         self.is_dir
     }
 
     pub fn score(&self) -> i64 {
         self.score
+    }
+
+    pub fn relative(&self, base: &Path) -> String {
+        let rel = self.path.strip_prefix(base).unwrap_or(&self.path);
+        normalize_relative_path(rel)
     }
 }
 
@@ -127,12 +127,8 @@ pub fn find_recursive(
     raw_results.sort_by(|a, b| b.0.cmp(&a.0));
 
     for (score, path, is_dir) in raw_results {
-        let rel = path.strip_prefix(&root_buf).unwrap_or(&path);
-        let relative = normalize_relative_path(rel);
-
         out.push(FindResult {
             path,
-            relative,
             is_dir,
             score,
         });

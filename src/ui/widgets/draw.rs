@@ -294,6 +294,8 @@ pub fn draw_show_info_dialog(
 pub fn draw_find_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) {
     let actions = app.actions();
     let widget = app.config().theme().widget();
+    let base_dir = app.nav().current_dir();
+
     let position = dialog_position_unified(widget.position(), app, DialogPosition::Center);
     let size = widget.find_size_or(DialogSize::Medium);
     let border_type = app.config().display().border_shape().as_border_type();
@@ -384,7 +386,7 @@ pub fn draw_find_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) 
             };
             display_lines.push(Line::from(vec![
                 Span::styled(marker, marker_style),
-                Span::raw(r.relative()),
+                Span::raw(r.relative(base_dir)),
             ]));
         }
         let lines_drawn = results
