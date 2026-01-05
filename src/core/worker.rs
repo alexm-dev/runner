@@ -22,7 +22,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 
-use crossbeam_channel::{Receiver, Sender, unbounded};
+use crossbeam_channel::{Receiver, Sender, bounded, unbounded};
 use unicode_width::UnicodeWidthChar;
 
 use crate::core::find::{FindResult, find_recursive};
@@ -41,7 +41,7 @@ impl Workers {
     pub fn spawn() -> Self {
         let (io_tx, io_rx) = unbounded::<WorkerTask>();
         let (preview_tx, preview_rx) = unbounded::<WorkerTask>();
-        let (find_tx, find_rx) = unbounded::<WorkerTask>();
+        let (find_tx, find_rx) = bounded::<WorkerTask>(1);
         let (fileop_tx, fileop_rx) = unbounded::<WorkerTask>();
         let (res_tx, response_rx) = unbounded::<WorkerResponse>();
 
@@ -289,7 +289,7 @@ pub fn start_find_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerRes
                 results.truncate(max_results);
             }
 
-            if cancel.load(Ordering::Relaxed) {
+            if cancel.load(Ordering::Acquire) {
                 continue;
             }
 

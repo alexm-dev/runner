@@ -9,12 +9,13 @@ use fuzzy_matcher::FuzzyMatcher;
 use fuzzy_matcher::skim::SkimMatcherV2;
 use ignore::WalkBuilder;
 use num_cpus;
-use std::cmp::Ordering;
+use parking_lot::Mutex;
+use std::cmp::{Ordering, Reverse};
 use std::collections::BinaryHeap;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
-use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct FindResult {
@@ -69,70 +70,109 @@ pub fn find_recursive(
         return Ok(());
     }
 
-    let results: Arc<Mutex<BinaryHeap<(i64, PathBuf, bool)>>> =
-        Arc::new(Mutex::new(BinaryHeap::with_capacity(max_results + 1)));
+    let thread_heaps: Arc<Mutex<Vec<BinaryHeap<(Reverse<i64>, PathBuf, bool)>>>> =
+        Arc::new(Mutex::new(Vec::new()));
 
-    let query_str = query.to_owned();
-    let root_buf = base_dir.to_path_buf();
+    let query = Arc::new(query.to_owned());
+    let root_buf = Arc::new(base_dir.to_path_buf());
 
     WalkBuilder::new(base_dir)
         .standard_filters(true)
         .threads(num_cpus::get().saturating_sub(1).max(1))
         .build_parallel()
         .run(|| {
-            let results = Arc::clone(&results);
-            let query = query_str.clone();
-            let root_ref = root_buf.clone();
+            let thread_heaps = Arc::clone(&thread_heaps);
+            let query = Arc::clone(&query);
+            let root_ref = Arc::clone(&root_buf);
             let matcher = SkimMatcherV2::default();
             let cancel = Arc::clone(&cancel);
+
+            struct HeapGuard {
+                local_heap: BinaryHeap<(Reverse<i64>, PathBuf, bool)>,
+                thread_heaps: Arc<Mutex<Vec<BinaryHeap<(Reverse<i64>, PathBuf, bool)>>>>,
+            }
+
+            impl Drop for HeapGuard {
+                fn drop(&mut self) {
+                    self.thread_heaps
+                        .lock()
+                        .push(std::mem::take(&mut self.local_heap));
+                }
+            }
+
+            let mut guard = HeapGuard {
+                local_heap: BinaryHeap::with_capacity(max_results + 1),
+                thread_heaps,
+            };
 
             Box::new(move |entry| {
                 if cancel.load(std::sync::atomic::Ordering::Relaxed) {
                     return ignore::WalkState::Quit;
                 }
 
-                let entry = match entry {
+                let entry: ignore::DirEntry = match entry {
                     Ok(e) => e,
                     Err(_) => return ignore::WalkState::Continue,
                 };
 
-                let rel_path = entry.path().strip_prefix(&root_ref).unwrap_or(entry.path());
-                let rel_str = rel_path.to_string_lossy();
+                let path = entry.path();
 
-                if let Some(score) = matcher.fuzzy_match(&rel_str, &query)
-                    && let Ok(mut guard) = results.lock()
-                    && (guard.len() < max_results
-                        || score > guard.peek().map(|(s, _, _)| *s).unwrap_or(0))
-                {
-                    guard.push((
-                        score,
-                        entry.path().to_path_buf(),
-                        entry.file_type().map(|f| f.is_dir()).unwrap_or(false),
-                    ));
+                let rel_path = path.strip_prefix(&*root_ref).unwrap_or(path);
+                let rel_str = match rel_path.to_str() {
+                    Some(s) => s,
+                    None => return ignore::WalkState::Continue,
+                };
 
-                    if guard.len() > max_results {
-                        guard.pop();
+                if let Some(score) = matcher.fuzzy_match(rel_str, &query) {
+                    if guard.local_heap.len() < max_results
+                        || score > (guard.local_heap.peek().map(|(s, _, _)| s.0).unwrap_or(0))
+                    {
+                        let is_dir = entry.file_type().map(|file| file.is_dir()).unwrap_or(false);
+                        guard
+                            .local_heap
+                            .push((Reverse(score), path.to_path_buf(), is_dir));
+                        if guard.local_heap.len() > max_results {
+                            guard.local_heap.pop();
+                        }
                     }
                 }
                 ignore::WalkState::Continue
             })
         });
 
-    let heap = Arc::try_unwrap(results)
-        .map_err(|_| io::Error::other("Thread synchronization failed"))?
-        .into_inner()
-        .map_err(|_| io::Error::other("Mutex poisoned by a panicked thread"))?;
+    let mut final_heap = BinaryHeap::with_capacity(max_results);
+    let mut locked_heaps = thread_heaps.lock();
 
-    let mut raw_results: Vec<_> = heap.into_vec();
-    raw_results.sort_by(|a, b| b.0.cmp(&a.0));
+    for mut heap in locked_heaps.drain(..) {
+        for (rev_score, path, is_dir) in heap.drain() {
+            let score = rev_score.0;
+
+            if final_heap.len() < max_results
+                || score
+                    > final_heap
+                        .peek()
+                        .map(|(s, _, _): &(Reverse<i64>, PathBuf, bool)| s.0)
+                        .unwrap_or(0)
+            {
+                final_heap.push((Reverse(score), path, is_dir));
+                if final_heap.len() > max_results {
+                    final_heap.pop();
+                }
+            }
+        }
+    }
+
+    let mut raw_results: Vec<_> = final_heap.into_vec();
+    raw_results.sort_unstable_by(|a, b| b.0.cmp(&a.0));
 
     for (score, path, is_dir) in raw_results {
         out.push(FindResult {
             path,
             is_dir,
-            score,
+            score: score.0,
         });
     }
+
     Ok(())
 }
 

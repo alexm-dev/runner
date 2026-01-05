@@ -38,104 +38,6 @@ pub enum InputMode {
     Find,
 }
 
-#[derive(Default)]
-pub struct FindState {
-    cache: Vec<FindResult>,
-    request_id: u64,
-    debounce: Option<Instant>,
-    last_query: String,
-    selected: usize,
-    cancel: Option<Arc<AtomicBool>>,
-}
-
-impl FindState {
-    // Getters / Accessors
-
-    fn results(&self) -> &[FindResult] {
-        &self.cache
-    }
-
-    fn request_id(&self) -> u64 {
-        self.request_id
-    }
-
-    fn selected(&self) -> usize {
-        self.selected
-    }
-
-    // Find functions
-
-    fn cancel_current(&mut self) {
-        if let Some(token) = self.cancel.take() {
-            token.store(true, Ordering::Relaxed);
-        }
-    }
-
-    fn set_results(&mut self, results: Vec<FindResult>) {
-        self.cache = results;
-        self.selected = 0;
-    }
-
-    fn set_cancel(&mut self, token: Arc<AtomicBool>) {
-        self.cancel = Some(token);
-    }
-
-    fn clear_results(&mut self) {
-        self.cache.clear();
-        self.cache.shrink_to_fit();
-    }
-
-    fn prepare_new_request(&mut self) -> u64 {
-        self.request_id = self.request_id.wrapping_add(1);
-        self.request_id
-    }
-
-    fn set_debounce(&mut self, delay: Duration) {
-        self.debounce = Some(Instant::now() + delay);
-    }
-
-    fn take_query(&mut self, current_query: &str) -> Option<String> {
-        let until = self.debounce?;
-        if Instant::now() < until {
-            return None;
-        }
-
-        self.debounce = None;
-        if current_query == self.last_query {
-            self.last_query.clear();
-            return None;
-        }
-
-        self.last_query.clear();
-        self.last_query.push_str(current_query);
-        Some(current_query.to_string())
-    }
-
-    fn reset(&mut self) {
-        self.cancel_current();
-        self.cache.clear();
-        self.cache.shrink_to_fit();
-        self.debounce = None;
-        self.last_query.clear();
-    }
-
-    pub fn select_next(&mut self) {
-        if self.selected + 1 < self.cache.len() {
-            self.selected += 1;
-        }
-    }
-
-    pub fn select_prev(&mut self) {
-        if self.selected > 0 {
-            self.selected -= 1;
-        }
-    }
-
-    pub fn reset_selected(&mut self) {
-        self.selected = 0;
-    }
-}
-
 /// Tracks current user action and input buffer state for file operations and commands.
 ///
 /// Stores the current mode/prompt, input buffer, cursor, and clipboard (for copy/yank) status.
@@ -389,5 +291,101 @@ impl Default for ActionContext {
             is_cut: false,
             find: FindState::default(),
         }
+    }
+}
+
+#[derive(Default)]
+pub struct FindState {
+    cache: Vec<FindResult>,
+    request_id: u64,
+    debounce: Option<Instant>,
+    last_query: String,
+    selected: usize,
+    cancel: Option<Arc<AtomicBool>>,
+}
+
+impl FindState {
+    // Getters / Accessors
+
+    fn results(&self) -> &[FindResult] {
+        &self.cache
+    }
+
+    fn request_id(&self) -> u64 {
+        self.request_id
+    }
+
+    fn selected(&self) -> usize {
+        self.selected
+    }
+
+    // Find functions
+
+    fn cancel_current(&mut self) {
+        if let Some(token) = self.cancel.take() {
+            token.store(true, Ordering::Relaxed);
+        }
+    }
+
+    fn set_results(&mut self, results: Vec<FindResult>) {
+        self.cache = results;
+        self.selected = 0;
+    }
+
+    fn set_cancel(&mut self, token: Arc<AtomicBool>) {
+        self.cancel = Some(token);
+    }
+
+    fn clear_results(&mut self) {
+        self.cache.clear();
+    }
+
+    fn prepare_new_request(&mut self) -> u64 {
+        self.request_id = self.request_id.wrapping_add(1);
+        self.request_id
+    }
+
+    fn set_debounce(&mut self, delay: Duration) {
+        self.debounce = Some(Instant::now() + delay);
+    }
+
+    fn take_query(&mut self, current_query: &str) -> Option<String> {
+        let until = self.debounce?;
+        if Instant::now() < until {
+            return None;
+        }
+
+        self.debounce = None;
+        if current_query == self.last_query {
+            self.last_query.clear();
+            return None;
+        }
+
+        self.last_query.clear();
+        self.last_query.push_str(current_query);
+        Some(current_query.to_string())
+    }
+
+    fn reset(&mut self) {
+        self.cancel_current();
+        self.cache.clear();
+        self.debounce = None;
+        self.last_query.clear();
+    }
+
+    pub fn select_next(&mut self) {
+        if self.selected + 1 < self.cache.len() {
+            self.selected += 1;
+        }
+    }
+
+    pub fn select_prev(&mut self) {
+        if self.selected > 0 {
+            self.selected -= 1;
+        }
+    }
+
+    pub fn reset_selected(&mut self) {
+        self.selected = 0;
     }
 }

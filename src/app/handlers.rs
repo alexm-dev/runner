@@ -106,7 +106,7 @@ impl<'a> AppState<'a> {
                 }
                 InputMode::Find => {
                     self.actions.action_insert_at_cursor(c);
-                    self.actions.find_debounce(Duration::from_millis(90));
+                    self.actions.find_debounce(Duration::from_millis(120));
                     KeypressResult::Consumed
                 }
             },
