@@ -3,9 +3,6 @@
 //! This module defines the theme configuration options which are read from the runa.toml
 //! configuration file.
 
-mod gruvbox;
-
-use crate::config::theme::gruvbox::*;
 use crate::ui::widgets::{DialogPosition, DialogSize};
 use crate::utils::parse_color;
 use ratatui::style::{Color, Style};
@@ -244,6 +241,14 @@ pub struct Theme {
     info: WidgetTheme,
 }
 
+macro_rules! override_if_changed {
+    ($target:ident, $user:ident, $default:ident, $field:ident) => {
+        if $user.$field != $default.$field {
+            $target.$field = $user.$field.clone();
+        }
+    };
+}
+
 impl Theme {
     pub fn accent(&self) -> ColorPair {
         self.accent
@@ -302,59 +307,57 @@ impl Theme {
     }
 
     pub fn with_overrides(self) -> Self {
-        if let Some(ref n) = self.name {
-            let mut base = match n.as_str() {
-                "gruvbox-dark-hard" => gruvbox_dark_hard(),
-                "gruvbox-dark" => gruvbox_dark(),
-                "gruvbox-light" => gruvbox_light(),
-                _ => Theme::default(),
-            };
-            if self.accent != Theme::default().accent {
-                base.accent = self.accent;
-            }
-            if self.selection != Theme::default().selection {
-                base.selection = self.selection;
-            }
-            if self.underline != Theme::default().underline {
-                base.underline = self.underline;
-            }
-            if self.entry != Theme::default().entry {
-                base.entry = self.entry;
-            }
-            if self.directory != Theme::default().directory {
-                base.directory = self.directory;
-            }
-            if self.separator != Theme::default().separator {
-                base.separator = self.separator;
-            }
-            if self.selection_icon != Theme::default().selection_icon {
-                base.selection_icon = self.selection_icon.clone();
-            }
-            if self.parent != Theme::default().parent {
-                base.parent = self.parent;
-            }
-            if self.preview != Theme::default().preview {
-                base.preview = self.preview;
-            }
-            if self.path != Theme::default().path {
-                base.path = self.path;
-            }
-            if self.status_line != Theme::default().status_line {
-                base.status_line = self.status_line;
-            }
-            if self.marker != Theme::default().marker {
-                base.marker = self.marker.clone();
-            }
-            if self.widget != Theme::default().widget {
-                base.widget = self.widget.clone();
-            }
-            if self.info != Theme::default().info {
-                base.info = self.info.clone();
-            }
-            base.name = Some(n.clone());
+        let preset = match self.name.as_deref() {
+            Some("gruvbox-dark-hard") => Some(gruvbox_dark_hard()),
+            Some("gruvbox-dark") => Some(gruvbox_dark()),
+            Some("gruvbox-light") => Some(gruvbox_light()),
+
+            Some("catppuccin-mocha") => Some(catppuccin_mocha()),
+            Some("catppuccin-frappe") => Some(catppuccin_frappe()),
+            Some("catppuccin-macchiato") => Some(catppuccin_mocha()),
+            Some("catppuccin-latte") => Some(catppuccin_latte()),
+
+            Some("nightfox") => Some(nightfox()),
+            Some("carbonfox") => Some(carbonfox()),
+
+            Some("tokyonight") => Some(tokyonight_night()),
+            Some("tokyonight-storm") => Some(tokyonight_storm()),
+            Some("tokyonight-day") => Some(tokyonight_day()),
+
+            Some("everforest") => Some(everforest()),
+            Some("rose-pine") | Some("rose_pine") => Some(rose_pine()),
+
+            _ => None,
+        };
+
+        if let Some(mut base) = preset {
+            base.apply_user_overrides(self);
             base
         } else {
             self
+        }
+    }
+
+    fn apply_user_overrides(&mut self, user: Theme) {
+        let d = Theme::default();
+
+        override_if_changed!(self, user, d, accent);
+        override_if_changed!(self, user, d, selection);
+        override_if_changed!(self, user, d, underline);
+        override_if_changed!(self, user, d, entry);
+        override_if_changed!(self, user, d, directory);
+        override_if_changed!(self, user, d, separator);
+        override_if_changed!(self, user, d, parent);
+        override_if_changed!(self, user, d, preview);
+        override_if_changed!(self, user, d, path);
+        override_if_changed!(self, user, d, status_line);
+        override_if_changed!(self, user, d, selection_icon);
+        override_if_changed!(self, user, d, marker);
+        override_if_changed!(self, user, d, widget);
+        override_if_changed!(self, user, d, info);
+
+        if user.name.is_some() {
+            self.name = user.name.clone();
         }
     }
 }
@@ -421,4 +424,251 @@ where
         Some(s) if s.to_lowercase() != "default" => Ok(Some(parse_color(&s))),
         _ => Ok(None),
     }
+}
+
+/// Palette struct to apply internal themes to the central [make_theme] function.
+pub struct Palette {
+    pub base: (u8, u8, u8),
+    pub surface: (u8, u8, u8),
+    pub overlay: (u8, u8, u8),
+    pub primary: (u8, u8, u8),
+    pub secondary: (u8, u8, u8),
+    pub directory: (u8, u8, u8),
+}
+
+pub(crate) fn rgb(c: (u8, u8, u8)) -> Color {
+    Color::Rgb(c.0, c.1, c.2)
+}
+
+pub fn make_theme(name: &str, palette: Palette, icon: &str) -> Theme {
+    let primary = rgb(palette.primary);
+    let secondary = rgb(palette.secondary);
+    let muted = rgb(palette.overlay);
+    let struct_color = rgb(palette.surface);
+    let base_bg = rgb(palette.base);
+    let dir_color = rgb(palette.directory);
+
+    Theme {
+        name: Some(name.to_string()),
+        accent: ColorPair {
+            fg: struct_color,
+            ..ColorPair::default()
+        },
+        selection: ColorPair {
+            bg: struct_color,
+            ..ColorPair::default()
+        },
+        directory: ColorPair {
+            fg: dir_color,
+            ..ColorPair::default()
+        },
+        separator: ColorPair {
+            fg: struct_color,
+            ..ColorPair::default()
+        },
+        path: ColorPair {
+            fg: muted,
+            ..ColorPair::default()
+        },
+
+        status_line: ColorPair {
+            fg: Color::Reset,
+            bg: base_bg,
+            ..ColorPair::default()
+        },
+        marker: MarkerTheme {
+            icon: icon.to_string(),
+            color: ColorPair {
+                fg: primary,
+                ..ColorPair::default()
+            },
+        },
+
+        widget: WidgetTheme {
+            title: ColorPair {
+                fg: muted,
+                ..ColorPair::default()
+            },
+            border: ColorPair {
+                fg: struct_color,
+                ..ColorPair::default()
+            },
+            ..WidgetTheme::default()
+        },
+        info: WidgetTheme {
+            title: ColorPair {
+                fg: secondary,
+                ..ColorPair::default()
+            },
+            border: ColorPair {
+                fg: struct_color,
+                ..ColorPair::default()
+            },
+            ..WidgetTheme::default()
+        },
+        ..Theme::default()
+    }
+}
+
+// Theme palettes
+
+const TOKYO_STORM: Palette = Palette {
+    base: (36, 40, 59),
+    surface: (41, 46, 66),
+    overlay: (86, 95, 137),
+    primary: (187, 154, 247),
+    secondary: (125, 207, 255),
+    directory: (122, 162, 247),
+};
+
+const TOKYO_NIGHT: Palette = Palette {
+    base: (26, 27, 38),
+    surface: (44, 51, 78),
+    overlay: (86, 95, 137),
+    primary: (187, 154, 247),
+    secondary: (125, 207, 255),
+    directory: (122, 162, 247),
+};
+
+const TOKYO_DAY: Palette = Palette {
+    base: (225, 226, 231),
+    surface: (196, 199, 209),
+    overlay: (168, 175, 199),
+    primary: (152, 94, 171),
+    secondary: (52, 90, 183),
+    directory: (52, 90, 183),
+};
+
+pub fn tokyonight_storm() -> Theme {
+    make_theme("tokyonight-storm", TOKYO_STORM, "┃")
+}
+pub fn tokyonight_night() -> Theme {
+    make_theme("tokyonight-night", TOKYO_NIGHT, "┃")
+}
+pub fn tokyonight_day() -> Theme {
+    make_theme("tokyonight-day", TOKYO_DAY, "┃")
+}
+
+const GRUV_DARK_HARD: Palette = Palette {
+    base: (29, 32, 33),
+    surface: (60, 56, 54),
+    overlay: (146, 131, 116),
+    primary: (211, 134, 155),
+    secondary: (142, 192, 124),
+    directory: (131, 165, 152),
+};
+
+const GRUV_DARK: Palette = Palette {
+    base: (40, 40, 40),
+    surface: (60, 56, 54),
+    overlay: (146, 131, 116),
+    primary: (211, 134, 155),
+    secondary: (142, 192, 124),
+    directory: (131, 165, 152),
+};
+
+const GRUV_LIGHT: Palette = Palette {
+    base: (251, 241, 199),
+    surface: (213, 196, 161),
+    overlay: (124, 111, 100),
+    primary: (143, 63, 113),
+    secondary: (66, 123, 88),
+    directory: (7, 102, 120),
+};
+
+pub fn gruvbox_dark_hard() -> Theme {
+    make_theme("gruvbox-dark-hard", GRUV_DARK_HARD, "*")
+}
+pub fn gruvbox_dark() -> Theme {
+    make_theme("gruvbox-dark", GRUV_DARK, "*")
+}
+pub fn gruvbox_light() -> Theme {
+    make_theme("gruvbox-light", GRUV_LIGHT, "*")
+}
+
+const MOCHA: Palette = Palette {
+    base: (30, 30, 46),
+    surface: (49, 50, 68),
+    overlay: (108, 112, 134),
+    primary: (203, 166, 247),
+    secondary: (148, 226, 213),
+    directory: (137, 180, 250),
+};
+
+const FRAPPE: Palette = Palette {
+    base: (48, 52, 70),
+    surface: (65, 69, 89),
+    overlay: (115, 121, 148),
+    primary: (202, 158, 230),
+    secondary: (129, 200, 190),
+    directory: (140, 170, 238),
+};
+
+const LATTE: Palette = Palette {
+    base: (239, 241, 245),
+    surface: (204, 208, 218),
+    overlay: (156, 160, 176),
+    primary: (136, 57, 239),
+    secondary: (23, 146, 153),
+    directory: (30, 102, 245),
+};
+
+pub fn catppuccin_mocha() -> Theme {
+    make_theme("catppuccin-mocha", MOCHA, "┃")
+}
+pub fn catppuccin_frappe() -> Theme {
+    make_theme("catppuccin-frappe", FRAPPE, "┃")
+}
+pub fn catppuccin_latte() -> Theme {
+    make_theme("catppuccin-latte", LATTE, "┃")
+}
+
+const CARBON: Palette = Palette {
+    base: (22, 22, 22),
+    surface: (42, 42, 42),
+    overlay: (82, 82, 82),
+    primary: (190, 149, 233),
+    secondary: (61, 187, 199),
+    directory: (120, 169, 235),
+};
+
+const NIGHTFOX: Palette = Palette {
+    base: (25, 30, 36),
+    surface: (43, 51, 63),
+    overlay: (87, 91, 112),
+    primary: (195, 157, 239),
+    secondary: (99, 199, 209),
+    directory: (113, 161, 236),
+};
+
+pub fn carbonfox() -> Theme {
+    make_theme("carbonfox", CARBON, "┃")
+}
+pub fn nightfox() -> Theme {
+    make_theme("nightfox", NIGHTFOX, "┃")
+}
+
+const FOREST: Palette = Palette {
+    base: (43, 51, 57),
+    surface: (74, 82, 88),
+    overlay: (133, 146, 137),
+    primary: (167, 192, 128),
+    secondary: (230, 126, 128),
+    directory: (127, 187, 179),
+};
+
+const ROSE_PINE: Palette = Palette {
+    base: (25, 23, 36),
+    surface: (31, 29, 46),
+    overlay: (110, 106, 134),
+    primary: (196, 167, 231),
+    secondary: (235, 188, 186),
+    directory: (49, 116, 143),
+};
+
+pub fn everforest() -> Theme {
+    make_theme("everforest", FOREST, "*")
+}
+pub fn rose_pine() -> Theme {
+    make_theme("rose_pine", ROSE_PINE, "*")
 }

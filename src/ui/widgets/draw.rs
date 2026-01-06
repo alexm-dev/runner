@@ -214,39 +214,42 @@ pub fn draw_show_info_dialog(
     accent_style: Style,
     info: &FileInfo,
 ) {
-    let widget_info = app.config().theme().info();
+    let theme = app.config().theme();
+    let widget_info = theme.info();
     let info_cfg = &app.config().display().info();
+
+    let label_style = theme.directory().as_style();
+    let value_style = theme.entry().as_style();
+
     let position = dialog_position_unified(info_cfg.position(), app, DialogPosition::BottomLeft);
     let border_type = app.config().display().border_shape().as_border_type();
 
     let mut lines: Vec<Line> = Vec::with_capacity(5);
 
+    let mut add_line = |label: &str, value: String| {
+        lines.push(Line::from(vec![
+            Span::styled(format!("{:<11}", label), label_style),
+            Span::styled(value, value_style),
+        ]));
+    };
+
     if info_cfg.name() {
-        lines.push(Line::from(format!(
-            "Name:      {}",
-            info.name().to_string_lossy()
-        )));
+        add_line("Name:", info.name().to_string_lossy().into_owned());
     }
     if info_cfg.file_type() {
-        lines.push(Line::from(format!(
-            "Type:      {}",
-            format_file_type(info.file_type())
-        )));
+        add_line("Type:", format_file_type(info.file_type()).into());
     }
     if info_cfg.size() {
-        lines.push(Line::from(format!(
-            "Size:      {}",
-            format_file_size(*info.size(), info.file_type() == &FileType::Directory)
-        )));
+        add_line(
+            "Size:",
+            format_file_size(*info.size(), info.file_type() == &FileType::Directory),
+        );
     }
     if info_cfg.modified() {
-        lines.push(Line::from(format!(
-            "Modified:  {}",
-            format_file_time(*info.modified())
-        )));
+        add_line("Modified:", format_file_time(*info.modified()));
     }
     if info_cfg.perms() {
-        lines.push(Line::from(format!("Perms:     {}", info.attributes())));
+        add_line("Perms:", info.attributes().to_string());
     }
 
     if lines.is_empty() {
