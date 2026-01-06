@@ -11,7 +11,7 @@ license=('MIT')
 depends=('gcc-libs')
 makedepends=('cargo')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
-sha256sums=('7bd10019fc2d540f49b7ca07a289d80f7577eebdcfc3674a33323540f0a49803')
+sha256sums=('b16df4168b39ba70cbb1cc22ca49e0a3b613470e826140f74f32f965ca2425df')
 
 prepare() {
     export RUSTUP_TOOLCHAIN=stable
