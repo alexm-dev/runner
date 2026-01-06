@@ -123,13 +123,13 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 ### Planned features
 
-- [ ] Search & Discovery: Integrated fuzzy finding and fast directory traversal. ( Completed in 0.4.0 - Soon to be released)  
-
 - [ ] Image Previews: Support for Sixel/Kitty graphics protocols.  
 
-- [ ] Syntax Highlighting: Treesitter integration for the preview pane.  
+- [ ] Syntax Highlighting: Treesitter (or similar) integration for the preview pane.  
 
 ### Completed
+
+- [x] Search & Discovery: Integrated fuzzy finding and fast directory traversal. ( Completed in 0.4.0)  
 
 - [x] File Operations: Copy, move, delete, and rename from within the UI.  ( Completed in 0.3.0 )  
 
@@ -149,6 +149,15 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 ---
 
+## Optional Enhancements
+
+`runa` is designed to be lightweight and standalone. However, some advanced features leverage specialized external tools:
+
+* **Fuzzy Search:** To enable fast, recursive fuzzy finding, install **[fd](https://github.com/sharkdp/fd)**.
+  * If `fd` is detected in your `PATH`, the search feature will be enabled automatically.
+  * Without it, `runa` remains a fully functional file manager but will notify you if you attempt a recursive search.
+
+
 ## Support & Contribute
 If you enjoy using **runa**, you can help the project grow:
 
@@ -164,6 +173,7 @@ If you enjoy using **runa**, you can help the project grow:
 - **TUI Framework:** [Ratatui](https://ratatui.rs) & [Crossterm](https://github.com/crossterm-rs/crossterm)
 - **Configuration:** [Serde](https://serde.rs) & [TOML](https://github.com/toml-rs/toml)
 - **System Integration:** [Dirs](https://github.com/dirs-dev/dirs-rs) (Standard config locations)
+- **External Integration:** [fd-find](https://github.com/sharkdp/fd) (Optional backend for fuzzy search)
 - **Concurrency:** [Crossbeam-channel](https://github.com/crossbeam-rs/crossbeam)
 
 ## License
