@@ -37,6 +37,26 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
+      - name: Install fd (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fd-find
+          sudo ln -sf $(which fdfind) /usr/local/bin/fd
+
+      - name: Install fd (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install fd
+
+      - name: Install fd (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install fd -y
+
+      - name: Verify fd
+        run: fd --version
+
       - name: Build
         run: cargo build --release --locked
 
