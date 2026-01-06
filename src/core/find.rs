@@ -1,9 +1,9 @@
 //! The (fuzzy) find module for the find function in runa
 //!
-//! This module implements the [find_recursive()] function and the [FindResult].
+//! This module implements the [find] function and the [FindResult].
 //!
 //! The [FindResult] struct is used to correctly display the calculated results of the
-//! find_recursive function. It is used mainly by ui/actions.
+//! find function. It is used mainly by ui/actions.
 
 use fuzzy_matcher::FuzzyMatcher;
 use fuzzy_matcher::skim::SkimMatcherV2;
