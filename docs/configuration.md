@@ -2,6 +2,16 @@
 
 runa is under active development and options may change over time.
 
+## Contents
+
+- [Config File Location](#config-file)
+- [Quick Start](#quick-start)
+- [General Settings](#general-settings)
+- [Theme Configuration](#theme-configuration)
+- [Editor](#editor)
+- [Key Bindings](#key-bindings)
+- [Examples](#examples)
+
 ## Config File
 
 `runa` is configured via a TOML file located at:
@@ -17,7 +27,7 @@ runa is under active development and options may change over time.
 If you don't have a config file yet, you can generate one automatically:
 
 - `rn --init`: Generates the configuration.
-- `rn --init-full`: Generates a full config files with all options as seen below.
+- `rn --init-full`: Creates a full configuration file with all options as shown below.
 - `rn --config-help`: Displays all configuration options.
 
 ## General Settings
@@ -40,6 +50,12 @@ case_insensitive = true
 
 # Always show these directories, even if 'show_hidden' is false. Example: always_show = [".config", "Downloads"]
 always_show = []
+
+# Configure the maximum number of find/search results to display.
+# 2000 is the default.
+# Minimum allowed: 15
+# Maximum allowed: 1_000_000 (values above this will be clamped)
+max_find_results = 2000
 
 [display]
 # Show the selection icon next to the file/directory name
@@ -84,7 +100,7 @@ parent = 20
 main = 40
 preview = 40
 
-# Diplays the file info attributes.
+# Diplay the file info attributes.
 [display.info]
 name = true
 file_type = true
@@ -123,6 +139,27 @@ perms = true
 # Theme color values can be terminal color names ("Red", "Blue", etc.), hex ("#RRGGBB"), or "default".
 
 [theme]
+
+# The name of the preset themes included in runa.
+name = "default"
+# Available options (case-sensitive strings):
+#   "gruvbox-dark"
+#   "gruvbox-dark-hard"
+#   "gruvbox-light"
+#   "catppuccin-mocha"
+#   "catppuccin-frappe"
+#   "catppuccin-macchiato"
+#   "catppuccin-latte"
+#   "nightfox"
+#   "carbonfox"
+#   "tokyonight"
+#   "tokyonight-storm"
+#   "tokyonight-day"
+#   "everforest"
+#   "rose-pine"       # or "rose_pine"
+# Example:
+# name = "gruvbox-dark"
+
 # The symbol for the current selection. Use "" or " " to disable.
 selection_icon = ">"
 

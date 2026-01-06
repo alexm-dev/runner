@@ -204,10 +204,10 @@ selection_icon = ""
 
 # [theme.selection]
 # fg = "default"
-# bg = "#333333"
+# bg = "default"
 
 # [theme.accent]
-# fg = "#353536"
+# fg = "default"
 # bg = "default"
 
 # [theme.entry]
@@ -289,6 +289,7 @@ selection_icon = ""
 # filter = ["f"]
 # toggle_marker = [" "]     # " " - indicates space bar
 # info = ["i"]
+# find = ["s"]
 "##;
 
         let minimal_toml = r##"# runa.toml - minimal configuration
@@ -302,16 +303,8 @@ borders = "unified"
 entry_padding = 1
 
 [theme]
+name = "default"
 selection_icon = ""
-
-# [theme.selection]
-# bg = "#333333"
-
-# [theme.accent]
-# fg = "#353536"
-
-# [theme.directory]
-# fg = "blue"
 
 # [theme.path]
 # fg = "magenta"

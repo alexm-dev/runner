@@ -7,13 +7,36 @@
 [![Language](https://img.shields.io/github/languages/top/alexm-dev/runa?style=flat-square&logo=rust&color=%23e67e22&label=Rust)](https://github.com/alexm-dev/runa)
 [![License](https://img.shields.io/github/license/alexm-dev/runa?label=License&style=flat-square&color=3498db)](LICENSE)
 
+> **A fast, ultra-lightweight, and extremely customizable terminal file browser written in Rust.**
+
+- **Extremely Customizable:** Every key, theme color, pane, and UI element can be adjusted in an easy TOML config.
+- **Blazing Fast:** Instant navigation, even in large directories.
+- **Minimal Dependencies:** Only uses essential Rust crates; advanced features (like fuzzy search) are fully optional.
+- **Cross-Platform:** Works on Windows, Linux, and macOS.
+- **Keyboard-Driven:** Every action accessible by keybinding. No mouse needed.
+
 **Documentation**
-- [Configuration](docs/configuration.md)
+- [Full Configuration Guide](docs/configuration.md)
+- [Config File Location](docs/configuration.md#config-file)
+- [General Settings](docs/configuration.md#general-settings)
+- [Theme Configuration](docs/configuration.md#theme-configuration)
+- [Key Bindings](docs/configuration.md#key-bindings)
+- [Editor](docs/configuration.md#editor)
+- [Examples](docs/configuration.md#examples)
 
 <img src="https://github.com/user-attachments/assets/22663c5a-3fbb-4480-856e-4a1efa4bd5b6" alt="runa" width="100%" style="max-width: 1274px; height: auto;" />
 <br><br>
 
-A fast and lightweight console file browser written in Rust
+<details>
+<summary><strong>Why is runa fast?</strong></summary>
+
+- **Multi-threaded engine:** Spawns 4 dedicated worker threads (with `crossbeam_channel`) for I/O, preview, find, and file operations—so UI is never blocked.
+- **Essential-only Rust crates:** No external “toy” TUI frameworks or bloat.
+- **Direct terminal rendering:** Uses low-overhead [ratatui](https://ratatui.rs/) & [crossterm](https://github.com/crossterm-rs/crossterm).
+- **Optional blazing-fast find:** Integrates with [fd](https://github.com/sharkdp/fd) for recursive fuzzy search.
+- **Small, native binary:** No scripting, VMs, or JIT delays—just a ~1.2 MB release build.
+
+</details>
 
 **runa - rn** is a minimalist terminal file manager focused on speed and simplicity.  
 It allows you to navigate directories, view file listings, and perform typical file browser actions.  
@@ -40,12 +63,15 @@ You can install runa from the [AUR](https://aur.archlinux.org/packages/runa) usi
 
 ```bash
 yay -S runa
+
+# or for binaries through the AUR
+yay -S runa-bin
 ```
 
 ### Pre-compiled Binaries
 
-If you'd like to download Pre-compiled binaries instead of isntalling runa as a crate in cargo or via the AUR,
-you can grab the latest binaries for Linux, Windows and macOS form the [Release](https://github.com/alexm-dev/runa/releases) page.
+If you'd like to download Pre-compiled binaries instead of installing runa as a crate in cargo or via the AUR,
+you can grab the latest binaries for Linux, Windows and macOS from the [Release](https://github.com/alexm-dev/runa/releases) page.
 
 After downloading, add the `rn` (Linux/macOS) or `rn.exe` (Windows) binary to your system `PATH` to use runa from your terminal.
 
@@ -80,8 +106,7 @@ cargo build --release
 
 ### Usage
 
-Run runa with:
-`rn`
+After installation, start runa with **rn**
 
 ## Configuration
 
@@ -116,6 +141,14 @@ rn --config-help
 
 This will generate a config in the default config path.
 
+## Optional Enhancements
+
+`runa` is designed to be lightweight and standalone. However, some advanced features leverage specialized external tools:
+
+* **Fuzzy Search:** To enable fast, recursive fuzzy finding, install **[fd](https://github.com/sharkdp/fd)**.
+  * If `fd` is detected in your `PATH`, the search feature will be enabled automatically.
+  * Without it, `runa` remains a fully functional file manager but will notify you if you attempt a recursive search.
+
 ## Roadmap
 
 runa is in active development.  
@@ -129,7 +162,7 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 ### Completed
 
-- [x] Search & Discovery: Integrated fuzzy finding (fd support) (Completed in 0.4.0 - WIP)
+- [x] Search & Discovery: Integrated fuzzy finding (fd support) (Completed in 0.4.0) --
 
 - [x] File Operations: Copy, move, delete, and rename from within the UI.  ( Completed in 0.3.0 )  
 
@@ -149,15 +182,6 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 ---
 
-## Optional Enhancements
-
-`runa` is designed to be lightweight and standalone. However, some advanced features leverage specialized external tools:
-
-* **Fuzzy Search:** To enable fast, recursive fuzzy finding, install **[fd](https://github.com/sharkdp/fd)**.
-  * If `fd` is detected in your `PATH`, the search feature will be enabled automatically.
-  * Without it, `runa` remains a fully functional file manager but will notify you if you attempt a recursive search.
-
-
 ## Support & Contribute
 If you enjoy using **runa**, you can help the project grow:
 
@@ -167,7 +191,7 @@ If you enjoy using **runa**, you can help the project grow:
 * 🦀 **Contribute:** Pull requests are always welcome!
 
 
-## Credits & Ecosytem
+## Credits & Ecosystem
 `runa` stands on the shoulders of these incredible Rust crates:
 
 - **TUI Framework:** [Ratatui](https://ratatui.rs) & [Crossterm](https://github.com/crossterm-rs/crossterm)

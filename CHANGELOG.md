@@ -1,21 +1,26 @@
 # Changelog
 
-## [0.4.0] - TDB
+## [0.4.0] - 2025-01-06
 
-New feature update
+New feature update: The fuzzy finder.
 
 ### Added
 - **Find function**: Added a new (fuzzy) find function to quickly search your directories and files.
-    - Note: This feature optionally leverages the external tool [fd](https://github.com/sharkdp/fd) for high-performance recursive traversal. 
+    - Note: This feature optionally leverages the external tool [fd](https://github.com/sharkdp/fd) for high-performance recursive traversal.
 - **Scrollable find results**: Added a scroll able find result list to the new find function to scroll through the results in the widget.
 - **Persistent filters**: Made filters persist for each directory it is applied to.
-- **Configurable maximum find results**: Added a new configuration to change the internal defaults for the new find function. (Internal defaul is 2000).
+- **Configurable maximum find results**: Added a new configuration to change the internal defaults for the new find function. (Internal default is 2000).
 - **Internal themes**: Added internal themes which can be set in the `runa.toml` config.
+
+### Fixed
+- **Parent pane**: Fixed a stale parent content request after initial startup of runa.
+- **Pane Requests**: Request ids are more robust now.
 
 ### Internal
 - **Code file structure**: Refactored modules and sub-modules for better maintainability. In example: Moved **core** runa modules, like `file_manager`, `worker`, etc. into `core`.
 - **Worker thread separation**: Separated worker threads to individual lines for better performance. FileOp, Nav, Find and IO have each their own worker now.
 - **External binary detection**: Integrated which for graceful detection of the fd search backend, providing user notifications if the tool is missing.
+- **Tests**: Added new `find` related tests.
 
 ---
 
