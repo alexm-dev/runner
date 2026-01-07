@@ -135,7 +135,10 @@ impl<'a> AppState<'a> {
                 self.refresh_show_info_if_open();
                 return res;
             }
-            NavAction::ToggleMarker => self.nav.toggle_marker_advance(),
+            NavAction::ToggleMarker => {
+                let marker_jump = self.config.display().toggle_marker_jump();
+                self.nav.toggle_marker_advance(marker_jump);
+            }
         }
         KeypressResult::Continue
     }

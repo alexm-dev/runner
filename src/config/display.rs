@@ -94,6 +94,7 @@ pub struct Display {
     preview_underline_color: bool,
     entry_padding: u8,
     scroll_padding: usize,
+    toggle_marker_jump: bool,
     info: ShowInfoOptions,
 }
 
@@ -188,6 +189,10 @@ impl Display {
         self.scroll_padding
     }
 
+    pub fn toggle_marker_jump(&self) -> bool {
+        self.toggle_marker_jump
+    }
+
     pub fn info(&self) -> &ShowInfoOptions {
         &self.info
     }
@@ -224,6 +229,7 @@ impl Default for Display {
             preview_underline_color: false,
             entry_padding: 1,
             scroll_padding: 5,
+            toggle_marker_jump: false,
             info: ShowInfoOptions::default(),
         }
     }

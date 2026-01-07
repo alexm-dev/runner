@@ -159,14 +159,20 @@ impl NavState {
         }
     }
 
-    pub fn toggle_marker_advance(&mut self) {
+    pub fn toggle_marker_advance(&mut self, jump: bool) {
         self.toggle_marker();
         let count = self.shown_entries_len();
 
-        if count > 1 && self.selected + 1 < count {
-            self.selected += 1;
-        } else if count > 1 {
-            self.selected = 0;
+        if count == 0 {
+            return;
+        }
+
+        if self.selected == count - 1 {
+            if jump && count > 1 {
+                self.selected = 0;
+            }
+        } else {
+            self.selected = self.selected.wrapping_add(1)
         }
     }
 

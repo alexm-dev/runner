@@ -500,7 +500,7 @@ pub fn make_theme(name: &str, palette: Palette, icon: &str) -> Theme {
                 ..ColorPair::default()
             },
             clipboard: Some(ColorPair {
-                fg: Color::Green,
+                fg: secondary,
                 ..ColorPair::default()
             }),
         },

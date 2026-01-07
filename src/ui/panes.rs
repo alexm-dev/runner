@@ -19,6 +19,7 @@ use std::collections::HashSet;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+/// Styles used for rendering items in a pane
 pub struct PaneStyles {
     pub item: Style,
     pub dir: Style,
@@ -51,6 +52,7 @@ impl PaneStyles {
     }
 }
 
+/// Context data for pane rendering functions
 pub struct PaneContext<'a> {
     pub area: Rect,
     pub block: Block<'a>,
@@ -62,12 +64,14 @@ pub struct PaneContext<'a> {
     pub padding_str: &'static str,
 }
 
+/// Options for preview pane rendering
 pub struct PreviewOptions {
     pub use_underline: bool,
     pub underline_match_text: bool,
     pub underline_style: Style,
 }
 
+/// Marker and clipboard data for use in pane drawing functions
 pub struct PaneMarkers<'a> {
     pub markers: Option<HashSet<OsString>>,
     pub clipboard: Option<HashSet<OsString>>,
@@ -163,7 +167,6 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
             if entry_padding > 1 {
                 spans.push(Span::raw(&padding_str));
             }
-            // File name
             spans.push(Span::raw(name_str));
         }
 
@@ -306,7 +309,7 @@ pub fn draw_parent(
     );
 }
 
-/// Helper: Build marker & clipboard sets for a specific preview directory.
+/// Helper: Build marker and clipboard sets for a specific preview directory.
 /// Used to decorate the preview pane with marker/copy icons.
 pub fn pane_marker_sets(
     nav_markers: &HashSet<PathBuf>,
@@ -332,6 +335,28 @@ pub fn pane_marker_sets(
     }
 }
 
+/// Helper: Create a PaneMarkers struct for use in pane drawing functions.
+/// Builds marker and clipboard sets for a specific directory.
+pub fn make_pane_markers<'a>(
+    nav_markers: &'a HashSet<PathBuf>,
+    clipboard: Option<&'a HashSet<PathBuf>>,
+    dir: Option<&'a Path>,
+    marker_icon: &'a str,
+    marker_style: Style,
+    clipboard_style: Style,
+) -> PaneMarkers<'a> {
+    let (markers, clipboard) = pane_marker_sets(nav_markers, clipboard, dir);
+    PaneMarkers {
+        markers,
+        clipboard,
+        marker_icon,
+        marker_style,
+        clipboard_style,
+    }
+}
+
+/// Helper: Create a ListItem row for a file entry with appropriate styles and markers.
+/// Used in pane drawing functions.
 fn make_entry_row<'a>(
     entry: &'a FileEntry,
     is_selected: bool,
@@ -392,22 +417,4 @@ fn make_entry_row<'a>(
     let spans = vec![pad, Span::raw(entry.display_name())];
     let line = Line::from(spans);
     ListItem::new(line).style(row_style)
-}
-
-pub fn make_pane_markers<'a>(
-    nav_markers: &'a HashSet<PathBuf>,
-    clipboard: Option<&'a HashSet<PathBuf>>,
-    dir: Option<&'a Path>,
-    marker_icon: &'a str,
-    marker_style: Style,
-    clipboard_style: Style,
-) -> PaneMarkers<'a> {
-    let (markers, clipboard) = pane_marker_sets(nav_markers, clipboard, dir);
-    PaneMarkers {
-        markers,
-        clipboard,
-        marker_icon,
-        marker_style,
-        clipboard_style,
-    }
 }

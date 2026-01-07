@@ -26,9 +26,10 @@ pub struct RawConfig {
     show_hidden: bool,
     show_system: bool,
     case_insensitive: bool,
+    always_show: Vec<String>,
     #[serde(default = "default_find_results")]
     max_find_results: usize,
-    always_show: Vec<String>,
+    toggle_marker_jump: bool,
     display: Display,
     theme: Theme,
     editor: Editor,
@@ -56,13 +57,13 @@ impl From<RawConfig> for Config {
             show_hidden: raw.show_hidden,
             show_system: raw.show_system,
             case_insensitive: raw.case_insensitive,
-            max_find_results: clamp_find_results(raw.max_find_results),
             always_show: Arc::new(
                 raw.always_show
                     .into_iter()
                     .map(OsString::from)
                     .collect::<HashSet<_>>(),
             ),
+            max_find_results: clamp_find_results(raw.max_find_results),
             display: raw.display,
             theme: raw.theme,
             editor: raw.editor,
@@ -332,8 +333,8 @@ impl Default for Config {
             show_hidden: true,
             show_system: false,
             case_insensitive: true,
-            max_find_results: DEFAULT_FIND_RESULTS,
             always_show: Arc::new(HashSet::new()),
+            max_find_results: DEFAULT_FIND_RESULTS,
             display: Display::default(),
             theme: Theme::default(),
             editor: Editor::default(),
