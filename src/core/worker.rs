@@ -44,7 +44,7 @@ impl Workers {
         let (fileop_tx, fileop_rx) = unbounded::<WorkerTask>();
         let (res_tx, response_rx) = unbounded::<WorkerResponse>();
 
-        start_worker(io_rx, res_tx.clone());
+        start_io_worker(io_rx, res_tx.clone());
         start_preview_worker(preview_rx, res_tx.clone());
         start_find_worker(find_rx, res_tx.clone());
         start_fileop_worker(fileop_rx, res_tx.clone());
@@ -162,7 +162,7 @@ pub enum WorkerResponse {
 }
 
 /// Starts the worker thread, wich listens to [WorkerTask] and sends back to [WorkerResponse]
-pub fn start_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse>) {
+pub fn start_io_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse>) {
     thread::spawn(move || {
         while let Ok(task) = task_rx.recv() {
             match task {
@@ -312,11 +312,14 @@ pub fn start_fileop_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerR
             let result: Result<String, String> = match op {
                 FileOperation::Delete(paths) => {
                     for p in paths {
-                        let _ = if p.is_dir() {
-                            std::fs::remove_dir_all(p)
+                        let res = if p.is_dir() {
+                            std::fs::remove_dir_all(&p)
                         } else {
-                            std::fs::remove_file(p)
+                            std::fs::remove_file(&p)
                         };
+                        if let Err(e) = res {
+                            eprintln!("Failed to delete {}: {}", p.display(), e);
+                        }
                     }
                     Ok("Items deleted".to_string())
                 }

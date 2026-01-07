@@ -1,6 +1,6 @@
 use crossbeam_channel::unbounded;
 use rand::{Rng, rng};
-use runa_tui::core::worker::{WorkerResponse, WorkerTask, Workers, start_worker};
+use runa_tui::core::worker::{WorkerResponse, WorkerTask, Workers, start_io_worker};
 use std::collections::HashSet;
 use std::env;
 use std::fs::{self, File};
@@ -16,7 +16,7 @@ fn test_worker_load_current_dir() -> Result<(), Box<dyn std::error::Error>> {
     let (task_tx, task_rx) = unbounded();
     let (res_tx, res_rx) = unbounded();
 
-    start_worker(task_rx, res_tx);
+    start_io_worker(task_rx, res_tx);
 
     let curr_dir = env::current_dir()?;
 
@@ -69,7 +69,7 @@ fn worker_dir_load_requests_multithreaded() -> Result<(), Box<dyn std::error::Er
     let (task_tx, task_rx) = unbounded();
     let (res_tx, res_rx) = unbounded();
 
-    start_worker(task_rx, res_tx);
+    start_io_worker(task_rx, res_tx);
 
     // Spawn threads to send requests in parallel
     let mut handles = Vec::new();
