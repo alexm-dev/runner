@@ -192,7 +192,7 @@ If you enjoy using **runa**, you can help the project grow:
 
 
 ## Special Thanks
-Many thanks to [@lmartinez-mirror](https://github.com/lmartinez-mirror), then maintainer of [runa-bin](https://aur.archlinux.org/packages/runa-bin), for maintaining the binary AUR package.
+Many thanks to [@lmartinez-mirror](https://github.com/lmartinez-mirror), the maintainer of [runa-bin](https://aur.archlinux.org/packages/runa-bin), for maintaining the binary AUR package.
 
 
 ## Credits & Ecosystem
