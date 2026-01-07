@@ -26,7 +26,7 @@ use crossbeam_channel::{Receiver, Sender, bounded, unbounded};
 use unicode_width::UnicodeWidthChar;
 
 use crate::core::{FileEntry, FindResult, file_manager::browse_dir, find};
-use crate::utils::{Formatter, get_unused_path};
+use crate::utils::{Formatter, copy_recursive, get_unused_path};
 
 pub struct Workers {
     io_tx: Sender<WorkerTask>,
@@ -369,6 +369,8 @@ pub fn start_fileop_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerR
 
                             let _ = if cut {
                                 std::fs::rename(s, &target)
+                            } else if s.is_dir() {
+                                copy_recursive(&s, &target)
                             } else {
                                 std::fs::copy(s, &target).map(|_| ())
                             };

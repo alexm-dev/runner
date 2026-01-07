@@ -12,8 +12,8 @@
 
 use crate::config::Editor;
 use ratatui::style::Color;
-use std::io;
 use std::path::{MAIN_SEPARATOR, Path, PathBuf};
+use std::{fs, io};
 
 /// The minimum results which is set to if the maximum is overset in the runa.toml.
 pub const MIN_FIND_RESULTS: usize = 15;
@@ -161,4 +161,19 @@ pub fn clamp_find_results(value: usize) -> usize {
         );
     }
     clamped
+}
+
+pub fn copy_recursive(src: &Path, dest: &Path) -> io::Result<()> {
+    if src.is_dir() {
+        fs::create_dir_all(dest)?;
+        for entry in fs::read_dir(src)? {
+            let entry = entry?;
+            let entry_path = entry.path();
+            let dest_path = dest.join(entry.file_name());
+            copy_recursive(&entry_path, &dest_path)?;
+        }
+    } else {
+        fs::copy(src, dest)?;
+    }
+    Ok(())
 }
