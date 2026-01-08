@@ -116,11 +116,11 @@ cargo build --release
 
 ### Usage
 
-After installation, start runa with **rn**
+After installation, start runa with: `rn`
 
 ## Configuration
 
-A full configuration documentation will follow.  
+Checkout the [configuration](docs/configuration.md) docs
 
 runa uses a runa.toml file for configuration.
 By default, it is located at:
