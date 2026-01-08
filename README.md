@@ -1,11 +1,15 @@
 # `runa - rn`
 
+<div align="center">
+ 
 [![Build](https://img.shields.io/github/actions/workflow/status/alexm-dev/runa/rust.yml?style=flat-square&logo=github&label=Build)](https://github.com/alexm-dev/runa/actions/workflows/rust.yml)
 [![Latest Release](https://img.shields.io/github/v/release/alexm-dev/runa?style=flat-square&color=8839ef&label=Release)](https://github.com/alexm-dev/runa/releases)
 [![Crates.io](https://img.shields.io/crates/v/runa-tui?style=flat-square&color=e67e22&logo=rust)](https://crates.io/crates/runa-tui)
 [![AUR](https://img.shields.io/aur/version/runa?label=AUR&color=blue&style=flat-square&logo=archlinux)](https://aur.archlinux.org/packages/runa)
 [![Language](https://img.shields.io/github/languages/top/alexm-dev/runa?style=flat-square&logo=rust&color=%23e67e22&label=Rust)](https://github.com/alexm-dev/runa)
 [![License](https://img.shields.io/github/license/alexm-dev/runa?label=License&style=flat-square&color=3498db)](LICENSE)
+ 
+</div>
 
 > **A fast, ultra-lightweight, and extremely customizable terminal file browser written in Rust.**
 
