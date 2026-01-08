@@ -10,8 +10,22 @@
 [![License](https://img.shields.io/github/license/alexm-dev/runa?label=License&style=flat-square&color=3498db)](LICENSE)
  
 </div>
+<div align="center">
 
 > **A fast, ultra-lightweight, and extremely customizable terminal file browser written in Rust.**
+
+</div>
+<div align="center">
+
+<a href="docs/configuration.md">Full Configuration Guide</a> • 
+<a href="docs/configuration.md#config-file">Config File Location</a> • 
+<a href="docs/configuration.md#general-settings">General Settings</a> • 
+<a href="docs/configuration.md#theme-configuration">Theme Configuration</a> • 
+<a href="docs/configuration.md#key-bindings">Key Bindings</a> • 
+<a href="docs/configuration.md#editor">Editor</a> • 
+<a href="docs/configuration.md#examples">Examples</a>
+
+</div>
 
 - **Extremely Customizable:** Every key, theme color, pane, and UI element can be adjusted in an easy TOML config.
 - **Blazing Fast:** Instant navigation, even in large directories.
@@ -19,19 +33,11 @@
 - **Cross-Platform:** Works on Windows, Linux, and macOS.
 - **Keyboard-Driven:** Every action accessible by keybinding. No mouse needed.
 
-**Documentation**
-- [Full Configuration Guide](docs/configuration.md)
-- [Config File Location](docs/configuration.md#config-file)
-- [General Settings](docs/configuration.md#general-settings)
-- [Theme Configuration](docs/configuration.md#theme-configuration)
-- [Key Bindings](docs/configuration.md#key-bindings)
-- [Editor](docs/configuration.md#editor)
-- [Examples](docs/configuration.md#examples)
-
 <img src="https://github.com/user-attachments/assets/22663c5a-3fbb-4480-856e-4a1efa4bd5b6" alt="runa" width="100%" style="max-width: 1274px; height: auto;" />
-<br><br>
+<br></br>
 
 <details>
+ 
 <summary><strong>Why is runa fast?</strong></summary>
 
 - **Multi-threaded engine:** Spawns 4 dedicated worker threads (with `crossbeam_channel`) for I/O, preview, find, and file operations, so UI is never blocked.
