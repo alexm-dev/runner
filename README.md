@@ -120,9 +120,7 @@ After installation, start runa with: `rn`
 
 ## Configuration
 
-Checkout the [configuration](docs/configuration.md) docs
-
-runa uses a runa.toml file for configuration.
+runa uses a runa.toml file for [configuration](docs/configuration.md).
 By default, it is located at:
 
 `$HOME/.config/runa/runa.toml` (on both Unix and Windows, inside the user folder)
