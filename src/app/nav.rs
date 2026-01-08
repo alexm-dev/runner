@@ -154,11 +154,11 @@ impl NavState {
         if let Some(entry) = self.selected_shown_entry() {
             let path = self.current_dir().join(entry.name());
 
-            if let Some(clip) = clipboard {
-                if clip.remove(&path) {
-                    self.markers.insert(path);
-                    return;
-                }
+            if let Some(clip) = clipboard
+                && clip.remove(&path)
+            {
+                self.markers.insert(path);
+                return;
             }
             if !self.markers.remove(&path) {
                 self.markers.insert(path);
