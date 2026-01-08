@@ -28,6 +28,16 @@ use unicode_width::UnicodeWidthChar;
 use crate::core::{FileEntry, FindResult, file_manager::browse_dir, find};
 use crate::utils::{Formatter, copy_recursive, get_unused_path};
 
+// Minimum number of lines shown in any preview
+const MIN_PREVIEW_LINES: usize = 3;
+// Maximum file size allowed for preview (10mb)
+const MAX_PREVIEW_SIZE: u64 = 10 * 1024 * 1024;
+// Number of bytes to peek from file start for header checks (eg. PNG, ZIP, etc..)
+const HEADER_PEEK_BYTES: usize = 8;
+// Bytes to peek for null bytes in binary detections
+const BINARY_PEEK_BYTES: usize = 1024;
+
+/// Manages worker threads channels for different task types.
 pub struct Workers {
     io_tx: Sender<WorkerTask>,
     find_tx: Sender<WorkerTask>,
@@ -162,7 +172,7 @@ pub enum WorkerResponse {
 }
 
 /// Starts the worker thread, wich listens to [WorkerTask] and sends back to [WorkerResponse]
-pub fn start_io_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse>) {
+fn start_io_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse>) {
     thread::spawn(move || {
         while let Ok(task) = task_rx.recv() {
             match task {
@@ -211,6 +221,7 @@ pub fn start_io_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerRespo
     });
 }
 
+/// Starts the preview worker thread
 fn start_preview_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse>) {
     thread::spawn(move || {
         while let Ok(task) = task_rx.recv() {
@@ -246,7 +257,8 @@ fn start_preview_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResp
     });
 }
 
-pub fn start_find_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse>) {
+/// Starts the find worker thread
+fn start_find_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse>) {
     thread::spawn(move || {
         while let Ok(task) = task_rx.recv() {
             let WorkerTask::FindRecursive {
@@ -302,7 +314,8 @@ pub fn start_find_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerRes
     });
 }
 
-pub fn start_fileop_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse>) {
+/// Starts the file operation worker thread
+fn start_fileop_worker(task_rx: Receiver<WorkerTask>, res_tx: Sender<WorkerResponse>) {
     thread::spawn(move || {
         while let Ok(task) = task_rx.recv() {
             let WorkerTask::FileOp { op, request_id } = task else {
@@ -489,15 +502,6 @@ fn preview_directory(path: &Path, max_lines: usize, pane_width: usize) -> Vec<St
 /// display.
 /// large binaries/unreadable and unsupported files are replaced with a notice.
 fn safe_read_preview(path: &Path, max_lines: usize, pane_width: usize) -> Vec<String> {
-    // Minimum number of lines shown in any preview
-    const MIN_PREVIEW_LINES: usize = 3;
-    // Maximum file size allowed for preview (10mb)
-    const MAX_PREVIEW_SIZE: u64 = 10 * 1024 * 1024;
-    // Number of bytes to peek from file start for header checks (eg. PNG, ZIP, etc..)
-    const HEADER_PEEK_BYTES: usize = 8;
-    // Bytes to peek for null bytes in binary detections
-    const BINARY_PEEK_BYTES: usize = 1024;
-
     let max_lines = std::cmp::max(max_lines, MIN_PREVIEW_LINES);
 
     // Metadata check
