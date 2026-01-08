@@ -54,7 +54,7 @@ impl ColorPair {
     }
 }
 
-#[derive(Deserialize, Debug, PartialEq, Clone, Copy)]
+#[derive(Deserialize, Debug, PartialEq, Clone, Copy, Default)]
 #[serde(default)]
 pub struct PaneTheme {
     color: ColorPair,
@@ -82,15 +82,6 @@ impl PaneTheme {
     }
     pub fn bg(&self) -> Color {
         self.color.bg()
-    }
-}
-
-impl Default for PaneTheme {
-    fn default() -> Self {
-        PaneTheme {
-            color: ColorPair::default(),
-            selection: None,
-        }
     }
 }
 
@@ -486,7 +477,6 @@ pub fn make_theme(name: &str, palette: Palette, icon: &str) -> Theme {
         status_line: ColorPair {
             fg: Color::Reset,
             bg: base_bg,
-            ..ColorPair::default()
         },
         marker: MarkerTheme {
             icon: icon.to_string(),

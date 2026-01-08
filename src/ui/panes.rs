@@ -379,12 +379,12 @@ fn make_entry_row<'a>(
     let is_marked = markers
         .markers
         .as_ref()
-        .map_or(false, |set| set.contains(entry.name()));
+        .is_some_and(|set| set.contains(entry.name()));
 
     let is_copied = markers
         .clipboard
         .as_ref()
-        .map_or(false, |set| set.contains(entry.name()));
+        .is_some_and(|set| set.contains(entry.name()));
 
     let mut icon_style = if is_copied {
         markers.clipboard_style
@@ -396,29 +396,30 @@ fn make_entry_row<'a>(
     }
 
     let mut row_style = style;
-    if let Some(opts) = opts {
-        if is_selected && opts.use_underline {
-            row_style = row_style.add_modifier(Modifier::UNDERLINED);
-            if let Some(color) = opts.underline_style.fg {
-                row_style = row_style.underline_color(color);
-                if opts.underline_match_text {
-                    row_style = row_style.fg(color);
-                }
+    if let Some(opts) = opts
+        && is_selected
+        && opts.use_underline
+    {
+        row_style = row_style.add_modifier(Modifier::UNDERLINED);
+        if let Some(color) = opts.underline_style.fg {
+            row_style = row_style.underline_color(color);
+            if opts.underline_match_text {
+                row_style = row_style.fg(color);
             }
-            if let Some(bg) = opts
-                .underline_style
-                .bg
-                .filter(|&color| color != Color::Reset)
-            {
-                row_style = row_style.bg(bg);
-            }
+        }
+        if let Some(bg) = opts
+            .underline_style
+            .bg
+            .filter(|&color| color != Color::Reset)
+        {
+            row_style = row_style.bg(bg);
         }
     }
 
     let pad = if is_marked || is_copied {
         let mut pad = context.padding_str.to_owned();
         if !pad.is_empty() {
-            pad.replace_range(0..1, &markers.marker_icon);
+            pad.replace_range(0..1, markers.marker_icon);
         }
         Span::styled(pad, icon_style)
     } else {
