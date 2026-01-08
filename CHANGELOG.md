@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.4.1] - 2025-01-08
+## [0.5.0] - 2025-01-08
 
 UI related additions and more.
 
@@ -39,6 +39,7 @@ UI related additions and more.
 - **Cargo update**: Dependencies updated to patch crates.
 - **Worker thread API**: Worker thread spawnm functions are now private functions since worker threads are now spawned through `Workers` struct.
 - **Preview constants**: Moved preview byte size and line count checks to the top of `core/workers.rs` for better clarity and maintainability.
+
 
 ---
 
