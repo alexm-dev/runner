@@ -16,11 +16,6 @@ pub struct ColorPair {
     fg: Color,
     #[serde(default, deserialize_with = "deserialize_color_field")]
     bg: Color,
-
-    #[serde(default, deserialize_with = "deserialize_optional_color_field")]
-    selection_fg: Option<Color>,
-    #[serde(default, deserialize_with = "deserialize_optional_color_field")]
-    selection_bg: Option<Color>,
 }
 
 impl Default for ColorPair {
@@ -28,8 +23,6 @@ impl Default for ColorPair {
         Self {
             fg: Color::Reset,
             bg: Color::Reset,
-            selection_fg: None,
-            selection_bg: None,
         }
     }
 }
@@ -37,20 +30,6 @@ impl Default for ColorPair {
 impl ColorPair {
     pub fn as_style(&self) -> Style {
         Style::default().fg(self.fg).bg(self.bg)
-    }
-
-    pub fn selection_style(&self, global_default: Style) -> Style {
-        let mut style = global_default;
-
-        if let Some(fg) = self.selection_fg {
-            style = style.fg(fg);
-        }
-
-        if let Some(bg) = self.selection_bg {
-            style = style.bg(bg);
-        }
-
-        style
     }
 
     pub fn effective_style(&self, fallback: &ColorPair) -> Style {
@@ -75,13 +54,52 @@ impl ColorPair {
     }
 }
 
+#[derive(Deserialize, Debug, PartialEq, Clone, Copy)]
+#[serde(default)]
+pub struct PaneTheme {
+    color: ColorPair,
+    selection: Option<ColorPair>,
+}
+
+impl PaneTheme {
+    pub fn as_style(&self) -> Style {
+        self.color.as_style()
+    }
+
+    pub fn selection_style(&self, fallback: Style) -> Style {
+        match self.selection {
+            Some(sel) => sel.as_style(),
+            None => fallback,
+        }
+    }
+
+    pub fn effective_style(&self, fallback: &ColorPair) -> Style {
+        self.color.effective_style(fallback)
+    }
+
+    pub fn fg(&self) -> Color {
+        self.color.fg()
+    }
+    pub fn bg(&self) -> Color {
+        self.color.bg()
+    }
+}
+
+impl Default for PaneTheme {
+    fn default() -> Self {
+        PaneTheme {
+            color: ColorPair::default(),
+            selection: None,
+        }
+    }
+}
+
 #[derive(Deserialize, Debug, Clone, PartialEq)]
+#[serde(default)]
 pub struct MarkerTheme {
-    #[serde(default)]
     icon: String,
     #[serde(flatten)]
     color: ColorPair,
-    #[serde(default)]
     clipboard: Option<ColorPair>,
 }
 
@@ -104,14 +122,10 @@ impl Default for MarkerTheme {
             color: ColorPair {
                 fg: Color::Yellow,
                 bg: Color::Reset,
-                selection_fg: None,
-                selection_bg: None,
             },
             clipboard: Some(ColorPair {
                 fg: Color::Green,
                 bg: Color::Reset,
-                selection_fg: None,
-                selection_bg: None,
             }),
         }
     }
@@ -120,19 +134,12 @@ impl Default for MarkerTheme {
 #[derive(Deserialize, Debug, Clone)]
 #[serde(default)]
 pub struct WidgetTheme {
-    #[serde(default)]
     color: ColorPair,
-    #[serde(default)]
     border: ColorPair,
-    #[serde(default)]
     title: ColorPair,
-    #[serde(default)]
     position: Option<DialogPosition>,
-    #[serde(default)]
     size: Option<DialogSize>,
-    #[serde(default)]
     confirm_size: Option<DialogSize>,
-    #[serde(default)]
     find_size: Option<DialogSize>,
 }
 
@@ -243,8 +250,8 @@ pub struct Theme {
     directory: ColorPair,
     separator: ColorPair,
     selection_icon: String,
-    parent: ColorPair,
-    preview: ColorPair,
+    parent: PaneTheme,
+    preview: PaneTheme,
     path: ColorPair,
     status_line: ColorPair,
     marker: MarkerTheme,
@@ -277,8 +284,8 @@ impl Default for Theme {
                 ..ColorPair::default()
             },
             selection_icon: "".into(),
-            parent: ColorPair::default(),
-            preview: ColorPair::default(),
+            parent: PaneTheme::default(),
+            preview: PaneTheme::default(),
             path: ColorPair {
                 fg: Color::Magenta,
                 ..ColorPair::default()
@@ -336,11 +343,11 @@ impl Theme {
         &self.selection_icon
     }
 
-    pub fn parent(&self) -> ColorPair {
+    pub fn parent(&self) -> PaneTheme {
         self.parent
     }
 
-    pub fn preview(&self) -> ColorPair {
+    pub fn preview(&self) -> PaneTheme {
         self.preview
     }
 
@@ -427,18 +434,6 @@ where
 {
     let s = String::deserialize(deserializer)?;
     Ok(parse_color(&s))
-}
-
-// Helper function to deserialize optinals Colors for Themes
-fn deserialize_optional_color_field<'de, D>(deserializer: D) -> Result<Option<Color>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: Option<String> = Option::deserialize(deserializer)?;
-    match s {
-        Some(s) if s.to_lowercase() != "default" => Ok(Some(parse_color(&s))),
-        _ => Ok(None),
-    }
 }
 
 /// Helper function to convert RGB tuples to [Color] instances.
