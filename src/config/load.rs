@@ -19,7 +19,7 @@ use std::ffi::OsString;
 use std::sync::Arc;
 use std::{fs, io, path::PathBuf};
 
-#[derive(Deserialize, Debug, Default)]
+#[derive(Deserialize, Debug)]
 #[serde(default)]
 pub struct RawConfig {
     dirs_first: bool,
@@ -29,11 +29,27 @@ pub struct RawConfig {
     always_show: Vec<String>,
     #[serde(default = "default_find_results")]
     max_find_results: usize,
-    toggle_marker_jump: bool,
     display: Display,
     theme: Theme,
     editor: Editor,
     keys: Keys,
+}
+
+impl Default for RawConfig {
+    fn default() -> Self {
+        RawConfig {
+            dirs_first: true,
+            show_hidden: true,
+            show_system: false,
+            case_insensitive: true,
+            always_show: Vec::new(),
+            max_find_results: default_find_results(),
+            display: Display::default(),
+            theme: Theme::default(),
+            editor: Editor::default(),
+            keys: Keys::default(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -187,6 +203,8 @@ preview_underline = true
 # preview_underline_color = false
 # entry_padding = 1
 # scroll_padding = 5
+# toggle_marker_jump = false
+# instant_preview = false
 
 # [display.layout]
 # parent = 20
@@ -226,14 +244,14 @@ selection_icon = ""
 # [theme.parent]
 # fg = "default"
 # bg = "default"
-# selection_fg = "default"
-# selection_bg = "default"
+# selection.fg = "default"
+# selection.bg = "default"
 
 # [theme.preview]
 # fg = "default"
 # bg = "default"
-# selection_fg = "default"
-# selection_bg = "default"
+# selection.fg = "default"
+# selection.bg = "default"
 
 # [theme.underline]
 # fg = "default"
@@ -247,6 +265,8 @@ selection_icon = ""
 # icon = "*"
 # fg = "default"
 # bg = "default"
+# clipboard.fg = "default"
+# clipboard.bg = "default"
 
 # [theme.widget]
 # size = "medium"           # "small", "medium", "large" or [w ,h] or { w = 30, y = 30 }.
