@@ -97,6 +97,8 @@ runa - Full Configuration Guide (runa.toml)
   preview_underline_color (bool)    Distinct color for preview underline
   entry_padding           (usize)   Padding (# chars) left/right (0–4)
   scroll_padding          (usize)   Reserved rows when scrolling
+  toggle_marker_jump      (bool)    Toggle marker jumping to first entry
+  instant_preview         (bool)    Toggle instant previews on every selection change
 
 [display.layout]
   parent                  (u16)     Width % for parent pane
@@ -125,7 +127,7 @@ runa - Full Configuration Guide (runa.toml)
 [theme.separator]                  Vertical separators (fg, bg)
 [theme.parent]                     Parent pane text (fg, bg, selection_fg, selection_bg)
 [theme.preview]                    Preview pane text (fg, bg, selection_fg, selection_bg)
-[theme.marker]                     Multi-select marker (icon, fg, bg)
+[theme.marker]                     Multi-select marker (icon, fg, bg, clipboard)
 [theme.underline]                  Preview underline (fg, bg)
 [theme.path]                       Path bar at the top (fg, bg)
 

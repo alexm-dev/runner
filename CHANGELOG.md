@@ -1,21 +1,42 @@
 # Changelog
 
-## [0.4.1] - TBD
+## [0.4.1] - 2025-01-08
 
 ### Added
-**Marker coloring**: Added a new `clipboard` config option to color the yanked and selected entries with a different marker color. Now its easier to indicate which entry was yanked.
-**Pane markers**: Added markers to panes. Now persistent markers will be shown/rendered in each preview and parent pane.
-**Toggle Marker jump**: Added `toggle_marker_jump` configuration option to theme.display to toggle if multiselect should jump to the first entry when the selection is at the last entry.
-**Instant Preview**: Added `instant_preview` configuration option to toggle between instant preview (requesting previews on every selection change) and pending previews. Off by default.
-**Empty filter**: Added a `No results for this filter` message when a filter applied shows no entries.
+- **Marker coloring**: Added a new `clipboard` config option to color the yanked and selected entries with a different marker color. Now its easier to indicate which entry was yanked.
+- **Pane markers**: Added markers to panes. Now persistent markers will be shown/rendered in each preview and parent pane.
+- **Toggle Marker jump**: Added `toggle_marker_jump` configuration option to theme.display to toggle if multiselect should jump to the first entry when the selection is at the last entry.
+- **Instant Preview**: Added `instant_preview` configuration option to toggle between instant preview (requesting previews on every selection change) and pending previews. Off by default.
+- **Empty filter**: Added a `No results for this filter` message when a filter applied shows no entries.
+
+### Breaking Changes
+- The keys `selection_fg` / `selection_bg` from `[theme.preview]` / `[theme.parent]` are now replaced by `selection.fg` / `selection.bg` or `[theme.preview.selection]` / `[theme.parent.selection]`
+    - **New keys**:
+    ```toml
+    [theme.preview]
+    fg = "default"
+    bg = "default"
+    selection.fg = "default"
+    selection.bg = "default"
+
+    ## Sub tables:
+
+    [theme.preview.selection]
+    fg = "default"
+    bg = "default"
+    ```
+- If you set the selection colors for each pane, then these changes are breaking changes for you config.
 
 ### Fixed
-**Directory copy**: Fixed directories being unable to be copied.
-**Filter preview update**: Fixed preview data not being cleared when a filter shows no entries.
+- **Directory copy**: Fixed directories being unable to be copied.
+- **Filter preview update**: Fixed preview data not being cleared when a filter shows no entries.
+- **Config defaults:** `RawConfig` now explicitly sets default values for all fields, ensuring core options like `dirs_first` and `show_hidden` are enabled when configuration is omitted.
 
 ### Internal
-**Find**: Optimization for the find feature. Now lists the results faster.
-
+- **Find**: Optimization for the find feature. Now lists the results faster.
+- **Cargo update**: Dependencies updated to patch crates.
+- **Worker thread API**: Worker thread spawnm functions are now private functions since worker threads are now spawned through `Workers` struct.
+- **Preview constants**: Moved preview byte size and line count checks to the top of `core/workers.rs` for better clarity and maintainability.
 
 ---
 

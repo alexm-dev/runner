@@ -94,6 +94,12 @@ entry_padding = 1
 # Scroll padding of the main pane
 scroll_padding = 5
 
+# Toggle if the marker selection should jump to the first entry whenever selection is at the bottom
+toggle_marker_jump = false
+
+# Toggle previews to instantly render on every selection change, instead of the default pending preview when holding down a navigation key.
+instant_preview = false
+
 [display.layout]
 # Display ratios for panes (will be scaled to 100%)
 parent = 20
@@ -186,19 +192,22 @@ bg = "default"
 [theme.parent]        # Parent pane text
 fg = "default"
 bg = "default"
-selection_fg = "default"
-selection_bg = "default"
+selection.fg = "default"
+selection.bg = "default"
 
 [theme.preview]       # Preview pane text
 fg = "default"
 bg = "default"
-selection_fg = "default"
-selection_bg = "default"
+selection.fg = "default"
+selection.bg = "default"
 
 [theme.marker]        # Multi-select marker
 icon = "*"
 fg = "yellow"
 bg = "default"
+# Change the color of the clipboard when you copy a entry via multiselect or via normal yank/copy
+clipboard.fg = "default"
+clipboard.bg = "default"
 
 [theme.underline]     # Underline colors (if enabled)
 fg = "default"
