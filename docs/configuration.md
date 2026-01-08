@@ -97,7 +97,8 @@ scroll_padding = 5
 # Toggle if the marker selection should jump to the first entry whenever selection is at the bottom
 toggle_marker_jump = false
 
-# Toggle previews to instantly render on every selection change, instead of the default pending preview when holding down a navigation key.
+# Toggle previews to instantly render on every selection change
+# Default = false which results in pending preview when holding down a navigation key.
 instant_preview = false
 
 [display.layout]
