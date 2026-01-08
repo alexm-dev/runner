@@ -303,6 +303,7 @@ create_directory    = ["Shift+n"]
 filter              = ["f"]
 toggle_marker       = [" "]     # space bar
 info                = ["i"]
+find                = ["s"]
 ```
 
 You may remove any binding to let it fall back to the default.
