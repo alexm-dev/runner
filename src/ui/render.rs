@@ -161,6 +161,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 highlight_symbol: "",
                 entry_padding: display_cfg.entry_padding(),
                 padding_str,
+                show_icons: display_cfg.icons(),
             },
             app.parent().entries(),
             app.parent().selected_idx(),
@@ -208,6 +209,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 highlight_symbol: symbol,
                 entry_padding: display_cfg.entry_padding(),
                 padding_str,
+                show_icons: display_cfg.icons(),
             },
         );
         pane_idx += 1;
@@ -263,6 +265,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 highlight_symbol: "",
                 entry_padding: display_cfg.entry_padding(),
                 padding_str,
+                show_icons: display_cfg.icons(),
             },
             app.preview().data(),
             if is_dir {

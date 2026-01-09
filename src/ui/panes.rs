@@ -7,6 +7,7 @@
 
 use crate::app::{AppState, PreviewData};
 use crate::core::FileEntry;
+use crate::ui::icons::nerd_font_icon;
 use ansi_to_tui::IntoText;
 use ratatui::text::Text;
 use ratatui::widgets::BorderType;
@@ -65,6 +66,7 @@ pub struct PaneContext<'a> {
     pub highlight_symbol: &'a str,
     pub entry_padding: u8,
     pub padding_str: &'static str,
+    pub show_icons: bool,
 }
 
 /// Options for preview pane rendering
@@ -146,6 +148,12 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
             .map(|set| set.contains(&entry_path))
             .unwrap_or(false);
 
+        let icons = if context.show_icons {
+            nerd_font_icon(entry)
+        } else {
+            ""
+        };
+
         let name_str = if entry.is_dir() && show_marker {
             entry.display_name()
         } else {
@@ -156,6 +164,10 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
         let mut spans = Vec::with_capacity(4);
 
         if entry_padding == 0 {
+            if context.show_icons {
+                spans.push(Span::raw(icons));
+                spans.push(Span::raw(" "));
+            }
             spans.push(Span::raw(name_str));
         } else {
             let mut marker_style = if is_copied {
@@ -179,6 +191,10 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
 
             if entry_padding > 1 {
                 spans.push(Span::raw(&padding_str));
+            }
+            if context.show_icons {
+                spans.push(Span::raw(icons));
+                spans.push(Span::raw(" "));
             }
             spans.push(Span::raw(name_str));
         }
@@ -429,7 +445,17 @@ fn make_entry_row<'a>(
         Span::raw(context.padding_str)
     };
 
-    let spans = vec![pad, Span::raw(entry.display_name())];
+    let icon = if context.show_icons {
+        nerd_font_icon(entry)
+    } else {
+        ""
+    };
+    let mut spans = vec![pad];
+    if context.show_icons {
+        spans.push(Span::raw(icon));
+        spans.push(Span::raw(" "));
+    }
+    spans.push(Span::raw(entry.display_name()));
     let line = Line::from(spans);
     ListItem::new(line).style(row_style)
 }

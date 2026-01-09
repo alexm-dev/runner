@@ -16,6 +16,7 @@ pub struct Display {
     borders: BorderStyle,
     border_shape: BorderShape,
     titles: bool,
+    icons: bool,
     separators: bool,
     parent: bool,
     preview: bool,
@@ -54,6 +55,10 @@ impl Display {
 
     pub fn titles(&self) -> bool {
         self.titles
+    }
+
+    pub fn icons(&self) -> bool {
+        self.icons
     }
 
     pub fn separators(&self) -> bool {
@@ -134,6 +139,7 @@ impl Default for Display {
             borders: BorderStyle::Unified,
             border_shape: BorderShape::Square,
             titles: true,
+            icons: false,
             separators: true,
             parent: true,
             preview: true,

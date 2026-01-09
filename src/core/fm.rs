@@ -86,6 +86,13 @@ impl FileEntry {
         self.is_system
     }
 
+    pub fn extension(&self) -> Option<String> {
+        Path::new(&self.name_str)
+            .extension()
+            .and_then(|s| s.to_str())
+            .map(|s| s.to_ascii_lowercase())
+    }
+
     // Setters
 
     pub fn set_display_name(&mut self, new_name: String) {
