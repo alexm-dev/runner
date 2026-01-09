@@ -39,7 +39,6 @@ impl PaneStyles {
         };
 
         if is_selected {
-            style = style.add_modifier(Modifier::BOLD);
             if let Some(bg) = self.selection.bg
                 && bg != Color::Reset
             {
@@ -148,12 +147,6 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
             .map(|set| set.contains(&entry_path))
             .unwrap_or(false);
 
-        let icon = if context.show_icons {
-            nerd_font_icon(entry)
-        } else {
-            "\u{200B}"
-        };
-
         let name_str = if entry.is_dir() && context.show_marker {
             entry.display_name()
         } else {
@@ -165,9 +158,12 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
 
         if entry_padding == 0 {
             if context.show_icons {
-                spans.push(Span::raw(icon));
-                spans.push(Span::styled("", Style::default()));
-                spans.push(Span::raw(" "));
+                let icon = nerd_font_icon(entry);
+                let icon_col = icon.to_owned() + " ";
+                spans.push(Span::styled(
+                    icon_col,
+                    entry_style.add_modifier(Modifier::BOLD),
+                ));
             }
             spans.push(Span::raw(name_str));
         } else {
@@ -194,9 +190,12 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
                 spans.push(Span::raw(&padding_str));
             }
             if context.show_icons {
-                spans.push(Span::raw(icon));
-                spans.push(Span::styled("", Style::default()));
-                spans.push(Span::raw(" "));
+                let icon = nerd_font_icon(entry);
+                let icon_col = icon.to_owned() + " ";
+                spans.push(Span::styled(
+                    icon_col,
+                    entry_style.add_modifier(Modifier::BOLD),
+                ));
             }
             spans.push(Span::raw(name_str));
         }
@@ -389,6 +388,8 @@ pub fn make_pane_markers<'a>(
 
 /// Helper: Create a ListItem row for a file entry with appropriate styles and markers.
 /// Used in pane drawing functions.
+///
+/// # Ar
 fn make_entry_row<'a>(
     entry: &'a FileEntry,
     is_selected: bool,
@@ -447,15 +448,14 @@ fn make_entry_row<'a>(
         Span::raw(context.padding_str)
     };
 
-    let icon = if context.show_icons {
-        nerd_font_icon(entry)
-    } else {
-        ""
-    };
     let mut spans = vec![pad];
     if context.show_icons {
-        spans.push(Span::raw(icon));
-        spans.push(Span::raw(" "));
+        let icon = nerd_font_icon(entry);
+        let icon_col = icon.to_owned() + " ";
+        spans.push(Span::styled(
+            icon_col,
+            row_style.add_modifier(Modifier::BOLD),
+        ));
     }
     let name_str = if entry.is_dir() && context.show_marker {
         entry.display_name()
