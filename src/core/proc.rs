@@ -139,6 +139,7 @@ pub fn find(
     let mut raw_results: Vec<RawResult> = Vec::with_capacity(max_results * 2);
 
     let norm_query = normalize_separators(query);
+    let flat_query = flatten_separators(&norm_query);
 
     if let Some(stdout) = proc.stdout.take() {
         let reader = io::BufReader::with_capacity(BUFREADER_SIZE, stdout);
@@ -152,7 +153,8 @@ pub fn find(
             let rel = line?;
             let rel = rel.trim();
             let norm_rel = normalize_separators(rel);
-            if let Some(score) = matcher.fuzzy_match(&norm_rel, &norm_query) {
+            let flat_rel = flatten_separators(&norm_rel);
+            if let Some(score) = matcher.fuzzy_match(&flat_rel, &flat_query) {
                 raw_results.push(RawResult {
                     relative: norm_rel.into_owned(),
                     score,
@@ -233,4 +235,14 @@ fn normalize_separators<'a>(separator: &'a str) -> Cow<'a, str> {
     } else {
         Cow::Borrowed(separator)
     }
+}
+
+fn flatten_separators(separator: &str) -> String {
+    let mut buf = String::with_capacity(separator.len());
+    for char in separator.chars() {
+        if char != '/' && char != '\\' {
+            buf.push(char);
+        }
+    }
+    buf
 }
