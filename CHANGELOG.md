@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.1] - TBD
+
+Preview feature options.
+
+### Added
+- **`bat` integration**: Added `bat` as an preview option to the internal preview. Can be set in `runa.toml` under `[display.preview_options]`
+
+- ### Fixed
+- **Parent pane**: Fixed the parent pane stale content update **and** optimized the parent directory selection being reset and redrawn after every directory change.
+
+### Internal
+- **Core refactor**: Moved `formatter.rs` from utils/ to core/, since formatter now handles all core formatting logic of multiple functions.
+- **Renamed file_manager.rs**: `file_manager.rs` is renamed to `rm.rs` to keep it more simple :)
+- **Renamed find**: `find.rs` is renamed to `proc.rs` since it now handles all subprocesses spawned by runa.
+
+
 ## [0.5.0] - 2025-01-08
 
 UI related additions and more.
