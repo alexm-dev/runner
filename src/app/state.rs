@@ -379,7 +379,7 @@ impl<'a> AppState<'a> {
             self.parent.prepare_update();
 
             if self.parent.should_request(&parent_path_buf) {
-                let req_id = self.parent.prepare_new_request(parent_path_buf.clone());
+                let req_id = self.parent.prepare_new_request();
 
                 let _ = self.workers.io_tx().send(WorkerTask::LoadDirectory {
                     path: parent_path_buf,

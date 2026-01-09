@@ -169,6 +169,12 @@ impl ActionContext {
 
     // Actions functions
 
+    /// Deletes the currently marked files or the selected file if no markers exist.
+    /// Sends a delete task to the worker thread via the provided channel.
+    ///
+    /// # Arguments
+    /// * `nav` - Mutable reference to the current navigation state.
+    /// * `worker_tx` - Sender channel to dispatch worker tasks.
     pub fn action_delete(&mut self, nav: &mut NavState, worker_tx: &Sender<WorkerTask>) {
         let targets = nav.get_action_targets();
         if targets.is_empty() {
