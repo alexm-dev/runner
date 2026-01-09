@@ -26,6 +26,8 @@ pub struct Keys {
     toggle_marker: Vec<String>,
     show_info: Vec<String>,
     find: Vec<String>,
+    clear_markers: Vec<String>,
+    clear_filter: Vec<String>,
 }
 
 /// Editor configuration options
@@ -100,6 +102,14 @@ impl Keys {
     pub fn find(&self) -> &Vec<String> {
         &self.find
     }
+
+    pub fn clear_markers(&self) -> &Vec<String> {
+        &self.clear_markers
+    }
+
+    pub fn clear_filter(&self) -> &Vec<String> {
+        &self.clear_filter
+    }
 }
 
 /// Default input configuration options
@@ -123,6 +133,9 @@ impl Default for Keys {
             toggle_marker: vec![" ".into()],
             show_info: vec!["i".into()],
             find: vec!["s".into()],
+
+            clear_markers: vec!["Ctrl+c".into()],
+            clear_filter: vec!["Ctrl+u".into()],
         }
     }
 }

@@ -22,6 +22,8 @@ pub enum NavAction {
     GoUp,
     GoDown,
     ToggleMarker,
+    ClearMarker,
+    ClearFilter,
 }
 
 /// File actions (delete, copy, open, paste, etc.)
@@ -145,6 +147,8 @@ impl Keymap {
         bind(keys.quit(), Action::System(SystemAction::Quit));
         bind(keys.show_info(), Action::File(FileAction::ShowInfo));
         bind(keys.find(), Action::File(FileAction::Find));
+        bind(keys.clear_markers(), Action::Nav(NavAction::ClearMarker));
+        bind(keys.clear_filter(), Action::Nav(NavAction::ClearFilter));
 
         Keymap { map }
     }

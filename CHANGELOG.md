@@ -6,6 +6,7 @@ Preview feature options.
 
 ### Added
 - **`bat` integration**: Added `bat` as an preview option to the internal preview. Can be set in `runa.toml` under `[display.preview_options]`
+- **Clear Markers/Filters**: Added a `clear_filters` and `clear_markers` keybind option to clear either.
 
 - ### Fixed
 - **Parent pane**: Fixed the parent pane stale content update **and** optimized the parent directory selection being reset and redrawn after every directory change.

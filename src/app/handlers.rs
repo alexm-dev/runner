@@ -156,6 +156,14 @@ impl<'a> AppState<'a> {
                 self.nav.toggle_marker_advance(clipboard, marker_jump);
                 self.request_preview();
             }
+            NavAction::ClearMarker => {
+                self.nav.clear_markers();
+                self.request_preview();
+            }
+            NavAction::ClearFilter => {
+                self.nav.clear_filters();
+                self.request_preview();
+            }
         }
         KeypressResult::Continue
     }
