@@ -67,6 +67,7 @@ pub struct PaneContext<'a> {
     pub entry_padding: u8,
     pub padding_str: &'static str,
     pub show_icons: bool,
+    pub show_marker: bool,
 }
 
 /// Options for preview pane rendering
@@ -89,7 +90,6 @@ pub struct PaneMarkers<'a> {
 ///
 /// Highlights selection, markers and directories and handles styling for items.
 pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
-    let show_marker = app.config().display().dir_marker();
     let selected_idx = app.visible_selected();
     let markers = app.nav().markers();
     let marker_theme = app.config().theme().marker();
@@ -154,7 +154,7 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
             ""
         };
 
-        let name_str = if entry.is_dir() && show_marker {
+        let name_str = if entry.is_dir() && context.show_marker {
             entry.display_name()
         } else {
             entry.name_str()
@@ -455,7 +455,12 @@ fn make_entry_row<'a>(
         spans.push(Span::raw(icon));
         spans.push(Span::raw(" "));
     }
-    spans.push(Span::raw(entry.display_name()));
+    let name_str = if entry.is_dir() && context.show_marker {
+        entry.display_name()
+    } else {
+        entry.name_str()
+    };
+    spans.push(Span::raw(name_str));
     let line = Line::from(spans);
     ListItem::new(line).style(row_style)
 }
