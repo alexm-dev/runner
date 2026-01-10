@@ -33,8 +33,8 @@ use ratatui::{
 /// - app: runa's shared state, mutated as needed to display metrics
 pub fn render(frame: &mut Frame, app: &mut AppState) {
     let mut root_area = frame.area();
-    let chunks = layout_chunks(root_area, app);
     {
+        let chunks = layout_chunks(root_area, app);
         let mut metrics = crate::app::LayoutMetrics::default();
         let display_cfg = app.config().display();
 
@@ -133,6 +133,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     }
 
     // Render Panes
+    let chunks = layout_chunks(root_area, app);
     let mut pane_idx = 0;
     let show_separators = display_cfg.separators() && !display_cfg.is_split();
 
