@@ -286,9 +286,8 @@ impl NavState {
         }
 
         let target_name = self.selected_shown_entry().map(|e| e.name().to_os_string());
-        self.save_filter_for_current_dir();
-
         self.filter = filter;
+        self.save_filter_for_current_dir();
 
         let new_idx = if let Some(ref name) = target_name {
             self.shown_entries()
