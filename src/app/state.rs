@@ -388,10 +388,8 @@ impl<'a> AppState<'a> {
         if let Some(parent_path) = self.nav.current_dir().parent() {
             let parent_path_buf = parent_path.to_path_buf();
 
-            self.parent.prepare_update();
-
             if self.parent.should_request(&parent_path_buf) {
-                let req_id = self.parent.prepare_new_request();
+                let req_id = self.parent.request_id();
 
                 let _ = self.workers.io_tx().send(WorkerTask::LoadDirectory {
                     path: parent_path_buf,

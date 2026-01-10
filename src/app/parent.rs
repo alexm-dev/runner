@@ -53,17 +53,6 @@ impl ParentState {
         Some(parent_path) != self.last_path.as_deref()
     }
 
-    /// Prepares a request: increases the request_id.
-    pub fn prepare_new_request(&mut self) -> u64 {
-        self.request_id = self.request_id.wrapping_add(1);
-        self.request_id
-    }
-
-    /// Prepares for an update: clears the last path and increases the request_id.
-    pub fn prepare_update(&mut self) {
-        self.request_id = self.request_id.wrapping_add(1);
-    }
-
     /// Updates the state with new entries
     ///
     /// Only applies the update if request ID is the latest
