@@ -6,7 +6,8 @@
 //! are automatically cleaned up after the tests complete.
 
 use rand::{Rng, rng};
-use runa_tui::core::worker::{WorkerResponse, WorkerTask, Workers};
+use runa_tui::config::display::PreviewMethod;
+use runa_tui::core::worker::{FileOperation, WorkerResponse, WorkerTask, Workers};
 use std::collections::HashSet;
 use std::env;
 use std::fs::{self, File};
@@ -232,5 +233,113 @@ fn test_worker_find_pool() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     assert!(got, "Did not receive FindResults response in time");
+    Ok(())
+}
+
+#[test]
+fn test_find_worker_finds_file() -> Result<(), Box<dyn std::error::Error>> {
+    let temp = tempfile::tempdir()?;
+    std::fs::File::create(temp.path().join("crab.txt"))?;
+
+    let workers = Workers::spawn();
+    let cancel = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    workers.find_tx().send(WorkerTask::FindRecursive {
+        base_dir: temp.path().to_path_buf(),
+        query: "crab".to_string(),
+        max_results: 5,
+        cancel: cancel.clone(),
+        request_id: 2,
+    })?;
+
+    let resp = workers
+        .response_rx()
+        .recv_timeout(std::time::Duration::from_secs(2))?;
+
+    match resp {
+        WorkerResponse::FindResults { results, .. } => {
+            if !results
+                .iter()
+                .any(|res| res.path().file_name().unwrap() == "crab.txt")
+            {
+                return Err("Expected 'crab.txt' in find results".into());
+            }
+        }
+        r => return Err(format!("Unexpected response: {:?}", r).into()),
+    }
+    Ok(())
+}
+
+#[test]
+fn test_preview_worker_internal() -> Result<(), Box<dyn std::error::Error>> {
+    let temp = tempfile::tempdir()?;
+    let preview_file = temp.path().join("preview.txt");
+    std::fs::write(&preview_file, "A\nB\nC\nD\n")?;
+    let workers = Workers::spawn();
+    workers.preview_tx().send(WorkerTask::LoadPreview {
+        path: preview_file.clone(),
+        max_lines: 2,
+        pane_width: 40,
+        preview_method: PreviewMethod::Internal,
+        args: vec![],
+        request_id: 3,
+    })?;
+
+    match workers
+        .response_rx()
+        .recv_timeout(std::time::Duration::from_secs(2))?
+    {
+        WorkerResponse::PreviewLoaded { lines, .. } => {
+            let previewed: Vec<_> = lines.iter().take(2).map(|s| s.trim_end()).collect();
+            if previewed != vec!["A", "B"] {
+                return Err(format!("Preview did not match expected, got {:?}", lines).into());
+            }
+        }
+        r => return Err(format!("Unexpected response: {:?}", r).into()),
+    }
+    Ok(())
+}
+
+#[test]
+fn test_fileop_worker_create_and_delete_file() -> Result<(), Box<dyn std::error::Error>> {
+    let temp = tempfile::tempdir()?;
+    let file_path = temp.path().join("touch.txt");
+    let workers = Workers::spawn();
+
+    workers.fileop_tx().send(WorkerTask::FileOp {
+        op: FileOperation::Create {
+            path: file_path.clone(),
+            is_dir: false,
+        },
+        request_id: 4,
+    })?;
+
+    let r = workers
+        .response_rx()
+        .recv_timeout(std::time::Duration::from_secs(2))?;
+    match r {
+        WorkerResponse::OperationComplete { .. } => {
+            if !file_path.exists() {
+                return Err("Expected file to exist after creation".into());
+            }
+        }
+        other => return Err(format!("Unexpected response: {:?}", other).into()),
+    }
+
+    workers.fileop_tx().send(WorkerTask::FileOp {
+        op: FileOperation::Delete(vec![file_path.clone()]),
+        request_id: 5,
+    })?;
+
+    let r = workers
+        .response_rx()
+        .recv_timeout(std::time::Duration::from_secs(2))?;
+    match r {
+        WorkerResponse::OperationComplete { .. } => {
+            if file_path.exists() {
+                return Err("Expected file to not exist after deletion".into());
+            }
+        }
+        other => return Err(format!("Unexpected response: {:?}", other).into()),
+    }
     Ok(())
 }
