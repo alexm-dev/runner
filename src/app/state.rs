@@ -348,7 +348,7 @@ impl<'a> AppState<'a> {
             let req_id = self.preview.prepare_new_request(path.clone());
             // Set the directory generation for the preview to the request_id for WorkerResponse
 
-            if entry.is_dir() {
+            if entry.is_dir() || entry.is_symlink() {
                 let _ = self.workers.io_tx().send(WorkerTask::LoadDirectory {
                     path,
                     focus: None,

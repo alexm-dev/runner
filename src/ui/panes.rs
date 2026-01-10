@@ -6,7 +6,7 @@
 //! Used internally by [ui::render]
 
 use crate::app::{AppState, PreviewData};
-use crate::core::FileEntry;
+use crate::core::{FileEntry, symlink_target_resolved};
 use crate::ui::icons::nerd_font_icon;
 use ansi_to_tui::IntoText;
 use ratatui::text::Text;
@@ -28,6 +28,7 @@ pub struct PaneStyles {
     pub item: Style,
     pub dir: Style,
     pub selection: Style,
+    pub symlink: Color,
 }
 
 impl PaneStyles {
@@ -52,6 +53,9 @@ impl PaneStyles {
             }
         }
         style
+    }
+    pub fn get_symlink_style(&self, base_style: Style) -> Style {
+        base_style.fg(self.symlink)
     }
 }
 
@@ -198,6 +202,14 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
                 ));
             }
             spans.push(Span::raw(name_str));
+            if entry.is_symlink() {
+                if let Some(target_path) = symlink_target_resolved(entry, current_dir) {
+                    spans.push(Span::styled(
+                        " -> ".to_owned() + &target_path.to_string_lossy(),
+                        context.styles.symlink,
+                    ));
+                }
+            }
         }
 
         let line = Line::from(spans);
@@ -229,6 +241,7 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
 ///
 /// Also applies underline/selection styles and manages cursor position
 pub fn draw_preview(
+    path: Option<&Path>,
     frame: &mut Frame,
     context: PaneContext,
     preview: &PreviewData,
@@ -275,7 +288,15 @@ pub fn draw_preview(
                 .map(|(idx, entry)| {
                     let is_selected = Some(idx) == selected_idx;
                     let style = context.styles.get_style(entry.is_dir(), is_selected);
-                    make_entry_row(entry, is_selected, style, &context, markers, Some(&opts))
+                    make_entry_row(
+                        entry,
+                        path,
+                        is_selected,
+                        style,
+                        &context,
+                        markers,
+                        Some(&opts),
+                    )
                 })
                 .collect();
 
@@ -301,6 +322,7 @@ pub fn draw_preview(
 
 /// Draws the parent directory of the current working directory.
 pub fn draw_parent(
+    path: Option<&Path>,
     frame: &mut Frame,
     context: PaneContext,
     entries: &[FileEntry],
@@ -318,7 +340,7 @@ pub fn draw_parent(
         .map(|(idx, entry)| {
             let is_selected = Some(idx) == selected_idx;
             let style = context.styles.get_style(entry.is_dir(), is_selected);
-            make_entry_row(entry, is_selected, style, &context, markers, None)
+            make_entry_row(entry, path, is_selected, style, &context, markers, None)
         })
         .collect();
 
@@ -392,6 +414,7 @@ pub fn make_pane_markers<'a>(
 /// # Ar
 fn make_entry_row<'a>(
     entry: &'a FileEntry,
+    current_dir: Option<&Path>,
     is_selected: bool,
     style: Style,
     context: &PaneContext,
@@ -462,7 +485,20 @@ fn make_entry_row<'a>(
     } else {
         entry.name_str()
     };
+
     spans.push(Span::raw(name_str));
+
+    if entry.is_symlink() {
+        if let Some(dir) = current_dir {
+            if let Some(target) = symlink_target_resolved(entry, dir) {
+                let sym_style = context.styles.get_symlink_style(row_style);
+                spans.push(Span::styled(
+                    " -> ".to_owned() + &target.to_string_lossy(),
+                    sym_style,
+                ));
+            }
+        }
+    }
     let line = Line::from(spans);
     ListItem::new(line).style(row_style)
 }

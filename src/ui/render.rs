@@ -84,6 +84,8 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     let path_str = shorten_home_path(app.nav().current_dir());
     let path_style = theme_cfg.path().as_style();
 
+    let symlink_style = theme_cfg.symlink();
+
     let padding_str = display_cfg.padding_str();
     let border_type = display_cfg.border_shape().as_border_type();
 
@@ -91,6 +93,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     let marker_theme = theme_cfg.marker();
     let marker_icon = marker_theme.icon();
     let marker_style = marker_theme.color().as_style();
+
     let clipboard = app.actions().clipboard().as_ref();
     let clipboard_style = marker_theme
         .clipboard()
@@ -148,6 +151,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         );
 
         panes::draw_parent(
+            parent_dir,
             frame,
             PaneContext {
                 area: chunks[pane_idx],
@@ -158,6 +162,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                     item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
                     dir: theme_cfg.directory().as_style(),
                     selection: theme_cfg.parent().selection_style(selection_style),
+                    symlink: symlink_style,
                 },
                 highlight_symbol: "",
                 entry_padding: display_cfg.entry_padding(),
@@ -197,6 +202,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             item: theme_cfg.entry().as_style(),
             dir: theme_cfg.directory().as_style(),
             selection: selection_style,
+            symlink: symlink_style,
         };
 
         panes::draw_main(
@@ -254,6 +260,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         );
 
         panes::draw_preview(
+            preview_dir,
             frame,
             PaneContext {
                 area: chunks[pane_idx],
@@ -264,6 +271,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                     item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
                     dir: theme_cfg.directory().as_style(),
                     selection: theme_cfg.preview().selection_style(selection_style),
+                    symlink: symlink_style,
                 },
                 highlight_symbol: "",
                 entry_padding: display_cfg.entry_padding(),

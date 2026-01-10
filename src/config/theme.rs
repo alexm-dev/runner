@@ -38,6 +38,8 @@ pub struct Theme {
     preview: PaneTheme,
     path: ColorPair,
     status_line: ColorPair,
+    #[serde(deserialize_with = "deserialize_color_field")]
+    symlink: Color,
     marker: MarkerTheme,
     widget: WidgetTheme,
     /// info does not honor the .size field from widget.
@@ -75,6 +77,7 @@ impl Default for Theme {
                 ..ColorPair::default()
             },
             status_line: ColorPair::default(),
+            symlink: Color::Magenta,
             marker: MarkerTheme::default(),
             widget: WidgetTheme::default(),
             info: WidgetTheme {
@@ -143,6 +146,10 @@ impl Theme {
 
     pub fn status_line(&self) -> ColorPair {
         self.status_line
+    }
+
+    pub fn symlink(&self) -> Color {
+        self.symlink
     }
 
     pub fn marker(&self) -> &MarkerTheme {
@@ -227,6 +234,7 @@ impl Theme {
         override_if_changed!(self, user, defaults, preview);
         override_if_changed!(self, user, defaults, path);
         override_if_changed!(self, user, defaults, status_line);
+        override_if_changed!(self, user, defaults, symlink);
         override_if_changed!(self, user, defaults, selection_icon);
         override_if_changed!(self, user, defaults, marker);
         override_if_changed!(self, user, defaults, widget);
@@ -538,6 +546,7 @@ pub fn make_theme(name: &str, palette: Palette, icon: &str) -> Theme {
             fg: Color::Reset,
             bg: base_bg,
         },
+        symlink: secondary,
         marker: MarkerTheme {
             icon: icon.to_string(),
             color: ColorPair {

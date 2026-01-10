@@ -24,6 +24,7 @@ use std::time::SystemTime;
 /// * `is_dir` - Boolean indicating if the entry is a directory
 /// * `is_hidden` - Boolean indicating if the entry is hidden
 /// * `is_system` - Boolean indicating if the entry is a system file (useful on Windows)
+/// # `is_symlink` - Boolean indicating if the entry is a symlink
 #[derive(Debug, Clone)]
 pub struct FileEntry {
     name: OsString,
@@ -33,6 +34,7 @@ pub struct FileEntry {
     is_dir: bool,
     is_hidden: bool,
     is_system: bool,
+    is_symlink: bool,
 }
 
 impl FileEntry {
@@ -44,6 +46,7 @@ impl FileEntry {
         is_dir: bool,
         is_hidden: bool,
         is_system: bool,
+        is_symlink: bool,
     ) -> Self {
         FileEntry {
             name,
@@ -53,6 +56,7 @@ impl FileEntry {
             is_dir,
             is_hidden,
             is_system,
+            is_symlink,
         }
     }
 
@@ -84,6 +88,10 @@ impl FileEntry {
 
     pub fn is_system(&self) -> bool {
         self.is_system
+    }
+
+    pub fn is_symlink(&self) -> bool {
+        self.is_symlink
     }
 
     pub fn extension(&self) -> Option<String> {
@@ -205,7 +213,15 @@ pub fn browse_dir(path: &std::path::Path) -> std::io::Result<Vec<FileEntry>> {
         let name_str = name_lossy.to_string();
         let lowercase_name = name_lossy.to_lowercase();
 
-        let is_dir = entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false);
+        let file_type = entry.file_type().ok();
+        let mut is_dir = file_type.map(|ft| ft.is_dir()).unwrap_or(false);
+        let is_symlink = file_type.map(|ft| ft.is_symlink()).unwrap_or(false);
+
+        if is_symlink {
+            if let Ok(meta) = fs::metadata(entry.path()) {
+                is_dir = meta.is_dir();
+            }
+        }
 
         let display_name = if is_dir {
             format!("{}/", name_lossy)
@@ -246,6 +262,7 @@ pub fn browse_dir(path: &std::path::Path) -> std::io::Result<Vec<FileEntry>> {
             is_dir,
             is_hidden,
             is_system,
+            is_symlink,
         });
     }
     Ok(entries)

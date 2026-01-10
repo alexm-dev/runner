@@ -17,7 +17,7 @@ use std::collections::HashSet;
 use std::ffi::OsString;
 use std::fs::{File, Metadata};
 use std::io::{BufRead, BufReader, ErrorKind, Read, Seek};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::SystemTime;
 
@@ -97,10 +97,12 @@ impl Formatter {
             }
         });
 
-        // Apply pane_width to the display_name
         for entry in entries.iter_mut() {
-            let suffix = if entry.is_dir() { "/" } else { "" };
-            let base_name = format!("{}{}", entry.name_str(), suffix);
+            let base_name = if entry.is_dir() {
+                entry.name_str().to_owned() + "/"
+            } else {
+                entry.name_str().to_owned()
+            };
 
             let mut out = String::with_capacity(self.pane_width);
             let mut current_w = 0;
@@ -254,6 +256,30 @@ pub fn format_file_time(modified: Option<SystemTime>) -> String {
         .unwrap_or_else(|| "-".to_string())
 }
 
+/// Returns Some(resolved_target) if entry is a symlink and can be resolved, otherwise None.
+pub fn symlink_target_resolved(
+    entry: &crate::core::FileEntry,
+    parent_dir: &Path,
+) -> Option<PathBuf> {
+    if !entry.is_symlink() {
+        return None;
+    }
+    let entry_path = parent_dir.join(entry.name());
+    if let Ok(target) = std::fs::read_link(&entry_path) {
+        let resolved = if target.is_absolute() {
+            target
+        } else {
+            entry_path
+                .parent()
+                .unwrap_or_else(|| Path::new(""))
+                .join(target)
+        };
+        Some(resolved)
+    } else {
+        None
+    }
+}
+
 /// Calculating the pane widht and clean the output to the widht of the pane
 /// by removing control characters, expanding tabs to 4 spaces,
 /// and truncating or padding the string to fit exactly.
@@ -312,42 +338,34 @@ pub fn sanitize_to_exact_width(line: &str, pane_width: usize) -> String {
 pub fn preview_directory(path: &Path, max_lines: usize, pane_width: usize) -> Vec<String> {
     match browse_dir(path) {
         Ok(entries) => {
-            let mut lines = Vec::with_capacity(max_lines + 1);
+            let mut lines = Vec::with_capacity(max_lines);
+            let total_entries = entries.len();
 
-            // Process existing entries
             for e in entries.iter().take(max_lines) {
-                let suffix = if e.is_dir() { "/" } else { "" };
-                let display_name = format!("{}{}", e.name().to_string_lossy(), suffix);
-
-                // Sanitize and pad to exact width
+                let display_name = if e.is_dir() {
+                    e.name().to_string_lossy().to_owned() + "/"
+                } else {
+                    e.name().to_string_lossy().to_owned()
+                };
                 lines.push(sanitize_to_exact_width(&display_name, pane_width));
             }
 
-            // Handle Empty State
             if lines.is_empty() {
                 lines.push(sanitize_to_exact_width("[empty directory]", pane_width));
-            }
-            // Handle Overflow Indicator
-            else if entries.len() > max_lines {
-                lines.pop();
-                lines.push(sanitize_to_exact_width("...", pane_width));
+            } else if total_entries > max_lines {
+                if let Some(last) = lines.last_mut() {
+                    *last = sanitize_to_exact_width("...", pane_width);
+                }
             }
 
-            // If the folder has fewer items than the height of the pane,
-            // it fills the remaining lines with empty padded strings.
-            // This physically erases old content from the bottom of the pane.
             while lines.len() < max_lines {
                 lines.push(" ".repeat(pane_width));
             }
-
             lines
         }
         Err(e) => {
-            let mut err_lines = vec![sanitize_to_exact_width(
-                &format!("[Error: {}]", e),
-                pane_width,
-            )];
-            // Fill error screen with blanks too
+            let err_msg = "[Error: ".to_owned() + &e.to_string() + "]";
+            let mut err_lines = vec![sanitize_to_exact_width(&err_msg, pane_width)];
             while err_lines.len() < max_lines {
                 err_lines.push(" ".repeat(pane_width));
             }
@@ -379,7 +397,7 @@ pub fn safe_read_preview(path: &Path, max_lines: usize, pane_width: usize) -> Ve
     };
 
     // Directory Check
-    if path.is_dir() {
+    if meta.is_dir() {
         return preview_directory(path, max_lines, pane_width);
     }
 

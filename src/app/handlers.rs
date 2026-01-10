@@ -259,15 +259,40 @@ impl<'a> AppState<'a> {
     /// # Returns
     /// * [KeypressResult] indicating the result of the action.
     fn handle_go_into_dir(&mut self) -> KeypressResult {
-        if let Some(entry) = self.nav.selected_shown_entry()
-            && entry.is_dir()
-        {
-            let new_path = self.nav.current_dir().join(entry.name());
-            self.nav.save_position();
-            self.nav.set_path(new_path);
+        if let Some(entry) = self.nav.selected_shown_entry() {
+            let cur_path = self.nav.current_dir();
+            let file_name = entry.name();
+            let entry_path = cur_path.join(file_name);
 
-            self.request_dir_load(None);
-            self.request_parent_content();
+            if entry.is_dir() && !entry.is_symlink() {
+                self.nav.save_position();
+                self.nav.set_path(entry_path);
+                self.request_dir_load(None);
+                self.request_parent_content();
+                return KeypressResult::Continue;
+            }
+
+            if entry.is_symlink() {
+                if let Ok(target) = std::fs::read_link(&entry_path) {
+                    let resolved = if target.is_absolute() {
+                        target
+                    } else {
+                        entry_path
+                            .parent()
+                            .unwrap_or_else(|| std::path::Path::new(""))
+                            .join(target)
+                    };
+                    if let Ok(meta) = std::fs::metadata(&resolved) {
+                        if meta.is_dir() {
+                            self.nav.save_position();
+                            self.nav.set_path(resolved);
+                            self.request_dir_load(None);
+                            self.request_parent_content();
+                            return KeypressResult::Continue;
+                        }
+                    }
+                }
+            }
         }
         KeypressResult::Continue
     }

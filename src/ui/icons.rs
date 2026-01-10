@@ -165,6 +165,14 @@ pub fn nerd_font_icon(entry: &FileEntry) -> &'static str {
         return "";
     }
 
+    if entry.is_symlink() {
+        if entry.is_dir() {
+            return "";
+        } else {
+            return "";
+        }
+    }
+
     if let Some(icon) = SPECIAL_FILE_ICON_MAP.get(entry_name) {
         return icon;
     }
