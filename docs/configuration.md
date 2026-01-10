@@ -73,6 +73,9 @@ border_shape = "square"
 # Show pane titles at the top (e.g., "Main", "Preview")
 titles = false
 
+# Show nerd font icons. Needs a Nerd Font capapable font to be installe and used.
+icons = false
+
 # Draw vertical lines between panes
 separators = true
 
@@ -304,6 +307,8 @@ filter              = ["f"]
 toggle_marker       = [" "]     # space bar
 info                = ["i"]
 find                = ["s"]
+clear_makers        = ["Ctrl+c"]
+clear_filter        = ["Ctrl+f"]
 ```
 
 You may remove any binding to let it fall back to the default.
