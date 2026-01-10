@@ -135,7 +135,7 @@ impl Default for Keys {
             find: vec!["s".into()],
 
             clear_markers: vec!["Ctrl+c".into()],
-            clear_filter: vec!["Ctrl+u".into()],
+            clear_filter: vec!["Ctrl+f".into()],
         }
     }
 }
