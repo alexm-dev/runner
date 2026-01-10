@@ -163,7 +163,9 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
         if entry_padding == 0 {
             if context.show_icons {
                 let icon = nerd_font_icon(entry);
-                let icon_col = icon.to_owned() + " ";
+                let mut icon_col = String::with_capacity(icon.len() + 1);
+                icon_col.push_str(icon);
+                icon_col.push(' ');
                 spans.push(Span::styled(
                     icon_col,
                     entry_style.add_modifier(Modifier::BOLD),
@@ -195,7 +197,9 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
             }
             if context.show_icons {
                 let icon = nerd_font_icon(entry);
-                let icon_col = icon.to_owned() + " ";
+                let mut icon_col = String::with_capacity(icon.len() + 1);
+                icon_col.push_str(icon);
+                icon_col.push(' ');
                 spans.push(Span::styled(
                     icon_col,
                     entry_style.add_modifier(Modifier::BOLD),
@@ -203,10 +207,13 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
             }
             spans.push(Span::raw(name_str));
             if entry.is_symlink() {
-                if let Some(target_path) = symlink_target_resolved(entry, current_dir) {
+                if let Some(target) = symlink_target_resolved(entry, current_dir) {
+                    let mut sym_text = String::with_capacity(4 + target.to_string_lossy().len());
+                    sym_text.push_str(" -> ");
+                    sym_text.push_str(&target.to_string_lossy());
                     spans.push(Span::styled(
-                        " -> ".to_owned() + &target_path.to_string_lossy(),
-                        context.styles.symlink,
+                        sym_text,
+                        context.styles.get_symlink_style(entry_style),
                     ));
                 }
             }
@@ -474,7 +481,9 @@ fn make_entry_row<'a>(
     let mut spans = vec![pad];
     if context.show_icons {
         let icon = nerd_font_icon(entry);
-        let icon_col = icon.to_owned() + " ";
+        let mut icon_col = String::with_capacity(icon.len() + 1);
+        icon_col.push_str(icon);
+        icon_col.push(' ');
         spans.push(Span::styled(
             icon_col,
             row_style.add_modifier(Modifier::BOLD),
@@ -491,14 +500,17 @@ fn make_entry_row<'a>(
     if entry.is_symlink() {
         if let Some(dir) = current_dir {
             if let Some(target) = symlink_target_resolved(entry, dir) {
-                let sym_style = context.styles.get_symlink_style(row_style);
+                let mut sym_text = String::with_capacity(4 + target.to_string_lossy().len());
+                sym_text.push_str(" -> ");
+                sym_text.push_str(&target.to_string_lossy());
                 spans.push(Span::styled(
-                    " -> ".to_owned() + &target.to_string_lossy(),
-                    sym_style,
+                    sym_text,
+                    context.styles.get_symlink_style(row_style),
                 ));
             }
         }
     }
+
     let line = Line::from(spans);
     ListItem::new(line).style(row_style)
 }

@@ -202,6 +202,7 @@ impl FileInfo {
 /// A Result containing a vector of FileEntry structs or an std::io::Error
 pub fn browse_dir(path: &std::path::Path) -> std::io::Result<Vec<FileEntry>> {
     let mut entries = Vec::with_capacity(256);
+
     for entry in fs::read_dir(path)? {
         let entry = match entry {
             Ok(e) => e,
@@ -210,51 +211,44 @@ pub fn browse_dir(path: &std::path::Path) -> std::io::Result<Vec<FileEntry>> {
 
         let name = entry.file_name();
         let name_lossy = name.to_string_lossy();
-        let name_str = name_lossy.to_string();
-        let lowercase_name = name_lossy.to_lowercase();
 
-        let file_type = entry.file_type().ok();
-        let mut is_dir = file_type.map(|ft| ft.is_dir()).unwrap_or(false);
-        let is_symlink = file_type.map(|ft| ft.is_symlink()).unwrap_or(false);
+        let (is_dir, is_symlink) = match entry.file_type() {
+            Ok(ft) => (ft.is_dir(), ft.is_symlink()),
+            Err(_) => (false, false),
+        };
 
-        if is_symlink {
-            if let Ok(meta) = fs::metadata(entry.path()) {
-                is_dir = meta.is_dir();
+        let is_hidden: bool;
+        let is_system: bool;
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::ffi::OsStrExt;
+            is_hidden = name.as_bytes().first() == Some(&b'.');
+            is_system = false;
+        }
+
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::MetadataExt;
+            if let Ok(md) = entry.metadata() {
+                let attrs = md.file_attributes();
+                is_hidden = (attrs & 0x2 != 0) || name_lossy.starts_with('.');
+                is_system = attrs & 0x4 != 0;
+            } else {
+                is_hidden = name_lossy.starts_with('.');
+                is_system = false;
             }
         }
 
-        let display_name = if is_dir {
-            format!("{}/", name_lossy)
-        } else {
-            name_lossy.into_owned()
-        };
+        let name_str: String = name_lossy.into_owned();
+        let lowercase_name: String = name_str.to_lowercase();
 
-        #[cfg(unix)]
-        let (is_hidden, is_system) = {
-            use std::os::unix::ffi::OsStrExt;
-            // Native byte check: no string conversion needed
-            let is_hidden = name.as_bytes().first() == Some(&b'.');
-            (is_hidden, false)
-        };
+        let mut display_name = name_str.clone();
+        if is_dir {
+            display_name.push('/');
+        }
 
-        #[cfg(windows)]
-        let (is_dir, is_hidden, is_system) = {
-            use std::os::windows::fs::MetadataExt;
-            let starts_with_dot = lowercase_name.starts_with('.');
-
-            if let Ok(md) = entry.metadata() {
-                let attrs = md.file_attributes();
-                (
-                    md.is_dir(),
-                    (attrs & 0x2 != 0) || starts_with_dot,
-                    (attrs & 0x4 != 0),
-                )
-            } else {
-                (is_dir, starts_with_dot, false)
-            }
-        };
-
-        entries.push(FileEntry {
+        entries.push(FileEntry::new(
             name,
             name_str,
             lowercase_name,
@@ -263,7 +257,8 @@ pub fn browse_dir(path: &std::path::Path) -> std::io::Result<Vec<FileEntry>> {
             is_hidden,
             is_system,
             is_symlink,
-        });
+        ));
     }
+
     Ok(entries)
 }
