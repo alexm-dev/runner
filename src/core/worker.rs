@@ -116,7 +116,7 @@ pub enum WorkerTask {
         max_lines: usize,
         pane_width: usize,
         preview_method: PreviewMethod,
-        args: Vec<String>,
+        args: Vec<OsString>,
         request_id: u64,
     },
     FileOp {

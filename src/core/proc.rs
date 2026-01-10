@@ -24,6 +24,7 @@ use fuzzy_matcher::skim::SkimMatcherV2;
 
 use std::borrow::Cow;
 use std::cmp::Ordering;
+use std::ffi::OsString;
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -112,18 +113,28 @@ pub fn find(
         return Ok(());
     }
 
+    let mut args: Vec<OsString> = vec![
+        OsString::from("."),
+        OsString::from(base_dir),
+        OsString::from("--type"),
+        OsString::from("f"),
+        OsString::from("--type"),
+        OsString::from("d"),
+        OsString::from("--hidden"),
+    ];
+
+    for excl in EXCLUDES {
+        args.push(OsString::from("--exclude"));
+        args.push(OsString::from(excl));
+    }
+
+    args.push(OsString::from("--color"));
+    args.push(OsString::from("never"));
+    args.push(OsString::from("--max-results"));
+    args.push(OsString::from(max_results.to_string()));
+
     let mut cmd = Command::new("fd");
-    cmd.arg(".")
-        .arg(base_dir)
-        .args(["--type", "f", "--type", "d", "--hidden"])
-        .args(EXCLUDES.iter().flat_map(|x| ["--exclude", *x]))
-        .args([
-            "--color",
-            "never",
-            "--max-results",
-            &max_results.to_string(),
-        ])
-        .stdout(Stdio::piped());
+    cmd.args(&args).stdout(Stdio::piped());
 
     let mut proc = match cmd.spawn() {
         Ok(proc) => proc,
@@ -197,10 +208,10 @@ pub fn find(
 pub fn preview_bat(
     path: &Path,
     max_lines: usize,
-    bat_args: &[String],
+    bat_args: &[OsString],
 ) -> Result<Vec<String>, std::io::Error> {
     let mut args = bat_args.to_vec();
-    args.push(path.to_string_lossy().to_string());
+    args.push(path.as_os_str().to_os_string());
 
     let output = Command::new("bat")
         .args(&args)

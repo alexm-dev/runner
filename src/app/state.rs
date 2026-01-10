@@ -22,6 +22,7 @@ use crate::core::worker::{WorkerResponse, WorkerTask, Workers};
 use crate::ui::overlays::{Overlay, OverlayStack};
 
 use crossterm::event::KeyEvent;
+use std::ffi::OsString;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::time::Instant;
@@ -362,7 +363,12 @@ impl<'a> AppState<'a> {
             } else {
                 let preview_options = self.config.display().preview_options();
                 let preview_method = preview_options.method().clone();
-                let bat_args = self.config.bat_args_for_preview(self.metrics.preview_width);
+                let bat_args = self
+                    .config
+                    .bat_args_for_preview(self.metrics.preview_width)
+                    .into_iter()
+                    .map(OsString::from)
+                    .collect();
                 let _ = self.workers.preview_tx().send(WorkerTask::LoadPreview {
                     path,
                     max_lines: self.metrics.preview_height,
