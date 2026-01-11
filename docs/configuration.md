@@ -190,6 +190,9 @@ name = "default"
 # Example:
 # name = "gruvbox-dark"
 
+# Coloring option for the symling indicator on the entries.
+symlink = "default"
+
 # The symbol for the current selection. Use "" or " " to disable.
 selection_icon = ">"
 

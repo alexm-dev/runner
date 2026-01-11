@@ -251,6 +251,7 @@ method = "internal"
 # size = true
 # modified = true
 # perms = false
+# position = "default"
 
 [theme]
 name = "default"
