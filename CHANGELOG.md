@@ -14,6 +14,7 @@ All the changes made to runa are documented here.
 ### Fixed
 - **Parent pane**: Fixed the parent pane stale content update **and** optimized the parent directory selection being reset and redrawn after every directory change.
 - **Directory Marker**: Fixed the `dir_marker` option to toggle the `/` for all panes.
+- **Internal defaults**: All theme options now correctly respect the internal defaults. Writing `"default"` now correctly applies internal default.
 
 ### Breaking Changes
 - **Dialog Size Configuration (`DialogSize::Custom`) now uses cells, not percentages:**
