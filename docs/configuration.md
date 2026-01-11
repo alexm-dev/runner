@@ -73,7 +73,7 @@ border_shape = "square"
 # Show pane titles at the top (e.g., "Main", "Preview")
 titles = false
 
-# Show nerd font icons. Needs a Nerd Font capapable font to be installe and used.
+# Show Nerd Font icons. Requires a Nerd Font to be installed and used.
 icons = false
 
 # Draw vertical lines between panes
