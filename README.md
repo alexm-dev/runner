@@ -177,13 +177,13 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 ### Completed
 
-- [x] Syntax Highlighting: `bat` integration for the preview pane.  
+- [x] Syntax Highlighting: `bat` integration for the preview pane. (Completed in 0.5.1)  
 
 - [x] Search & Discovery: Integrated fuzzy finding (fd support) (Completed in 0.4.0)  
 
-- [x] File Operations: Copy, move, delete, and rename from within the UI.  ( Completed in 0.3.0 )  
+- [x] File Operations: Copy, move, delete, and rename from within the UI.  (Completed in 0.3.0)  
 
-- [x] Content Search: Text search and filtering.  (Completed in 0.3.0)  
+- [x] Content Search: Text search and filtering. (Completed in 0.3.0)  
 
 - [x] Performance: Reactive rendering (Completed in 0.2.0).
 
