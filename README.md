@@ -12,7 +12,7 @@
 </div>
 <div align="center">
 
-> **A fast, ultra-lightweight, and extremely customizable terminal file browser written in Rust.**
+> **A fast, ultra-lightweight, and extremely customizable terminal file browser carved in Rust.**
 
 </div>
 <div align="center">
@@ -44,7 +44,7 @@
 - **Essential-only Rust crates:** No external TUI frameworks or bloat.
 - **Direct terminal rendering:** Uses low-overhead [ratatui](https://ratatui.rs/) & [crossterm](https://github.com/crossterm-rs/crossterm).
 - **Optional blazing-fast find:** Integrates with [fd](https://github.com/sharkdp/fd) for recursive fuzzy search.
-- **Small, native binary:** The `rn` binary is compact (typically 1.3–1.9 MB, depending on operating system and architecture).
+- **Small, native binary:** The `rn` binary is compact (typically 1.4–2 MB, depending on operating system and architecture).
 
 </details>
 
@@ -118,6 +118,18 @@ cargo build --release
 
 After installation, start runa with: `rn`
 
+## Optional Enhancements
+
+`runa` is designed to be lightweight and standalone. However, some advanced features leverage specialized external tools:
+
+* **Fuzzy Search:** To enable fast, recursive fuzzy finding, install **[fd](https://github.com/sharkdp/fd)**.
+  * If `fd` is detected in your `PATH`, the search feature will be enabled automatically.
+  * Without it, `runa` remains a fully functional file manager but will notify you if you attempt a recursive search.
+
+* Preview Syntax coloring: To enable syntax coloring in the preview pane, install **[bat](https://github.com/sharkdp/bat)**
+  * If `bat` is detected and installed, you can switch the `preview_options` method in the runa.toml to `method = "bat"`.
+  * Without it, `runa` uses the `internal` preview method, which is a plain preview method useful for extra speed without syntax highlighting.
+
 ## Configuration
 
 runa uses a runa.toml file for [configuration](docs/configuration.md).  
@@ -149,14 +161,6 @@ rn --config-help
 
 This will generate a config in the default config path.
 
-## Optional Enhancements
-
-`runa` is designed to be lightweight and standalone. However, some advanced features leverage specialized external tools:
-
-* **Fuzzy Search:** To enable fast, recursive fuzzy finding, install **[fd](https://github.com/sharkdp/fd)**.
-  * If `fd` is detected in your `PATH`, the search feature will be enabled automatically.
-  * Without it, `runa` remains a fully functional file manager but will notify you if you attempt a recursive search.
-
 ## Roadmap
 
 runa is in active development.  
@@ -166,9 +170,9 @@ Future releases will focus on expanding functionality while keeping it fast and 
 
 - [ ] Image Previews: Support for Sixel/Kitty graphics protocols.  
 
-- [ ] Syntax Highlighting: Treesitter (or similar) integration for the preview pane.  
-
 ### Completed
+
+- [x] Syntax Highlighting: `bat` integration for the preview pane.  
 
 - [x] Search & Discovery: Integrated fuzzy finding (fd support) (Completed in 0.4.0)  
 
@@ -196,21 +200,28 @@ If you enjoy using **runa**, you can help the project grow:
 * ⭐ **Star the Repo:** It helps more people discover runa :)
 * 🐛 **Report Bugs:** Open an issue if something doesn't work as expected.
 * 💡 **Feature Requests:** Suggest new ideas in the [Issues](https://github.com/alexm-dev/runa/issues) tab.
-* 🦀 **Contribute:** Pull requests are always welcome!
+* 🦀 **Contribute:** Pull requests are always welcome! Checkout the [CONTRIBUTING guide](CONTRIBUTING.md) for more info.
 
 
 ## Special Thanks
 Many thanks to [@lmartinez-mirror](https://github.com/lmartinez-mirror), the maintainer of [runa-bin](https://aur.archlinux.org/packages/runa-bin), for maintaining the binary AUR package.
 
+Many thanks to [@sharkdp](https://github.com/sharkdp) for `fd` and `bat`, excellent CLI tools runa integrates with for fuzzy finding and syntax preview.
 
 ## Credits & Ecosystem
 `runa` stands on the shoulders of these incredible Rust crates:
 
-- **TUI Framework:** [Ratatui](https://ratatui.rs) & [Crossterm](https://github.com/crossterm-rs/crossterm)
-- **Configuration:** [Serde](https://serde.rs) & [TOML](https://github.com/toml-rs/toml)
-- **System Integration:** [Dirs](https://github.com/dirs-dev/dirs-rs) (Standard config locations)
-- **External Integration:** [fd-find](https://github.com/sharkdp/fd) (Optional backend for fuzzy find)
-- **Concurrency:** [Crossbeam-channel](https://github.com/crossbeam-rs/crossbeam)
+- **Terminal UI:**
+    - [Ratatui](https://ratatui.rs): Direct, fast terminal rendering.
+    - [Crossterm](https://github.com/crossterm-rs/crossterm): Cross-platform terminal I/O.
+- **Configuration:**
+    - [Serde](https://serde.rs): Data serialization/deserialization.
+    - [toml-rs](https://github.com/toml-rs/toml): TOML parsing.
+- **Concurrency:**
+    - [Crossbeam-channel](https://github.com/crossbeam-rs/crossbeam): Multi-threaded communication (worker threads).
+- **Optional Integrations:**
+    - [fd](https://github.com/sharkdp/fd): High-performance fuzzy finder (search enhancement).
+    - [bat](https://github.com/sharkdp/bat): Syntax-highlighted file previews.
 
 ## License
 This project is Licensed under the MIT License  
