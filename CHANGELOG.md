@@ -2,8 +2,7 @@
 
 All the changes made to runa are documented here.
 
-
-## Unreleased
+## [0.5.1] - 2026-01-11
 
 ### Added
 - **bat integration**: Added `bat` as an preview option to the internal preview. Can be set in `runa.toml` under `[display.preview_options]`
@@ -27,7 +26,6 @@ All the changes made to runa are documented here.
 ### Changed
 - **fd exclusions**: Switched to using a central exclusion map for `fd` searches. Added multiple default directories (e.g., `.git`, `node_modules`, `target`, `venv`, etc.) to reduce noise and improve relevance when searching. This also makes it easier to maintain and update the exclusion list.
 
-
 ### Internal
 - **Core refactor**: Moved `formatter.rs` from utils/ to core/, since formatter now handles all core formatting logic of multiple functions.
 - **Renamed file_manager.rs**: `file_manager.rs` is renamed to `rm.rs` to keep it more simple :)
@@ -37,7 +35,7 @@ All the changes made to runa are documented here.
 ---
 
 
-## [0.5.0] - 2025-01-08
+## [0.5.0] - 2026-01-08
 
 UI related additions and more.
 
@@ -81,7 +79,7 @@ UI related additions and more.
 ---
 
 
-## [0.4.0] - 2025-01-06
+## [0.4.0] - 2026-01-06
 
 New feature update: The fuzzy finder.
 
