@@ -313,7 +313,7 @@ pub fn get_pane_block(title: &str, app: &AppState) -> Block<'static> {
     if app.config().display().is_split() {
         block = block
             .borders(Borders::ALL)
-            .border_style(app.config().theme().accent().as_style());
+            .border_style(app.config().theme().accent_style());
         if app.config().display().titles() {
             block = block.title(title.to_string());
         }

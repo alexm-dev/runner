@@ -7,6 +7,7 @@
 
 use crate::ui::widgets::{DialogPosition, DialogSize};
 use crate::utils::parse_color;
+use once_cell::sync::Lazy;
 use ratatui::style::{Color, Style};
 use serde::Deserialize;
 
@@ -104,52 +105,68 @@ macro_rules! override_if_changed {
 /// Theme implementation
 /// Provides methods to access theme properties and apply user overrides.
 impl Theme {
-    pub fn accent(&self) -> ColorPair {
-        self.accent
+    /// Get internal default theme reference
+    /// Used for fallback when a color is set to Reset
+    /// This avoids recreating the default theme multiple times
+    /// by using a static Lazy instance.
+    pub fn internal_defaults() -> &'static Self {
+        static DEFAULT: Lazy<Theme> = Lazy::new(|| Theme::default());
+        &DEFAULT
     }
 
-    pub fn selection(&self) -> ColorPair {
+    // Getters for various theme properties with fallbacks to internal defaults
+
+    pub fn accent_style(&self) -> Style {
+        self.accent.style_or(&Theme::internal_defaults().accent)
+    }
+
+    pub fn selection_style(&self) -> Style {
         self.selection
+            .style_or(&Theme::internal_defaults().selection)
     }
 
-    pub fn underline(&self) -> ColorPair {
+    pub fn underline_style(&self) -> Style {
         self.underline
+            .style_or(&Theme::internal_defaults().underline)
     }
 
-    pub fn entry(&self) -> ColorPair {
-        self.entry
+    pub fn entry_style(&self) -> Style {
+        self.entry.style_or(&Theme::internal_defaults().entry)
     }
 
-    pub fn directory(&self) -> ColorPair {
+    pub fn directory_style(&self) -> Style {
         self.directory
+            .style_or(&Theme::internal_defaults().directory)
     }
 
-    pub fn separator(&self) -> ColorPair {
+    pub fn separator_style(&self) -> Style {
         self.separator
+            .style_or(&Theme::internal_defaults().separator)
     }
 
     pub fn selection_icon(&self) -> &str {
         &self.selection_icon
     }
 
-    pub fn parent(&self) -> PaneTheme {
-        self.parent
+    pub fn path_style(&self) -> Style {
+        self.path.style_or(&Theme::internal_defaults().path)
     }
 
-    pub fn preview(&self) -> PaneTheme {
-        self.preview
-    }
-
-    pub fn path(&self) -> ColorPair {
-        self.path
-    }
-
-    pub fn status_line(&self) -> ColorPair {
+    pub fn status_line_style(&self) -> Style {
         self.status_line
+            .style_or(&Theme::internal_defaults().status_line)
     }
 
     pub fn symlink(&self) -> Color {
         self.symlink
+    }
+
+    pub fn parent(&self) -> &PaneTheme {
+        &self.parent
+    }
+
+    pub fn preview(&self) -> &PaneTheme {
+        &self.preview
     }
 
     pub fn marker(&self) -> &MarkerTheme {
@@ -270,13 +287,20 @@ impl Default for ColorPair {
 /// ColorPair implementation
 /// Provides methods to convert to Style and get effective styles.
 impl ColorPair {
-    /// Convert ColorPair to Style
-    pub fn as_style(&self) -> Style {
-        Style::default().fg(self.fg).bg(self.bg)
-    }
-
-    /// Get effective style, using fallback colors if Reset is set
-    pub fn effective_style(&self, fallback: &ColorPair) -> Style {
+    /// Converts a `ColorPair` to a `Style`, using the provided fallback for any `Reset` colors.
+    ///
+    /// If the foreground or background color is `Color::Reset`, the corresponding color from
+    /// `fallback` is used. Otherwise, the `ColorPair`’s own color is used.
+    ///
+    /// # Arguments
+    /// * `fallback` - A `ColorPair` to use for any `Reset` colors.
+    ///
+    /// # Returns
+    /// * `Style` - A `Style` with `fg` and `bg` set to the effective colors.
+    ///
+    /// # Example
+    /// Use `ColorPair::new(fg, bg)` to create a color pair before calling `style_or`.
+    pub fn style_or(&self, fallback: &ColorPair) -> Style {
         let fg = if self.fg == Color::Reset {
             fallback.fg
         } else {
@@ -288,14 +312,6 @@ impl ColorPair {
             self.bg
         };
         Style::default().fg(fg).bg(bg)
-    }
-
-    // Getters for fg and bg colors
-    pub fn fg(&self) -> Color {
-        self.fg
-    }
-    pub fn bg(&self) -> Color {
-        self.bg
     }
 }
 
@@ -311,26 +327,41 @@ pub struct PaneTheme {
 /// Similar to ColorPair implementation
 /// Provides methods to convert to Style and get effective styles.
 impl PaneTheme {
-    pub fn as_style(&self) -> Style {
-        self.color.as_style()
-    }
-
-    pub fn selection_style(&self, fallback: Style) -> Style {
+    /// Returns the selection style, falling back to the provided fallback if not set.
+    /// If selection is None, falls back to the provided fallback ColorPair.
+    /// If selection is Some, uses its style_or method with the fallback.
+    ///
+    /// # Arguments
+    /// * `fallback` - A `ColorPair` to use if selection is None.
+    /// # Returns
+    /// * `Style` - A `Style` representing the selection style.
+    pub fn selection_style(&self, fallback: &ColorPair) -> Style {
         match self.selection {
-            Some(sel) => sel.as_style(),
-            None => fallback,
+            Some(sel) => sel.style_or(fallback),
+            None => fallback.style_or(&ColorPair::default()),
         }
     }
 
-    pub fn effective_style(&self, fallback: &ColorPair) -> Style {
-        self.color.effective_style(fallback)
+    /// Returns the selection style, falling back to the internal default theme's selection style.
+    /// This method uses the internal default theme as the fallback.
+    pub fn selection_style_or_theme(&self) -> Style {
+        let fallback = Theme::internal_defaults().selection;
+        self.selection_style(&fallback)
     }
 
-    pub fn fg(&self) -> Color {
-        self.color.fg()
+    /// Returns the pane color style, falling back to the provided fallback ColorPair.
+    /// # Arguments
+    /// * `fallback` - A `ColorPair` to use as fallback.
+    /// # Returns
+    /// * `Style` - A `Style` representing the pane color style.
+    pub fn style_or(&self, fallback: &ColorPair) -> Style {
+        self.color.style_or(fallback)
     }
-    pub fn bg(&self) -> Color {
-        self.color.bg()
+
+    /// Returns the pane color style, falling back to the internal default theme's entry style.
+    /// This method uses the internal default theme as the fallback.
+    pub fn effective_style_or_theme(&self) -> Style {
+        self.style_or(&Theme::internal_defaults().entry)
     }
 }
 
@@ -347,14 +378,22 @@ pub struct MarkerTheme {
 }
 
 impl MarkerTheme {
+    /// Returns the marker icon.
     pub fn icon(&self) -> &str {
         &self.icon
     }
-    pub fn color(&self) -> &ColorPair {
-        &self.color
+
+    /// Returns the marker style, falling back to the internal default theme if colors are Reset.
+    pub fn style_or_theme(&self) -> Style {
+        self.color.style_or(&MarkerTheme::default().color)
     }
-    pub fn clipboard(&self) -> Option<&ColorPair> {
-        self.clipboard.as_ref()
+
+    /// Returns the clipboard marker style, falling back to the marker style if clipboard is None.
+    pub fn clipboard_style_or_theme(&self) -> Style {
+        match &self.clipboard {
+            Some(c) => c.style_or(&MarkerTheme::default().clipboard.unwrap()),
+            None => self.style_or_theme(),
+        }
     }
 }
 
@@ -390,14 +429,17 @@ pub struct WidgetTheme {
 }
 
 impl WidgetTheme {
+    /// Returns the dialog position.
     pub fn position(&self) -> &Option<DialogPosition> {
         &self.position
     }
 
+    /// Returns the dialog size.
     pub fn size(&self) -> &Option<DialogSize> {
         &self.size
     }
 
+    /// Returns the confirm dialog size.
     pub fn confirm_size(&self) -> &Option<DialogSize> {
         &self.confirm_size
     }
@@ -413,58 +455,61 @@ impl WidgetTheme {
 
     /// Returns the border style, falling back to the provided style for Reset colors.
     pub fn border_style_or(&self, fallback: Style) -> Style {
-        let fg = if self.border.fg != Color::Reset {
-            self.border.fg
-        } else {
-            fallback.fg.unwrap_or(Color::Reset)
-        };
-
-        let bg = if self.border.bg != Color::Reset {
-            self.border.bg
-        } else {
-            fallback.bg.unwrap_or(Color::Reset)
-        };
-
-        fallback.fg(fg).bg(bg)
+        self.border.style_or(&ColorPair {
+            fg: fallback.fg.unwrap_or(Color::Reset),
+            bg: fallback.bg.unwrap_or(Color::Reset),
+        })
     }
 
     /// Returns the foreground style, falling back to the provided style if Reset.
     pub fn fg_or(&self, fallback: Style) -> Style {
-        if self.color.fg() == Color::Reset {
-            fallback
-        } else {
-            Style::default().fg(self.color.fg())
-        }
+        self.color.style_or(&ColorPair {
+            fg: fallback.fg.unwrap_or(Color::Reset),
+            bg: fallback.bg.unwrap_or(Color::Reset),
+        })
     }
 
     /// Returns the background style, falling back to the provided style if Reset.
     pub fn bg_or(&self, fallback: Style) -> Style {
-        if self.color.bg() == Color::Reset {
-            fallback
-        } else {
-            Style::default().bg(self.color.bg())
-        }
+        self.color.style_or(&ColorPair {
+            fg: fallback.fg.unwrap_or(Color::Reset),
+            bg: fallback.bg.unwrap_or(Color::Reset),
+        })
+    }
+
+    /// Returns the foreground style, falling back to the internal default theme if Reset.
+    pub fn fg_or_theme(&self) -> Style {
+        self.fg_or(Style::default().fg(Theme::internal_defaults().info.color.fg))
+    }
+
+    /// Returns the background style, falling back to the internal default theme if Reset.
+    pub fn bg_or_theme(&self) -> Style {
+        self.bg_or(Style::default().bg(Theme::internal_defaults().info.color.bg))
     }
 
     /// Returns the title style, falling back to the provided style for Reset colors.
     pub fn title_style_or(&self, fallback: Style) -> Style {
-        let fg = if self.title.fg != Color::Reset {
-            self.title.fg
-        } else {
-            fallback.fg.unwrap_or(Color::Reset)
-        };
-        let bg = if self.title.bg != Color::Reset {
-            self.title.bg
-        } else {
-            fallback.bg.unwrap_or(Color::Reset)
-        };
-        fallback.fg(fg).bg(bg)
+        self.title.style_or(&ColorPair {
+            fg: fallback.fg.unwrap_or(Color::Reset),
+            bg: fallback.bg.unwrap_or(Color::Reset),
+        })
     }
 
+    /// Returns the title style, falling back to the internal default theme if Reset.
+    pub fn title_style_or_theme(&self) -> Style {
+        let fallback = Theme::internal_defaults()
+            .info
+            .title
+            .style_or(&ColorPair::default());
+        self.title_style_or(fallback)
+    }
+
+    /// Returns the number of visible results in the find dialog, falling back to the provided fallback.
     pub fn find_visible_or(&self, fallback: usize) -> usize {
         self.find_visible_results.unwrap_or(fallback)
     }
 
+    /// Returns the width of the find dialog, falling back to the provided fallback.
     pub fn find_width_or(&self, fallback: u16) -> u16 {
         self.find_width.unwrap_or(fallback)
     }

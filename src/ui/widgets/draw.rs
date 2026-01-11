@@ -68,8 +68,8 @@ pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style)
             let dialog_style = DialogStyle {
                 border: Borders::ALL,
                 border_style: widget.border_style_or(Style::default().fg(Color::Red)),
-                bg: widget.bg_or(Style::default().bg(Color::Reset)),
-                fg: widget.fg_or(Style::default().fg(Color::Reset)),
+                bg: widget.bg_or_theme(),
+                fg: widget.fg_or_theme(),
                 title: Some(Span::styled(
                     " Confirm Delete ",
                     Style::default().fg(Color::Red),
@@ -94,11 +94,11 @@ pub fn draw_input_dialog(frame: &mut Frame, app: &AppState, accent_style: Style)
             let dialog_style = DialogStyle {
                 border: Borders::ALL,
                 border_style: widget.border_style_or(accent_style),
-                bg: widget.bg_or(Style::default().bg(Color::Reset)),
-                fg: widget.fg_or(Style::default().fg(Color::Reset)),
+                bg: widget.bg_or_theme(),
+                fg: widget.fg_or_theme(),
                 title: Some(Span::styled(
                     format!(" {} ", prompt),
-                    widget.title_style_or(Style::default()),
+                    widget.title_style_or_theme(),
                 )),
             };
 
@@ -162,7 +162,7 @@ pub fn draw_status_line(frame: &mut Frame, app: &AppState) {
             width: padded_width,
             height: 1,
         };
-        let style = app.config().theme().status_line().as_style();
+        let style = app.config().theme().status_line_style();
         let line = Line::from(Span::styled(msg, style));
         let paragraph = Paragraph::new(line).alignment(ratatui::layout::Alignment::Right);
         frame.render_widget(paragraph, rect);
@@ -217,8 +217,8 @@ pub fn draw_show_info_dialog(
     let widget_info = theme.info();
     let info_cfg = &app.config().display().info();
 
-    let label_style = theme.directory().as_style();
-    let value_style = theme.entry().as_style();
+    let label_style = theme.directory_style();
+    let value_style = theme.entry_style();
 
     let position = dialog_position_unified(info_cfg.position(), app, DialogPosition::BottomLeft);
     let border_type = app.config().display().border_shape().as_border_type();
@@ -269,11 +269,11 @@ pub fn draw_show_info_dialog(
     let dialog_style = DialogStyle {
         border: Borders::ALL,
         border_style: widget_info.border_style_or(accent_style),
-        bg: widget_info.bg_or(Style::default().bg(ratatui::style::Color::Reset)),
-        fg: widget_info.fg_or(Style::default().fg(ratatui::style::Color::Reset)),
+        bg: widget_info.bg_or_theme(),
+        fg: widget_info.fg_or_theme(),
         title: Some(Span::styled(
             " File Info ",
-            widget_info.title_style_or(Style::default()),
+            widget_info.title_style_or_theme(),
         )),
     };
 
@@ -418,12 +418,9 @@ pub fn draw_find_dialog(frame: &mut Frame, app: &AppState, accent_style: Style) 
     let dialog_style = DialogStyle {
         border: Borders::ALL,
         border_style: widget.border_style_or(accent_style),
-        bg: widget.bg_or(Style::default().bg(Color::Reset)),
-        fg: widget.fg_or(Style::default().fg(Color::Reset)),
-        title: Some(Span::styled(
-            " Find ",
-            widget.title_style_or(Style::default()),
-        )),
+        bg: widget.bg_or_theme(),
+        fg: widget.fg_or_theme(),
+        title: Some(Span::styled(" Find ", widget.title_style_or_theme())),
     };
 
     draw_dialog(
@@ -469,12 +466,9 @@ pub fn draw_message_overlay(frame: &mut Frame, app: &AppState, accent_style: Sty
     let dialog_style = DialogStyle {
         border: Borders::ALL,
         border_style: widget.border_style_or(accent_style),
-        bg: widget.bg_or(Style::default().bg(ratatui::style::Color::Reset)),
-        fg: widget.fg_or(Style::default().fg(ratatui::style::Color::Reset)),
-        title: Some(Span::styled(
-            " Message ",
-            widget.title_style_or(Style::default()),
-        )),
+        bg: widget.bg_or_theme(),
+        fg: widget.fg_or_theme(),
+        title: Some(Span::styled(" Message ", widget.title_style_or_theme())),
     };
 
     let dialog_layout = DialogLayout {

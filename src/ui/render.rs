@@ -79,10 +79,10 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     let display_cfg = cfg.display();
     let theme_cfg = cfg.theme();
 
-    let accent_style = theme_cfg.accent().as_style();
-    let selection_style = theme_cfg.selection().as_style();
+    let accent_style = theme_cfg.accent_style();
+    let selection_style = theme_cfg.selection_style();
     let path_str = shorten_home_path(app.nav().current_dir());
-    let path_style = theme_cfg.path().as_style();
+    let path_style = theme_cfg.path_style();
 
     let symlink_style = theme_cfg.symlink();
 
@@ -92,13 +92,10 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     let markers = app.nav().markers();
     let marker_theme = theme_cfg.marker();
     let marker_icon = marker_theme.icon();
-    let marker_style = marker_theme.color().as_style();
+    let marker_style = marker_theme.style_or_theme();
 
     let clipboard = app.actions().clipboard().as_ref();
-    let clipboard_style = marker_theme
-        .clipboard()
-        .map(|color| color.as_style())
-        .unwrap_or(marker_style);
+    let clipboard_style = marker_theme.clipboard_style_or_theme();
 
     // Root Border / Header Logic
     if display_cfg.is_unified() {
@@ -159,9 +156,9 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 border_type,
                 accent_style,
                 styles: PaneStyles {
-                    item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
-                    dir: theme_cfg.directory().as_style(),
-                    selection: theme_cfg.parent().selection_style(selection_style),
+                    item: theme_cfg.parent().effective_style_or_theme(),
+                    dir: theme_cfg.directory_style(),
+                    selection: theme_cfg.parent().selection_style_or_theme(),
                     symlink: symlink_style,
                 },
                 highlight_symbol: "",
@@ -184,7 +181,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                     width: 1,
                     height: root_area.height,
                 },
-                theme_cfg.separator().as_style(),
+                theme_cfg.separator_style(),
             );
             pane_idx += 1;
         }
@@ -199,8 +196,8 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         };
 
         let pane_style = PaneStyles {
-            item: theme_cfg.entry().as_style(),
-            dir: theme_cfg.directory().as_style(),
+            item: theme_cfg.entry_style(),
+            dir: theme_cfg.directory_style(),
             selection: selection_style,
             symlink: symlink_style,
         };
@@ -231,7 +228,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                     width: 1,
                     height: root_area.height,
                 },
-                theme_cfg.separator().as_style(),
+                theme_cfg.separator_style(),
             );
             pane_idx += 1;
         }
@@ -240,7 +237,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     // PREVIEW PANE
     if display_cfg.preview() && pane_idx < chunks.len() {
         let area = chunks[pane_idx];
-        let bg_filler = Block::default().style(theme_cfg.preview().as_style());
+        let bg_filler = Block::default().style(theme_cfg.preview().effective_style_or_theme());
         frame.render_widget(bg_filler, area);
 
         let is_dir = app
@@ -268,9 +265,9 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
                 border_type,
                 accent_style,
                 styles: PaneStyles {
-                    item: theme_cfg.parent().effective_style(&theme_cfg.entry()),
-                    dir: theme_cfg.directory().as_style(),
-                    selection: theme_cfg.preview().selection_style(selection_style),
+                    item: theme_cfg.preview().effective_style_or_theme(),
+                    dir: theme_cfg.directory_style(),
+                    selection: theme_cfg.preview().selection_style_or_theme(),
                     symlink: symlink_style,
                 },
                 highlight_symbol: "",
@@ -288,7 +285,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             PreviewOptions {
                 use_underline: display_cfg.preview_underline(),
                 underline_match_text: display_cfg.preview_underline_color(),
-                underline_style: theme_cfg.underline().as_style(),
+                underline_style: theme_cfg.underline_style(),
             },
             &preview_markers,
         );

@@ -174,12 +174,9 @@ pub fn draw_main(frame: &mut Frame, app: &AppState, context: PaneContext) {
             spans.push(Span::raw(name_str));
         } else {
             let mut marker_style = if is_copied {
-                marker_theme
-                    .clipboard()
-                    .map(|c| c.as_style())
-                    .unwrap_or_else(|| marker_theme.color().as_style())
+                marker_theme.clipboard_style_or_theme()
             } else {
-                marker_theme.color().as_style()
+                marker_theme.style_or_theme()
             };
 
             if is_selected {
